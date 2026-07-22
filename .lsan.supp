@@ -1,0 +1,6 @@
+leak:X11_GL_GetVisual
+leak:X11_InitKeyboard
+leak:GLES2_RunCommandQueue
+leak:X11_GetGlobalContentScale
+leak:SDL_EGL_LoadLibrary
+leak:SDL_FindPhysicalAudioDeviceByCallback
