@@ -16,5 +16,20 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL3_mixer)
 
+FetchContent_Declare(
+  Luau
+  GIT_REPOSITORY https://github.com/luau-lang/luau.git
+  GIT_TAG        0.730
+  GIT_SHALLOW    TRUE
+  SYSTEM
+)
+FetchContent_MakeAvailable(Luau)
+
 add_library(vendor_lib INTERFACE)
-target_link_libraries(vendor_lib INTERFACE SDL3::SDL3 SDL3_mixer::SDL3_mixer)
+target_link_libraries(
+  vendor_lib INTERFACE 
+    SDL3::SDL3 
+    SDL3_mixer::SDL3_mixer 
+    Luau.Compiler 
+    Luau.VM
+)

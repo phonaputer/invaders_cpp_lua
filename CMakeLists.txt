@@ -4,6 +4,22 @@ project(game VERSION 0.0.1 LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_library(compiler_flags INTERFACE)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(
+      compiler_flags INTERFACE 
+        -Wall 
+        -Wextra 
+        -Wpedantic 
+        -Werror
+        $<$<CONFIG:Debug>:-fsanitize=address,undefined -g>
+    )
+    target_link_options(
+      compiler_flags INTERFACE 
+         $<$<CONFIG:Debug>:-fsanitize=address,undefined -g>
+    )
+endif()
+
 enable_testing()
 
 add_subdirectory(vendor)
