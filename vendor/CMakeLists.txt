@@ -25,6 +25,15 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Luau)
 
+FetchContent_Declare(
+  LuaBridge3
+  GIT_REPOSITORY https://github.com/kunitoki/LuaBridge3.git
+  GIT_TAG        3.0-rc12
+  GIT_SHALLOW    TRUE
+  SYSTEM
+)
+FetchContent_MakeAvailable(LuaBridge3)
+
 add_library(vendor_lib INTERFACE)
 target_link_libraries(
   vendor_lib INTERFACE 
@@ -32,4 +41,5 @@ target_link_libraries(
     SDL3_mixer::SDL3_mixer 
     Luau.Compiler 
     Luau.VM
+    LuaBridge
 )
