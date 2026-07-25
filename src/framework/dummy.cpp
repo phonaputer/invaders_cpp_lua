@@ -5,7 +5,9 @@
 #include <LuaBridge/LuaBridge.h>
 
 #include "framework/dummy.hpp"
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 void print_from_cpp(std::string str) {
@@ -13,15 +15,10 @@ void print_from_cpp(std::string str) {
 }
 
 void hello_world() {
-  const std::string source = R"(
-  local s = "Hello! Now I will count to ten... 1"
-
-  for i = 2, 10 do
-      s = s .. " " .. i
-  end
-
-  test.print_from_cpp(s .. "!")
-  )";
+  std::ifstream script("./scripts/hello_world.luau");
+  std::stringstream buffer;
+  buffer << script.rdbuf();
+  const std::string source = buffer.str();
 
   lua_State *L = luaL_newstate();
   luaL_openlibs(L);

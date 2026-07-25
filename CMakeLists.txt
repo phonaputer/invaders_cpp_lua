@@ -27,7 +27,9 @@ add_subdirectory(src)
 add_subdirectory(tests)
 
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/assets" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/scripts" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 if(EMSCRIPTEN)
   target_link_options(${PROJECT_NAME} PRIVATE "SHELL:--embed-file ${CMAKE_BINARY_DIR}/assets@/assets")
+  target_link_options(${PROJECT_NAME} PRIVATE "SHELL:--embed-file ${CMAKE_BINARY_DIR}/scripts@/scripts")
 endif()

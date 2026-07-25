@@ -1,0 +1,10 @@
+{
+  "luau-lsp.types.definitionFiles": {
+    "cpp_types": "scripts/cpp_type_definitions/globals.d.luau"
+  },
+  "luau-lsp.sourcemap.autogenerate": false,
+  "luau-lsp.sourcemap.enabled": false,
+  "[luau]": {
+    "editor.defaultFormatter": "JohnnyMorganz.stylua"
+  }
+}
