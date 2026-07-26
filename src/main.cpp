@@ -1,103 +1,57 @@
-#define SDL_MAIN_USE_CALLBACKS
+#include <luacode.h>
+#include <lualib.h>
 
-#include "framework/game.hpp"
-#include "framework/player_input_manager.hpp"
-#include "game/scenes/dummy/scene.hpp"
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
+#include <LuaBridge/LuaBridge.h>
+
+#include "framework/caching_script_runner.hpp"
+#include "game/scenes/dummy/components/position.hpp"
+#include <iostream>
 #include <memory>
+#include <string>
 
-SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
-  framework::Game *game = nullptr;
-  try {
-    game = new framework::Game();
-    *appstate = game;
-  } catch (const std::exception &e) {
-    return SDL_APP_FAILURE;
-  }
+struct LuaStateDeleter {
+    void operator()(lua_State *L) const {
+      lua_close(L);
+    }
+};
 
-  auto scene = std::make_unique<dummy::Scene>();
-  game->set_scene(std::move(scene));
-
-  SDL_Log("Setup complete...");
-
-  return SDL_APP_CONTINUE;
+void print_from_cpp(components::Position pos) {
+  std::cout << "Position(x: " << pos.x << ", y: " << pos.y << ", z: " << pos.z << ")\n";
 }
 
-SDL_AppResult SDL_AppEvent(void *appstate, [[maybe_unused]] SDL_Event *event) {
-  auto game = (framework::Game *)appstate;
-
-  switch (event->type) {
-    case SDL_EVENT_QUIT:
-      return SDL_APP_SUCCESS;
-
-    case SDL_EVENT_KEY_DOWN:
-      switch (event->key.scancode) {
-        case SDL_SCANCODE_A:
-          game->get_player_input_manager().engage(framework::PlayerInput::LEFT);
-          break;
-        case SDL_SCANCODE_D:
-          game->get_player_input_manager().engage(framework::PlayerInput::RIGHT);
-          break;
-        case SDL_SCANCODE_SPACE:
-          game->get_player_input_manager().engage(framework::PlayerInput::FIRE);
-          break;
-        case SDL_SCANCODE_W:
-          game->get_player_input_manager().engage(framework::PlayerInput::UP);
-          break;
-        case SDL_SCANCODE_S:
-          game->get_player_input_manager().engage(framework::PlayerInput::DOWN);
-          break;
-        case SDL_SCANCODE_ESCAPE:
-          game->get_player_input_manager().engage(framework::PlayerInput::PAUSE);
-          break;
-        default:
-          // do nothing
-      }
-      break;
-
-    case SDL_EVENT_KEY_UP:
-      switch (event->key.scancode) {
-        case SDL_SCANCODE_A:
-          game->get_player_input_manager().disengage(framework::PlayerInput::LEFT);
-          break;
-        case SDL_SCANCODE_D:
-          game->get_player_input_manager().disengage(framework::PlayerInput::RIGHT);
-          break;
-        case SDL_SCANCODE_SPACE:
-          game->get_player_input_manager().disengage(framework::PlayerInput::FIRE);
-          break;
-        case SDL_SCANCODE_W:
-          game->get_player_input_manager().disengage(framework::PlayerInput::UP);
-          break;
-        case SDL_SCANCODE_S:
-          game->get_player_input_manager().disengage(framework::PlayerInput::DOWN);
-          break;
-        case SDL_SCANCODE_ESCAPE:
-          game->get_player_input_manager().disengage(framework::PlayerInput::PAUSE);
-          break;
-        default:
-          // do nothing
-      }
-      break;
-  }
-
-  return SDL_APP_CONTINUE;
+void type_check(std::string type_id) {
+  std::cout << type_id << '\n';
 }
 
-SDL_AppResult SDL_AppIterate(void *appstate) {
-  auto game = (framework::Game *)appstate;
+int main() {
+  lua_State *raw_L = luaL_newstate();
+  std::shared_ptr<lua_State> L{raw_L, LuaStateDeleter()};
 
-  game->update();
-  game->draw();
+  luaL_openlibs(L.get());
 
-  return SDL_APP_CONTINUE;
-}
+  luabridge::getGlobalNamespace(L.get())
+      .beginNamespace("Components")
+      .beginClass<components::Position>("Position")
+      .addConstructor<void (*)(void)>()
+      .addStaticFunction("GetTypeID", []() { return "This is a position"; })
+      .addProperty("x", &components::Position::x, &components::Position::x)
+      .addProperty("y", &components::Position::y, &components::Position::y)
+      .addProperty("z", &components::Position::z, &components::Position::z)
+      .endClass()
+      .endNamespace();
 
-void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result) {
-  auto game = (framework::Game *)appstate;
+  luabridge::getGlobalNamespace(L.get())
+      .beginNamespace("test")
+      .addFunction("print_from_cpp", print_from_cpp)
+      .addFunction("type_check", type_check)
+      .endNamespace();
 
-  delete game;
+  auto script_runner = std::make_unique<framework::CachingScriptRunner>(L);
 
-  SDL_Log("Quitting...");
+  std::cout << "Run 1...\n";
+  script_runner->run_script("hello_world");
+  std::cout << "\nRun 2...\n";
+  script_runner->run_script("hello_world");
+  std::cout << "\nRun 3...\n";
+  script_runner->run_script("hello_world");
 }

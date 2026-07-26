@@ -4,6 +4,8 @@
 #include "game/scenes/dummy/systems/sprite_rendering.hpp"
 #include <memory>
 
+#include <LuaBridge/LuaBridge.h>
+
 namespace dummy {
 
 void Scene::initialize(framework::SceneInitializationContext ctx) {
