@@ -3,4 +3,8 @@ target_sources(
   PRIVATE
   caching_script_runner.cpp
   dummy.cpp
+  game.cpp
+  player_input_manager.cpp
+  sdl_asset_manager.cpp
+  sdl_renderer.cpp
 )

@@ -43,3 +43,4 @@ target_link_libraries(
     Luau.VM
     LuaBridge
 )
+target_include_directories(vendor_lib INTERFACE entt-4.0.0)

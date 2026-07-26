@@ -9,6 +9,7 @@ target_include_directories(
 )
 
 add_subdirectory(framework)
+add_subdirectory(game)
 
 add_executable(
   ${PROJECT_NAME} 
