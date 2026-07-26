@@ -1,6 +1,6 @@
-local s = "Hello! Now I will count to eleven... 1"
+local s = "Hello! Now I will count to twelve... 1"
 
-for i = 2, 11 do
+for i = 2, 12 do
 	s = s .. " " .. i
 end
 
