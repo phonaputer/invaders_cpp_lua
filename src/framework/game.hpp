@@ -12,11 +12,19 @@
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <entt.hpp>
+#include <lualib.h>
 #include <memory>
 #include <optional>
 
 namespace framework {
 
+struct LuaStateDeleter {
+    void operator()(lua_State *L) const {
+      lua_close(L);
+    }
+};
+
+// TODO - This is probably due to be split up into multiple classes.
 class Game : public SystemRegistry, public SceneSetter {
   private:
     // Window and Renderer are owned and cleaned up by SDL.
@@ -29,6 +37,7 @@ class Game : public SystemRegistry, public SceneSetter {
     std::shared_ptr<SDLAssetManager> asset_manager;
     EventBroker event_broker;
     entt::registry ecs;
+    std::unique_ptr<lua_State, LuaStateDeleter> L;
 
     std::vector<std::unique_ptr<System>> update_systems;
     std::vector<std::unique_ptr<System>> draw_systems;

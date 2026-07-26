@@ -6,6 +6,7 @@
 #include "framework/scene_setter.hpp"
 #include "framework/system_registry.hpp"
 #include <entt.hpp>
+#include <lualib.h>
 
 namespace framework {
 
@@ -18,6 +19,7 @@ struct SceneInitializationContext {
     Renderer &renderer;
     AudioPlayer &audio_player;
     SceneSetter &scene_setter;
+    lua_State &L;
 };
 
 class Scene {
