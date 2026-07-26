@@ -1,3 +1,5 @@
+# Taken from here, with some tweaks to suppress checks I don't want:
+# https://github.com/cpp-best-practices/cmake_template
 ---
 Checks: "*,
         -abseil-*,
@@ -15,7 +17,8 @@ Checks: "*,
         -misc-non-private-member-variables-in-classes,
         -misc-no-recursion,
         -misc-use-anonymous-namespace,
-        -misc-use-internal-linkage
+        -misc-use-internal-linkage,
+        -portability-avoid-pragma-once
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: '*.hpp'
