@@ -4,42 +4,39 @@
 
 #include <LuaBridge/LuaBridge.h>
 
+#include "framework/caching_script_runner.hpp"
 #include "framework/dummy.hpp"
-#include <fstream>
 #include <iostream>
-#include <sstream>
+#include <memory>
 #include <string>
+
+struct LuaStateDeleter {
+    void operator()(lua_State *L) const {
+      lua_close(L);
+    }
+};
 
 void print_from_cpp(std::string str) {
   std::cout << str << "\n";
 }
 
 void hello_world() {
-  std::ifstream script("./scripts/hello_world.luau");
-  std::stringstream buffer;
-  buffer << script.rdbuf();
-  const std::string source = buffer.str();
+  lua_State *raw_L = luaL_newstate();
+  std::shared_ptr<lua_State> L{raw_L, LuaStateDeleter()};
 
-  lua_State *L = luaL_newstate();
-  luaL_openlibs(L);
+  luaL_openlibs(L.get());
 
-  luabridge::getGlobalNamespace(L).beginNamespace("test").addFunction("print_from_cpp", print_from_cpp).endNamespace();
+  luabridge::getGlobalNamespace(L.get())
+      .beginNamespace("test")
+      .addFunction("print_from_cpp", print_from_cpp)
+      .endNamespace();
 
-  size_t bytecodeSize = 0;
-  char *bytecode = luau_compile(source.c_str(), source.length(), NULL, &bytecodeSize);
+  auto script_runner = std::make_unique<framework::CachingScriptRunner>(L);
 
-  if (luau_load(L, "HelloWorld", bytecode, bytecodeSize, 0) != LUA_OK) {
-    std::cerr << "Error loading string: " << lua_tostring(L, -1) << std::endl;
-    lua_close(L);
-    free(bytecode);
-    return;
-  }
-
-  free(bytecode);
-
-  if (lua_pcall(L, 0, 0, 0) != LUA_OK) {
-    std::cerr << "Error running code: " << lua_tostring(L, -1) << std::endl;
-  }
-
-  lua_close(L);
+  std::cout << "Run 1...\n";
+  script_runner->run_script("hello_world");
+  std::cout << "\nRun 2...\n";
+  script_runner->run_script("hello_world");
+  std::cout << "\nRun 3...\n";
+  script_runner->run_script("hello_world");
 }
