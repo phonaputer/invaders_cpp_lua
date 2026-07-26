@@ -14,7 +14,13 @@ struct ExecuteCtx {
 
 class System {
   public:
+    System() = default;
     virtual ~System() = default;
+    System(const System &) = delete;
+    System &operator=(const System &) = delete;
+    System(System &&) = delete;
+    System &operator=(System &&) = delete;
+
     virtual void execute(ExecuteCtx &ctx) = 0;
 };
 
