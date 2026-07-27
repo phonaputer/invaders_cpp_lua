@@ -11,6 +11,13 @@ declare Components: {
 }
 
 declare test: {
-    print_from_cpp: (PositionInstance) -> (),
-    type_check: (id: string) -> (),
+    printPosition: (PositionInstance) -> (),
+}
+
+declare ECS: {
+    create: () -> (number),
+    hasPosition: (number) -> (boolean),
+    getPosition: (number) -> PositionInstance,
+    setPosition: (number, PositionInstance) -> (),
+    removePosition: (number) -> (),
 }

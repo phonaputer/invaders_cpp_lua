@@ -1,10 +1,17 @@
 --!strict
 
-local c = Components.Position()
+local e = ECS.create()
 
-c.x = 1
-c.y = 2
-c.z = 3
+local p = Components.Position()
 
-test.print_from_cpp(c)
-test.type_check(Components.Position.GetTypeID())
+p.x = 1
+p.y = 2
+p.z = 3
+
+print("has position, before set: " .. tostring(ECS.hasPosition(e)))
+
+ECS.setPosition(e, p)
+
+print("has position, after set: " .. tostring(ECS.hasPosition(e)))
+
+test.printPosition(ECS.getPosition(e))
