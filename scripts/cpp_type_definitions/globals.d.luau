@@ -12,6 +12,9 @@ declare Components: {
 
 declare test: {
     printPosition: (PositionInstance) -> (),
+    runCallback: ((string)->()) -> (),
+    printAll: ({string}) -> (),
+    printAllRAW: (...string) -> (),
 }
 
 declare ECS: {

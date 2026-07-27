@@ -8,6 +8,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <vector>
 
 struct Position {
     float x;
@@ -19,6 +20,43 @@ struct Position {
 
 void print_position(Position pos) {
   std::cout << "Position(x: " << pos.x << ", y: " << pos.y << ", z: " << pos.z << ")\n";
+}
+
+int varargs_function_raw_style(lua_State *L) {
+  int numArgs = lua_gettop(L);
+
+  for (int i = 1; i <= numArgs; i++) {
+    luabridge::LuaRef ref = luabridge::LuaRef::fromStack(L, i);
+
+    if (!ref.isString()) {
+      std::cout << "Where is my RAW STYLE strang, mang\n";
+    } else {
+      std::cout << ref.cast<std::string>().value() << ", ";
+    }
+  }
+
+  std::cout << "\n";
+
+  return 0;
+}
+
+void varargs_function(luabridge::LuaRef ref) {
+  if (!ref.isTable()) {
+    std::cout << "I'm tabling this motion\n";
+    return;
+  }
+
+  for (int i = 1; i <= ref.length(); i++) {
+    auto elem = ref[i];
+
+    if (!elem.isString()) {
+      std::cout << "Where is my strang, mang\n";
+    } else {
+      std::cout << elem.cast<std::string>().value() << ", ";
+    }
+  }
+
+  std::cout << "\n";
 }
 
 template <typename T> void register_crud_functions_for_component(lua_State &L, entt::registry &ecs, std::string name) {
@@ -60,6 +98,15 @@ void position_register_to_lua(lua_State &L, entt::registry &ecs) {
   register_crud_functions_for_component<Position>(L, ecs, "Position");
 }
 
+void run_callback(luabridge::LuaRef callback) {
+  if (!callback.isFunction()) {
+    std::cout << "what have you done, son?\n";
+    return;
+  }
+
+  callback("good golly miss molly");
+}
+
 struct LuaStateDeleter {
     void operator()(lua_State *L) const {
       lua_close(L);
@@ -90,6 +137,9 @@ int main() {
   luabridge::getGlobalNamespace(L.get())
       .beginNamespace("test")
       .addFunction("printPosition", print_position)
+      .addFunction("runCallback", run_callback)
+      .addFunction("printAll", varargs_function)
+      .addFunction("printAllRAW", varargs_function_raw_style)
       .endNamespace();
 
   auto script_runner = std::make_unique<framework::CachingScriptRunner>(L);
