@@ -21,6 +21,30 @@ void print_position(Position pos) {
   std::cout << "Position(x: " << pos.x << ", y: " << pos.y << ", z: " << pos.z << ")\n";
 }
 
+template <typename T> void register_crud_functions_for_component(lua_State &L, entt::registry &ecs, std::string name) {
+  // clang-format off
+    luabridge::getGlobalNamespace(&L)
+      .beginNamespace("ECS")
+      .addFunction(
+          ("set" + name).c_str(),
+          [&ecs](uint32_t e_int, T t) { ecs.emplace_or_replace<T>(static_cast<entt::entity>(e_int), t); }
+      )
+      .addFunction(
+          ("has" + name).c_str(), 
+          [&ecs](uint32_t e_int) { return ecs.all_of<T>(static_cast<entt::entity>(e_int)); }
+      )
+      .addFunction(
+          ("get" + name).c_str(), 
+          [&ecs](uint32_t e_int) { return ecs.get<T>(static_cast<entt::entity>(e_int)); }
+      )
+      .addFunction(
+          ("remove" + name).c_str(), 
+          [&ecs](uint32_t e_int) { ecs.remove<T>(static_cast<entt::entity>(e_int)); }
+      )
+      .endNamespace();
+  // clang-format on
+}
+
 void position_register_to_lua(lua_State &L, entt::registry &ecs) {
   luabridge::getGlobalNamespace(&L)
       .beginNamespace("Components")
@@ -33,20 +57,7 @@ void position_register_to_lua(lua_State &L, entt::registry &ecs) {
       .endClass()
       .endNamespace();
 
-  luabridge::getGlobalNamespace(&L)
-      .beginNamespace("ECS")
-      .addFunction(
-          "setPosition",
-          [&ecs](uint32_t e_int, Position p) { ecs.emplace_or_replace<Position>(static_cast<entt::entity>(e_int), p); }
-      )
-      .addFunction(
-          "hasPosition", [&ecs](uint32_t e_int) { return ecs.all_of<Position>(static_cast<entt::entity>(e_int)); }
-      )
-      .addFunction(
-          "getPosition", [&ecs](uint32_t e_int) { return ecs.get<Position>(static_cast<entt::entity>(e_int)); }
-      )
-      .addFunction("removePosition", [&ecs](uint32_t e_int) { ecs.remove<Position>(static_cast<entt::entity>(e_int)); })
-      .endNamespace();
+  register_crud_functions_for_component<Position>(L, ecs, "Position");
 }
 
 struct LuaStateDeleter {
