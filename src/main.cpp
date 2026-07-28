@@ -132,6 +132,40 @@ int main() {
             return entt::to_integral(e);
           }
       )
+      .addFunction(
+          "view",
+
+          // crazy nested lamdas because I'm on crack or something
+          [&ecs, &L](luabridge::LuaRef table) -> luabridge::LuaRef {
+            if (!table.isTable()) {
+              throw std::runtime_error("Need a table, did not get one");
+            }
+
+            entt::runtime_view view{};
+
+            for (int i = 1; i <= table.length(); i++) {
+              auto elem = table[i];
+
+              if (!elem.isString()) {
+                continue;
+              }
+              if (elem.cast<std::string>().value() == Position::TYPE_ID) {
+                view.iterate(ecs.storage<Position>());
+              }
+            }
+
+            return luabridge::newFunction(L.get(), [view](luabridge::LuaRef callback) {
+              if (!callback.isFunction()) {
+                std::cout << "need a function, did not get one\n";
+                return;
+              }
+
+              for (auto entity : view) {
+                callback(entt::to_integral(entity));
+              }
+            });
+          }
+      )
       .endNamespace();
 
   luabridge::getGlobalNamespace(L.get())

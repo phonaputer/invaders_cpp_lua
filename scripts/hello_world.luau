@@ -16,9 +16,14 @@ print("has position, after set: " .. tostring(ECS.hasPosition(e)))
 
 test.printPosition(ECS.getPosition(e))
 
-test.runCallback(function(text)
-	print("this is the callback: " .. text)
-end)
+-- test.runCallback(function(text)
+-- 	print("this is the callback: " .. text)
+-- end)
 
-test.printAll({ "yes", "my", "man" })
-test.printAllRAW("print", "that", "fine", "thing")
+-- test.printAll({ "yes", "my", "man" })
+-- test.printAllRAW("print", "that", "fine", "thing")
+
+ECS.view({ Components.Position.GetTypeID() })(function(viewE)
+	local pos = ECS.getPosition(viewE)
+	print("entity " .. tostring(viewE) .. " position X is: " .. tostring(pos.x))
+end)
