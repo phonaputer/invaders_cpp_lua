@@ -4,6 +4,7 @@
 #include <LuaBridge/LuaBridge.h>
 
 #include "framework/caching_script_runner.hpp"
+#include "framework/ecs_script_registry.hpp"
 #include <entt.hpp>
 #include <iostream>
 #include <memory>
@@ -14,8 +15,6 @@ struct Position {
     float x;
     float y;
     float z;
-
-    static constexpr std::string TYPE_ID = "Position";
 };
 
 void print_position(Position pos) {
@@ -59,45 +58,6 @@ void varargs_function(luabridge::LuaRef ref) {
   std::cout << "\n";
 }
 
-template <typename T> void register_crud_functions_for_component(lua_State &L, entt::registry &ecs, std::string name) {
-  // clang-format off
-    luabridge::getGlobalNamespace(&L)
-      .beginNamespace("ECS")
-      .addFunction(
-          ("set" + name).c_str(),
-          [&ecs](uint32_t e_int, T t) { ecs.emplace_or_replace<T>(static_cast<entt::entity>(e_int), t); }
-      )
-      .addFunction(
-          ("has" + name).c_str(), 
-          [&ecs](uint32_t e_int) { return ecs.all_of<T>(static_cast<entt::entity>(e_int)); }
-      )
-      .addFunction(
-          ("get" + name).c_str(), 
-          [&ecs](uint32_t e_int) { return ecs.get<T>(static_cast<entt::entity>(e_int)); }
-      )
-      .addFunction(
-          ("remove" + name).c_str(), 
-          [&ecs](uint32_t e_int) { ecs.remove<T>(static_cast<entt::entity>(e_int)); }
-      )
-      .endNamespace();
-  // clang-format on
-}
-
-void position_register_to_lua(lua_State &L, entt::registry &ecs) {
-  luabridge::getGlobalNamespace(&L)
-      .beginNamespace("Components")
-      .beginClass<Position>("Position")
-      .addConstructor<void (*)(void)>()
-      .addStaticFunction("GetTypeID", []() { return Position::TYPE_ID; })
-      .addProperty("x", &Position::x, &Position::x)
-      .addProperty("y", &Position::y, &Position::y)
-      .addProperty("z", &Position::z, &Position::z)
-      .endClass()
-      .endNamespace();
-
-  register_crud_functions_for_component<Position>(L, ecs, "Position");
-}
-
 void run_callback(luabridge::LuaRef callback) {
   if (!callback.isFunction()) {
     std::cout << "what have you done, son?\n";
@@ -116,57 +76,20 @@ struct LuaStateDeleter {
 int main() {
   entt::registry ecs;
 
-  lua_State *raw_L = luaL_newstate();
-  std::shared_ptr<lua_State> L{raw_L, LuaStateDeleter()};
-
+  std::shared_ptr<lua_State> L{luaL_newstate(), LuaStateDeleter()};
   luaL_openlibs(L.get());
 
-  position_register_to_lua(*L, ecs);
+  framework::ECSScriptRegistry scripts{ecs, *L};
 
-  luabridge::getGlobalNamespace(L.get())
-      .beginNamespace("ECS")
-      .addFunction(
-          "create",
-          [&ecs]() {
-            auto e = ecs.create();
-            return entt::to_integral(e);
-          }
-      )
-      .addFunction(
-          "view",
-
-          // crazy nested lamdas because I'm on crack or something
-          [&ecs, &L](luabridge::LuaRef table) -> luabridge::LuaRef {
-            if (!table.isTable()) {
-              throw std::runtime_error("Need a table, did not get one");
-            }
-
-            entt::runtime_view view{};
-
-            for (int i = 1; i <= table.length(); i++) {
-              auto elem = table[i];
-
-              if (!elem.isString()) {
-                continue;
-              }
-              if (elem.cast<std::string>().value() == Position::TYPE_ID) {
-                view.iterate(ecs.storage<Position>());
-              }
-            }
-
-            return luabridge::newFunction(L.get(), [view](luabridge::LuaRef callback) {
-              if (!callback.isFunction()) {
-                std::cout << "need a function, did not get one\n";
-                return;
-              }
-
-              for (auto entity : view) {
-                callback(entt::to_integral(entity));
-              }
-            });
-          }
-      )
-      .endNamespace();
+  scripts.register_component<Position>(
+      "Position",
+      [](auto &clazz) {
+        clazz.addProperty("x", &Position::x, &Position::x)
+            .addProperty("y", &Position::y, &Position::y)
+            .addProperty("z", &Position::z, &Position::z);
+      },
+      [](entt::registry &view_ecs, entt::runtime_view &view) { view.iterate(view_ecs.storage<Position>()); }
+  );
 
   luabridge::getGlobalNamespace(L.get())
       .beginNamespace("test")

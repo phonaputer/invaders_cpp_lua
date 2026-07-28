@@ -17,10 +17,14 @@ declare test: {
     printAllRAW: (...string) -> (),
 }
 
+type EntityCallback = (number) -> ()
+type EntityCallbackExecutor = (EntityCallback) -> ()
+
 declare ECS: {
     create: () -> (number),
     hasPosition: (number) -> (boolean),
     getPosition: (number) -> PositionInstance,
     setPosition: (number, PositionInstance) -> (),
     removePosition: (number) -> (),
+    view: ({string}) -> EntityCallbackExecutor
 }
