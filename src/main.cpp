@@ -1,4 +1,3 @@
-#include <luacode.h>
 #include <lualib.h>
 
 #include <LuaBridge/LuaBridge.h>
@@ -9,7 +8,6 @@
 #include <iostream>
 #include <memory>
 #include <string>
-#include <vector>
 
 struct Position {
     float x;
