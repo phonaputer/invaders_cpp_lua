@@ -82,16 +82,17 @@ uint32_t ECSScriptRegistry::create_entity() {
   return entt::to_integral(ecs.create());
 }
 
-inline luabridge::LuaRef ECSScriptRegistry::generate_view_callback(luabridge::LuaRef table) {
-  if (!table.isTable()) {
-    // TODO - decide a better way to handle these errors
-    throw std::runtime_error("Need a table, did not get one");
+inline luabridge::LuaRef ECSScriptRegistry::generate_view_callback(lua_State *L_ref) {
+  int numArgs = lua_gettop(L_ref);
+
+  if (numArgs < 1) {
+    throw std::runtime_error("Expected at least one arg to generate view callback");
   }
 
   entt::runtime_view view{};
 
-  for (int i = 1; i <= table.length(); i++) {
-    auto elem = table[i];
+  for (int i = 1; i <= numArgs; i++) {
+    auto elem = luabridge::LuaRef::fromStack(L_ref, i);
     if (!elem.isTable()) {
       throw std::runtime_error("Need a object table, did not get one");
     }
