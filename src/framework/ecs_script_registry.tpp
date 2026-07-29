@@ -22,13 +22,8 @@ inline ECSScriptRegistry::ECSScriptRegistry(entt::registry &ecs, lua_State &L)
   // clang-format on
 }
 
-// This is ugly as hell, but it does "seem to work."
 template <typename T, typename F>
-void ECSScriptRegistry::register_component(
-    std::string name,
-    F &&fields_register_func,
-    std::function<void(entt::registry &, entt::runtime_view &)> apply_storage_to_runtime_view_func
-) {
+void ECSScriptRegistry::register_component(std::string name, F &&fields_register_func) {
   auto type_id = cur_type_id++;
 
   // clang-format off
@@ -73,7 +68,10 @@ void ECSScriptRegistry::register_component(
 
   clazz.endClass().endNamespace();
 
-  type_id_to_view_func.insert({type_id, apply_storage_to_runtime_view_func});
+  type_id_to_view_func.insert({
+      type_id,
+      [](entt::registry &view_ecs, entt::runtime_view &view) { view.iterate(view_ecs.storage<T>()); },
+  });
 }
 
 uint32_t ECSScriptRegistry::create_entity() {

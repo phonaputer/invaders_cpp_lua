@@ -14,7 +14,7 @@ namespace framework {
 // caching_script_runner logic here
 
 // No need to use an abstract class "interface" here since this will only be
-// called by plumbing that won't be, unit tested.
+// called by plumbing that won't be unit tested.
 class ECSScriptRegistry {
   private:
     entt::registry &ecs;
@@ -29,12 +29,8 @@ class ECSScriptRegistry {
   public:
     ECSScriptRegistry(entt::registry &ecs, lua_State &L);
 
-    template <typename T, typename F>
-    void register_component(
-        std::string name,
-        F &&fields_register_func,
-        std::function<void(entt::registry &, entt::runtime_view &)> apply_storage_to_runtime_view_func
-    );
+    // Looking forward to C++26 reflection when hopefully the string & function params can be removed.
+    template <typename T, typename F> void register_component(std::string name, F &&fields_register_func);
 };
 
 } // namespace framework

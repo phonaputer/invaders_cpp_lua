@@ -79,15 +79,11 @@ int main() {
 
   framework::ECSScriptRegistry scripts{ecs, *L};
 
-  scripts.register_component<Position>(
-      "Position",
-      [](auto &clazz) {
-        clazz.addProperty("x", &Position::x, &Position::x)
-            .addProperty("y", &Position::y, &Position::y)
-            .addProperty("z", &Position::z, &Position::z);
-      },
-      [](entt::registry &view_ecs, entt::runtime_view &view) { view.iterate(view_ecs.storage<Position>()); }
-  );
+  scripts.register_component<Position>("Position", [](auto &clazz) {
+    clazz.addProperty("x", &Position::x, &Position::x)
+        .addProperty("y", &Position::y, &Position::y)
+        .addProperty("z", &Position::z, &Position::z);
+  });
 
   luabridge::getGlobalNamespace(L.get())
       .beginNamespace("test")
