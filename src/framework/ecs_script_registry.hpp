@@ -24,7 +24,7 @@ class ECSScriptRegistry {
     std::unordered_map<uint32_t, std::function<void(entt::registry &, entt::runtime_view &)>> type_id_to_view_func;
 
     uint32_t create_entity();
-    luabridge::LuaRef generate_view_callback(lua_State *L_ref);
+    luabridge::LuaRef generate_view_callback(luabridge::LuaRef table);
 
   public:
     ECSScriptRegistry(entt::registry &ecs, lua_State &L);

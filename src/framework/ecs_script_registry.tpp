@@ -82,28 +82,39 @@ uint32_t ECSScriptRegistry::create_entity() {
   return entt::to_integral(ecs.create());
 }
 
-inline luabridge::LuaRef ECSScriptRegistry::generate_view_callback(lua_State *L_ref) {
-  int numArgs = lua_gettop(L_ref);
-
-  if (numArgs < 1) {
-    throw std::runtime_error("Expected at least one arg to generate view callback");
+inline luabridge::LuaRef ECSScriptRegistry::generate_view_callback(luabridge::LuaRef table) {
+  if (!table.isTable()) {
+    // TODO - decide a better way to handle these errors
+    throw std::runtime_error("Expected table input to generate view callback.");
   }
 
   entt::runtime_view view{};
+  lua_State *table_L = table.state();
 
-  for (int i = 1; i <= numArgs; i++) {
-    auto elem = luabridge::LuaRef::fromStack(L_ref, i);
+  for (int i = 1; i <= table.length(); i++) {
+    auto elem = table[i];
     if (!elem.isTable()) {
-      throw std::runtime_error("Need a object table, did not get one");
+      throw std::runtime_error("Need an object table, did not get one");
     }
 
-    auto cast_result = elem[TYPE_ID_PROPERTY_NAME.c_str()].cast<uint32_t>();
-    if (!cast_result.error()) {
-      type_id_to_view_func.at(cast_result.value())(ecs, view);
+    // Had to use the raw Lua commands here since Luabridge somehow fails to convert to uint32_t
+    // TODO - Need to take some time to understand what's going on here since I just copy-pasted it
+    elem.push(table_L);
+
+    lua_getfield(table_L, -1, TYPE_ID_PROPERTY_NAME.c_str());
+
+    if (!lua_isnumber(table_L, -1)) {
+      lua_pop(table_L, 2);
+      throw std::runtime_error("Table did not contain a valid type id number");
     }
+
+    uint32_t type_id = static_cast<uint32_t>(lua_tointeger(table_L, -1));
+    lua_pop(table_L, 2);
+
+    type_id_to_view_func.at(type_id)(ecs, view);
   }
 
-  return luabridge::newFunction(&L, [view](luabridge::LuaRef callback) {
+  return luabridge::newFunction(table_L, [view](luabridge::LuaRef callback) {
     if (!callback.isFunction()) {
       throw std::runtime_error("Need a function, did not get one");
       return;

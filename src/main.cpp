@@ -15,6 +15,11 @@ struct Position {
     float z;
 };
 
+struct Velocity {
+    float x;
+    float y;
+};
+
 void print_position(Position pos) {
   std::cout << "Position(x: " << pos.x << ", y: " << pos.y << ", z: " << pos.z << ")\n";
 }
@@ -79,6 +84,9 @@ int main() {
 
   framework::ECSScriptRegistry scripts{ecs, *L};
 
+  scripts.register_component<Velocity>("Velocity", [](auto &clazz) {
+    clazz.addProperty("x", &Velocity::x, &Velocity::x).addProperty("y", &Velocity::y, &Velocity::y);
+  });
   scripts.register_component<Position>("Position", [](auto &clazz) {
     clazz.addProperty("x", &Position::x, &Position::x)
         .addProperty("y", &Position::y, &Position::y)
@@ -97,11 +105,7 @@ int main() {
 
   std::cout << "---Run 1---\n";
   script_runner->run_script("hello_world");
-  std::cout << "---Run 1---\n\n---Run 2---\n";
-  script_runner->run_script("hello_world");
-  std::cout << "---Run 2---\n\n---Run 3---\n";
-  script_runner->run_script("hello_world");
-  std::cout << "---Run 3---\n";
+  std::cout << "---Run 1---\n";
 
   std::cout << "\n\n=====Finished Lua Runs=====\n\n\n";
 
