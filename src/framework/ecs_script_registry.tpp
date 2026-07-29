@@ -1,8 +1,12 @@
 #include "framework/ecs_script_registry.hpp"
 
+#include <string>
+
 #include <LuaBridge/LuaBridge.h>
 
 namespace framework {
+
+constexpr std::string TYPE_ID_PROPERTY_NAME = "TypeID";
 
 inline ECSScriptRegistry::ECSScriptRegistry(entt::registry &ecs, lua_State &L)
     : ecs{ecs},
@@ -61,7 +65,7 @@ void ECSScriptRegistry::register_component(std::string name, F &&fields_register
           .beginNamespace("Components")
           .beginClass<T>(name.c_str())
           .template addConstructor<void()>()
-          .addStaticFunction("GetTypeID", [type_id]() -> uint32_t { return type_id; })
+          .addStaticProperty(TYPE_ID_PROPERTY_NAME.c_str(), [type_id]() -> uint32_t { return type_id; })
   );
 
   std::forward<F>(fields_register_func)(clazz);
@@ -88,8 +92,11 @@ inline luabridge::LuaRef ECSScriptRegistry::generate_view_callback(luabridge::Lu
 
   for (int i = 1; i <= table.length(); i++) {
     auto elem = table[i];
+    if (!elem.isTable()) {
+      throw std::runtime_error("Need a object table, did not get one");
+    }
 
-    auto cast_result = table[i].cast<uint32_t>();
+    auto cast_result = elem[TYPE_ID_PROPERTY_NAME.c_str()].cast<uint32_t>();
     if (!cast_result.error()) {
       type_id_to_view_func.at(cast_result.value())(ecs, view);
     }

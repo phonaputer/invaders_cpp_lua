@@ -23,7 +23,7 @@ end)
 test.printAll({ "yes", "my", "man" })
 test.printAllRAW("print", "that", "fine", "thing")
 
-ECS.view({ Components.Position.GetTypeID() })(function(viewE)
+ECS.view({ Components.Position })(function(viewE)
 	local pos = ECS.getPosition(viewE)
 	print("entity " .. tostring(viewE) .. " position X is: " .. tostring(pos.x))
 end)
