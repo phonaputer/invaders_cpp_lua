@@ -103,8 +103,13 @@ int main() {
 
   auto script_runner = std::make_unique<framework::CachingScriptRunner>(L);
 
-  std::cout << "---Run 1---\n";
   script_runner->run_script("hello_world");
+
+  std::cout << "---Run 1---\n";
+  luabridge::getGlobal(L.get(), "doHelloWorld")();
+  auto phonk = luabridge::getGlobal(L.get(), "addEm");
+  auto result = phonk.call<int>(2, 3);
+  std::cout << "addEm: " << result.value() << "\n";
   std::cout << "---Run 1---\n";
 
   std::cout << "\n\n=====Finished Lua Runs=====\n\n\n";
