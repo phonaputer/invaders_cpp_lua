@@ -2,8 +2,7 @@
 
 #include <LuaBridge/LuaBridge.h>
 
-#include "framework/caching_script_runner.hpp"
-#include "framework/ecs_script_registry.hpp"
+#include "framework/script_environment.hpp"
 #include <entt.hpp>
 #include <iostream>
 #include <memory>
@@ -79,37 +78,27 @@ struct LuaStateDeleter {
 int main() {
   entt::registry ecs;
 
-  std::shared_ptr<lua_State> L{luaL_newstate(), LuaStateDeleter()};
-  luaL_openlibs(L.get());
+  framework::ScriptEnvironment script_env{ecs};
 
-  framework::ECSScriptRegistry scripts{ecs, *L};
-
-  scripts.register_component<Velocity>("Velocity", [](auto &clazz) {
+  script_env.register_component<Velocity>("Velocity", [](auto &clazz) {
     clazz.addProperty("x", &Velocity::x, &Velocity::x).addProperty("y", &Velocity::y, &Velocity::y);
   });
-  scripts.register_component<Position>("Position", [](auto &clazz) {
+  script_env.register_component<Position>("Position", [](auto &clazz) {
     clazz.addProperty("x", &Position::x, &Position::x)
         .addProperty("y", &Position::y, &Position::y)
         .addProperty("z", &Position::z, &Position::z);
   });
 
-  luabridge::getGlobalNamespace(L.get())
-      .beginNamespace("test")
-      .addFunction("printPosition", print_position)
-      .addFunction("runCallback", run_callback)
-      .addFunction("printAll", varargs_function)
-      .addFunction("printAllRAW", varargs_function_raw_style)
-      .endNamespace();
+  script_env.register_function("printPosition", print_position);
+  script_env.register_function("runCallback", print_position);
+  script_env.register_function("printAll", print_position);
+  script_env.register_function("printAllRAW", print_position);
 
-  auto script_runner = std::make_unique<framework::CachingScriptRunner>(L);
-
-  script_runner->run_script("hello_world");
+  script_env.exec_script_file("hello_world");
 
   std::cout << "---Run 1---\n";
-  luabridge::getGlobal(L.get(), "doHelloWorld")();
-  auto phonk = luabridge::getGlobal(L.get(), "addEm");
-  auto result = phonk.call<int>(2, 3);
-  std::cout << "addEm: " << result.value() << "\n";
+  script_env.call_function("doHelloWorld");
+  script_env.call_function("addEm", 2, 4);
   std::cout << "---Run 1---\n";
 
   std::cout << "\n\n=====Finished Lua Runs=====\n\n\n";
