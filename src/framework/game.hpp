@@ -43,7 +43,7 @@ class Game : public SystemRegistry, public SceneSetter {
     Uint64 previous_now_ms;
     Uint64 unprocessed_ms;
 
-    void apply_new_scene();
+    void apply_new_scene_if_any();
 
   public:
     Game();

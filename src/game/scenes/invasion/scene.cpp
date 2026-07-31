@@ -1,10 +1,9 @@
 #include "game/scenes/invasion/scene.hpp"
+#include "framework/scene.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
 #include "game/scenes/invasion/systems/sprite_rendering.hpp"
 #include <memory>
-
-#include <LuaBridge/LuaBridge.h>
 
 namespace invasion {
 

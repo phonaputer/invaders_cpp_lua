@@ -3,10 +3,13 @@
 #include "framework/event_broker.hpp"
 #include "framework/player_input_manager.hpp"
 #include "framework/scene.hpp"
+#include "framework/script_environment.hpp"
 #include "framework/sdl_asset_manager.hpp"
 #include "framework/sdl_renderer.hpp"
+#include "framework/system.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
+#include <cstdint>
 #include <entt.hpp>
 #include <format>
 #include <memory>
@@ -15,15 +18,15 @@
 
 namespace framework {
 
-const Uint64 TARGET_FPS = 60;
-const Uint64 MS_PER_UPDATE = 1000 / TARGET_FPS;
+const uint64_t TARGET_FPS = 60;
+const uint64_t MS_PER_UPDATE = 1000 / TARGET_FPS;
 
 const int ACTUAL_WINDOW_WIDTH = 448;
 const int ACTUAL_WINDOW_HEIGHT = 576;
 
 struct SDLMixerDeleter {
-    void operator()(MIX_Mixer *p) const {
-      MIX_DestroyMixer(p);
+    void operator()(MIX_Mixer *mixer_p) const {
+      MIX_DestroyMixer(mixer_p);
     }
 };
 
@@ -38,12 +41,12 @@ Game::Game() {
       ACTUAL_WINDOW_HEIGHT,
       SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIDDEN
   );
-  if (!window) {
+  if (window == nullptr) {
     throw std::runtime_error(std::format("Couldn't create window: {}", SDL_GetError()));
   }
 
-  renderer = SDL_CreateRenderer(window, NULL);
-  if (!renderer) {
+  renderer = SDL_CreateRenderer(window, nullptr);
+  if (renderer == nullptr) {
     throw std::runtime_error(std::format("Couldn't create renderer: {}", SDL_GetError()));
   }
 
@@ -55,8 +58,8 @@ Game::Game() {
     throw std::runtime_error(std::format("Couldn't initialize sound mixer: {}", SDL_GetError()));
   }
 
-  auto mixerP = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
-  if (!mixerP) {
+  auto *mixerP = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
+  if (mixerP == nullptr) {
     throw std::runtime_error(std::format("Couldn't initialize mixer device: {}", SDL_GetError()));
   }
   mixer = std::shared_ptr<MIX_Mixer>(mixerP, SDLMixerDeleter());
@@ -70,9 +73,7 @@ Game::Game() {
 }
 
 void Game::update() {
-  if (new_scene.has_value()) {
-    apply_new_scene();
-  }
+  apply_new_scene_if_any();
 
   if (!have_active_scene) {
     return;
@@ -104,7 +105,7 @@ void Game::update() {
   // Doing this should save some CPU by preventing SDL from executing this
   // function as fast as possible.
   // A cursory test seemed to indicate this cuts CPU usage by about 50%.
-  const Uint64 frameTime = SDL_GetTicks() - now_ms;
+  const uint64_t frameTime = SDL_GetTicks() - now_ms;
   if (MS_PER_UPDATE > frameTime) {
     SDL_Delay(MS_PER_UPDATE - frameTime);
   }
@@ -147,7 +148,11 @@ void Game::add_draw_system(std::unique_ptr<System> system) {
   draw_systems.push_back(std::move(system));
 }
 
-void Game::apply_new_scene() {
+void Game::apply_new_scene_if_any() {
+  if (!new_scene.has_value()) {
+    return;
+  }
+
   ecs.clear();
   asset_manager->clear_all();
   update_systems.clear();

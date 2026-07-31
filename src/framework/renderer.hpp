@@ -40,7 +40,13 @@ struct DrawLineParams {
 
 class Renderer {
   public:
+    Renderer() = default;
     virtual ~Renderer() = default;
+    Renderer(const Renderer &) = delete;
+    Renderer &operator=(const Renderer &) = delete;
+    Renderer(Renderer &&) = delete;
+    Renderer &operator=(Renderer &&) = delete;
+
     virtual void draw_image(const DrawImageParams &params) = 0;
     virtual void draw_rect(const DrawRectParams &params) = 0;
     virtual void draw_line(const DrawLineParams &params) = 0;
