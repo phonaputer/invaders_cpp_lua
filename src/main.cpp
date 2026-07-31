@@ -94,7 +94,7 @@ int main() {
   script_env.register_function("printAll", print_position);
   script_env.register_function("printAllRAW", print_position);
 
-  script_env.exec_script_file("hello_world");
+  script_env.exec_all_script_files_in_dir("invasion");
 
   std::cout << "---Run 1---\n";
   script_env.call_function("doHelloWorld");

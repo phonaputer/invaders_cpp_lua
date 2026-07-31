@@ -26,9 +26,13 @@ struct FreeDeleter {
     }
 };
 
-inline void ScriptEnvironment::exec_single_script_file(std::string path) {
-  std::ifstream script_file(path + SCRIPT_PATH_SUFFIX);
-  assert(script_file.is_open() && "Failed to open script file.");
+inline void ScriptEnvironment::open_and_run_file(std::string path) {
+  std::ifstream script_file(path);
+  if (!script_file.is_open()) {
+    std::cerr << "ScriptEnvironment: Failed to open script file: " << path << "\n";
+    assert(script_file.is_open() && "Failed to open script file.");
+    return;
+  }
 
   std::stringstream script_buffer;
   script_buffer << script_file.rdbuf();
@@ -68,12 +72,17 @@ inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs)
 }
 
 inline void ScriptEnvironment::exec_script_file(std::string path) {
-  exec_single_script_file(SCRIPT_PATH_PREFIX + path);
+  open_and_run_file(SCRIPT_PATH_PREFIX + path + SCRIPT_PATH_SUFFIX);
 }
 
 inline void ScriptEnvironment::exec_all_script_files_in_dir(std::string path) {
-  for (const auto &entry : std::filesystem::directory_iterator(SCRIPT_PATH_PREFIX + path)) {
-    exec_script_file(entry.path().string());
+  try {
+    for (const auto &entry : std::filesystem::directory_iterator(SCRIPT_PATH_PREFIX + path)) {
+      open_and_run_file(entry.path().string());
+    }
+  } catch (std::filesystem::filesystem_error e) {
+    std::cout << "ScriptEnvironment: Failed to open directory '" << path << "': " << e.what() << "\n";
+    assert(false && "Failed to open directory");
   }
 }
 

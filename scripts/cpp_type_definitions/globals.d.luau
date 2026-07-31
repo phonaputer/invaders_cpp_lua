@@ -4,27 +4,33 @@ export type PositionInstance = {
     z: number,
 }
 
+export type VelocityInstance = {
+    x: number,
+    y: number,
+}
+
 declare Components: {
-    Position: (() -> PositionInstance) & {
-        GetTypeID: () -> string,
-    }
+    Position: (() -> PositionInstance),
+    Velocity: (() -> VelocityInstance)
 }
-
-declare test: {
-    printPosition: (PositionInstance) -> (),
-    runCallback: ((string)->()) -> (),
-    printAll: ({string}) -> (),
-    printAllRAW: (...string) -> (),
-}
-
-type EntityCallback = (number) -> ()
-type EntityCallbackExecutor = (EntityCallback) -> ()
 
 declare ECS: {
     create: () -> (number),
+
     hasPosition: (number) -> (boolean),
     getPosition: (number) -> PositionInstance,
     setPosition: (number, PositionInstance) -> (),
     removePosition: (number) -> (),
-    view: ({string}) -> EntityCallbackExecutor
+
+    hasVelocity: (number) -> (boolean),
+    getVelocity: (number) -> VelocityInstance,
+    setVelocity: (number, VelocityInstance) -> (),
+    removeVelocity: (number) -> ()
+}
+
+declare Host: {
+    printPosition: (PositionInstance) -> (),
+    runCallback: ((string)->()) -> (),
+    printAll: ({string}) -> (),
+    printAllRAW: (...string) -> (),
 }

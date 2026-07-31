@@ -25,7 +25,7 @@ class ScriptEnvironment {
     entt::registry &ecs;
     std::unique_ptr<lua_State, LuaStateDeleter> L;
 
-    void exec_single_script_file(std::string path);
+    void open_and_run_file(std::string path);
 
   public:
     ScriptEnvironment(entt::registry &ecs);
