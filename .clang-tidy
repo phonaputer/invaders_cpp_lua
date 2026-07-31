@@ -23,7 +23,7 @@ Checks: "*,
         -readability-magic-numbers
 "
 WarningsAsErrors: ''
-HeaderFilterRegex: '*.hpp'
+HeaderFilterRegex: '.*'
 FormatStyle:     none
 
 CheckOptions:
