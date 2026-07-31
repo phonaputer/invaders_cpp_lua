@@ -1,12 +1,12 @@
-#include "game/scenes/dummy/scene.hpp"
-#include "game/scenes/dummy/components/position.hpp"
-#include "game/scenes/dummy/components/sprite.hpp"
-#include "game/scenes/dummy/systems/sprite_rendering.hpp"
+#include "game/scenes/invasion/scene.hpp"
+#include "game/scenes/invasion/components/position.hpp"
+#include "game/scenes/invasion/components/sprite.hpp"
+#include "game/scenes/invasion/systems/sprite_rendering.hpp"
 #include <memory>
 
 #include <LuaBridge/LuaBridge.h>
 
-namespace dummy {
+namespace invasion {
 
 void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.assets.load_image_png("spritesheet", "./assets/space_invaders.png");
@@ -36,4 +36,4 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   );
 }
 
-} // namespace dummy
+} // namespace invasion

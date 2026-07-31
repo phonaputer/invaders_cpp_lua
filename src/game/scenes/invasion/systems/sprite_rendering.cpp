@@ -1,8 +1,8 @@
-#include "game/scenes/dummy/systems/sprite_rendering.hpp"
+#include "game/scenes/invasion/systems/sprite_rendering.hpp"
 #include "framework/renderer.hpp"
 #include "framework/system.hpp"
-#include "game/scenes/dummy/components/position.hpp"
-#include "game/scenes/dummy/components/sprite.hpp"
+#include "game/scenes/invasion/components/position.hpp"
+#include "game/scenes/invasion/components/sprite.hpp"
 
 namespace systems {
 

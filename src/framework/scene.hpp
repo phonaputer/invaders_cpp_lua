@@ -4,6 +4,7 @@
 #include "framework/audio_player.hpp"
 #include "framework/renderer.hpp"
 #include "framework/scene_setter.hpp"
+#include "framework/script_environment.hpp"
 #include "framework/system_registry.hpp"
 #include <entt.hpp>
 #include <lualib.h>
@@ -19,7 +20,7 @@ struct SceneInitializationContext {
     Renderer &renderer;
     AudioPlayer &audio_player;
     SceneSetter &scene_setter;
-    lua_State &L;
+    ScriptEnvironment &scripts;
 };
 
 class Scene {

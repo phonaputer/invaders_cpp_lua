@@ -1,7 +1,6 @@
 target_sources(
   ${PROJECT_NAME}_lib
   PRIVATE
-  caching_script_runner.cpp
   game.cpp
   player_input_manager.cpp
   sdl_asset_manager.cpp

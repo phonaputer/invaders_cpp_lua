@@ -1,103 +1,114 @@
-#define SDL_MAIN_USE_CALLBACKS
+#include <lualib.h>
 
-#include "framework/game.hpp"
-#include "framework/player_input_manager.hpp"
-#include "game/scenes/dummy/scene.hpp"
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h>
+#include <LuaBridge/LuaBridge.h>
+
+#include "framework/script_environment.hpp"
+#include <entt.hpp>
+#include <iostream>
 #include <memory>
+#include <string>
 
-SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
-  framework::Game *game = nullptr;
-  try {
-    game = new framework::Game();
-    *appstate = game;
-  } catch (const std::exception &e) {
-    return SDL_APP_FAILURE;
+struct Position {
+    float x;
+    float y;
+    float z;
+};
+
+struct Velocity {
+    float x;
+    float y;
+};
+
+void print_position(Position pos) {
+  std::cout << "Position(x: " << pos.x << ", y: " << pos.y << ", z: " << pos.z << ")\n";
+}
+
+int varargs_function_raw_style(lua_State *L) {
+  int numArgs = lua_gettop(L);
+
+  for (int i = 1; i <= numArgs; i++) {
+    luabridge::LuaRef ref = luabridge::LuaRef::fromStack(L, i);
+
+    if (!ref.isString()) {
+      std::cout << "Where is my RAW STYLE strang, mang\n";
+    } else {
+      std::cout << ref.cast<std::string>().value() << ", ";
+    }
   }
 
-  auto scene = std::make_unique<dummy::Scene>();
-  game->set_scene(std::move(scene));
+  std::cout << "\n";
 
-  SDL_Log("Setup complete...");
-
-  return SDL_APP_CONTINUE;
+  return 0;
 }
 
-SDL_AppResult SDL_AppEvent(void *appstate, [[maybe_unused]] SDL_Event *event) {
-  auto game = (framework::Game *)appstate;
-
-  switch (event->type) {
-    case SDL_EVENT_QUIT:
-      return SDL_APP_SUCCESS;
-
-    case SDL_EVENT_KEY_DOWN:
-      switch (event->key.scancode) {
-        case SDL_SCANCODE_A:
-          game->get_player_input_manager().engage(framework::PlayerInput::LEFT);
-          break;
-        case SDL_SCANCODE_D:
-          game->get_player_input_manager().engage(framework::PlayerInput::RIGHT);
-          break;
-        case SDL_SCANCODE_SPACE:
-          game->get_player_input_manager().engage(framework::PlayerInput::FIRE);
-          break;
-        case SDL_SCANCODE_W:
-          game->get_player_input_manager().engage(framework::PlayerInput::UP);
-          break;
-        case SDL_SCANCODE_S:
-          game->get_player_input_manager().engage(framework::PlayerInput::DOWN);
-          break;
-        case SDL_SCANCODE_ESCAPE:
-          game->get_player_input_manager().engage(framework::PlayerInput::PAUSE);
-          break;
-        default:
-          // do nothing
-      }
-      break;
-
-    case SDL_EVENT_KEY_UP:
-      switch (event->key.scancode) {
-        case SDL_SCANCODE_A:
-          game->get_player_input_manager().disengage(framework::PlayerInput::LEFT);
-          break;
-        case SDL_SCANCODE_D:
-          game->get_player_input_manager().disengage(framework::PlayerInput::RIGHT);
-          break;
-        case SDL_SCANCODE_SPACE:
-          game->get_player_input_manager().disengage(framework::PlayerInput::FIRE);
-          break;
-        case SDL_SCANCODE_W:
-          game->get_player_input_manager().disengage(framework::PlayerInput::UP);
-          break;
-        case SDL_SCANCODE_S:
-          game->get_player_input_manager().disengage(framework::PlayerInput::DOWN);
-          break;
-        case SDL_SCANCODE_ESCAPE:
-          game->get_player_input_manager().disengage(framework::PlayerInput::PAUSE);
-          break;
-        default:
-          // do nothing
-      }
-      break;
+void varargs_function(luabridge::LuaRef ref) {
+  if (!ref.isTable()) {
+    std::cout << "I'm tabling this motion\n";
+    return;
   }
 
-  return SDL_APP_CONTINUE;
+  for (int i = 1; i <= ref.length(); i++) {
+    auto elem = ref[i];
+
+    if (!elem.isString()) {
+      std::cout << "Where is my strang, mang\n";
+    } else {
+      std::cout << elem.cast<std::string>().value() << ", ";
+    }
+  }
+
+  std::cout << "\n";
 }
 
-SDL_AppResult SDL_AppIterate(void *appstate) {
-  auto game = (framework::Game *)appstate;
+void run_callback(luabridge::LuaRef callback) {
+  if (!callback.isFunction()) {
+    std::cout << "what have you done, son?\n";
+    return;
+  }
 
-  game->update();
-  game->draw();
-
-  return SDL_APP_CONTINUE;
+  callback("good golly miss molly");
 }
 
-void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result) {
-  auto game = (framework::Game *)appstate;
+struct LuaStateDeleter {
+    void operator()(lua_State *L) const {
+      lua_close(L);
+    }
+};
 
-  delete game;
+int main() {
+  entt::registry ecs;
 
-  SDL_Log("Quitting...");
+  framework::ScriptEnvironment script_env{ecs};
+
+  script_env.register_component<Velocity>("Velocity", [](auto &clazz) {
+    clazz.addProperty("x", &Velocity::x, &Velocity::x).addProperty("y", &Velocity::y, &Velocity::y);
+  });
+  script_env.register_component<Position>("Position", [](auto &clazz) {
+    clazz.addProperty("x", &Position::x, &Position::x)
+        .addProperty("y", &Position::y, &Position::y)
+        .addProperty("z", &Position::z, &Position::z);
+  });
+
+  script_env.register_function("printPosition", print_position);
+  script_env.register_function("runCallback", print_position);
+  script_env.register_function("printAll", print_position);
+  script_env.register_function("printAllRAW", print_position);
+
+  script_env.exec_all_script_files_in_dir("invasion");
+
+  std::cout << "---Run 1---\n";
+  script_env.call_function("doHelloWorld");
+  auto result = script_env.call_function<lua_Number>("addEm", 2, 4);
+  std::cout << "addEm: " << result << "\n";
+  std::cout << "---Run 1---\n";
+
+  std::cout << "\n\n=====Finished Lua Runs=====\n\n\n";
+
+  auto view = ecs.view<Position>();
+
+  for (auto [e, position] : view.each()) {
+    std::cout << "---Entity " << entt::to_integral(e) << "---\n";
+    print_position(position);
+    std::cout << "---Entity " << entt::to_integral(e) << "---\n\n";
+  }
 }

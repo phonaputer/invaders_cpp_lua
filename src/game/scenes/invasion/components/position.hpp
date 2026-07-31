@@ -1,11 +1,13 @@
 #pragma once
 
+#include <cstdint>
+
 namespace components {
 
 struct Position {
     float x;
     float y;
-    int z;
+    uint8_t z;
 };
 
 } // namespace components

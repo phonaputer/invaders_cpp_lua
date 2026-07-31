@@ -67,8 +67,6 @@ Game::Game() {
   player_input_manager = std::make_unique<PlayerInputManager>();
   asset_manager = std::make_shared<SDLAssetManager>(renderer, mixer);
   renderer_wrapper = std::make_unique<SDLRenderer>(renderer, asset_manager);
-
-  L = {luaL_newstate(), LuaStateDeleter()};
 }
 
 void Game::update() {
@@ -154,6 +152,7 @@ void Game::apply_new_scene() {
   asset_manager->clear_all();
   update_systems.clear();
   draw_systems.clear();
+  scripts = std::make_unique<ScriptEnvironment>(ecs);
 
   new_scene.value()->initialize(
       SceneInitializationContext{
@@ -163,7 +162,7 @@ void Game::apply_new_scene() {
           .renderer = *renderer_wrapper,
           .audio_player = *asset_manager,
           .scene_setter = *this,
-          .L = *L,
+          .scripts = *scripts,
       }
   );
 
