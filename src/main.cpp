@@ -98,7 +98,8 @@ int main() {
 
   std::cout << "---Run 1---\n";
   script_env.call_function("doHelloWorld");
-  script_env.call_function("addEm", 2, 4);
+  auto result = script_env.call_function<lua_Number>("addEm", 2, 4);
+  std::cout << "addEm: " << result << "\n";
   std::cout << "---Run 1---\n";
 
   std::cout << "\n\n=====Finished Lua Runs=====\n\n\n";

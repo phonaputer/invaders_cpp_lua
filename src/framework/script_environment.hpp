@@ -126,11 +126,7 @@ class ScriptEnvironment {
           .endNamespace();
     }
 
-    // Due to what is seemingly a bug in Luabridge's Luau integration, this doesn't work with functions with a
-    // return type. The result is parsed correctly but Luabridge still raises an error - which leads to a weird
-    // situation where if you check the result with .value() it is correct, but if you check .error() a type conversion
-    // error is set.
-    template <typename... Args> void call_function(const std::string &name, Args &&...args) {
+    template <typename Result = void, typename... Args> Result call_function(const std::string &name, Args &&...args) {
       auto func = luabridge::getGlobal(L.get(), name.c_str());
 
       if (!func.isFunction()) {
@@ -138,11 +134,13 @@ class ScriptEnvironment {
         assert(false && "Tried to call a non-function type.");
       }
 
-      luabridge::TypeResult<void> result = func.call(std::forward<Args>(args)...);
+      auto result = func.call<Result>(std::forward<Args>(args)...);
       if (result.error()) {
         std::cerr << "ScriptEnvironment: failed to call '" << name << "': " << result.error_cstr() << "\n";
         assert(false && "Failed to call function.");
       }
+
+      return result.value();
     }
 };
 

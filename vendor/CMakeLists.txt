@@ -19,7 +19,7 @@ FetchContent_MakeAvailable(SDL3_mixer)
 FetchContent_Declare(
   Luau
   GIT_REPOSITORY https://github.com/luau-lang/luau.git
-  GIT_TAG        0.730
+  GIT_TAG        0.713
   GIT_SHALLOW    TRUE
   SYSTEM
 )

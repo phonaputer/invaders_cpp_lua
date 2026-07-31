@@ -18,5 +18,5 @@ function doHelloWorld()
 end
 
 function addEm(a: number, b: number): number
-	print(a + b)
+	return a + b
 end
