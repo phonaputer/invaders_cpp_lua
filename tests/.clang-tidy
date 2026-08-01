@@ -22,5 +22,6 @@ Checks: "*,
         -bugprone-easily-swappable-parameters,
         -bugprone-throwing-static-initialization,
         -cppcoreguidelines-owning-memory,
-        -cert-err58-cpp
+        -cert-err58-cpp,
+        -readability-identifier-length
 "

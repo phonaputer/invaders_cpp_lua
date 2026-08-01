@@ -2,7 +2,6 @@
 
 #include <any>
 #include <optional>
-#include <span>
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
@@ -17,11 +16,11 @@ class EventBroker {
 
   public:
     template <typename T> void push_back(T message);
-    template <typename T> std::span<const T> get_all() const;
+    template <typename T> std::vector<T> get_all() const;
     void clear_all();
 
     template <typename T> void push_back_draw(T message);
-    template <typename T> std::span<const T> get_all_draw() const;
+    template <typename T> std::vector<T> get_all_draw() const;
     void clear_all_draw();
 
     template <typename T> void set_singleton(T message);

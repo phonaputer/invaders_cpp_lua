@@ -22,6 +22,7 @@ target_link_libraries(
 )
 
 add_subdirectory(framework)
+add_subdirectory(game)
 
 include(GoogleTest)
 gtest_discover_tests(${PROJECT_NAME}_tests)

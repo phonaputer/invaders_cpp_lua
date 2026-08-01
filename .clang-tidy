@@ -21,7 +21,8 @@ Checks: "*,
         -portability-avoid-pragma-once,
         -cppcoreguidelines-avoid-magic-numbers,
         -readability-magic-numbers,
-        -bugprone-easily-swappable-parameters
+        -bugprone-easily-swappable-parameters,
+        -readability-identifier-length
 "
 WarningsAsErrors: ''
 HeaderFilterRegex: '.*'
