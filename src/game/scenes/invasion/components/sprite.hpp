@@ -12,6 +12,8 @@ struct Sprite {
     float src_h = 0.0F;
     float dst_w = 0.0F;
     float dst_h = 0.0F;
+
+    bool operator==(const Sprite &) const = default;
 };
 
 } // namespace components

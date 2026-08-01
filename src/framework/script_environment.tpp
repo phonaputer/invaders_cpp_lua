@@ -46,27 +46,38 @@ inline void ScriptEnvironment::open_and_run_file(const std::string &path) {
 
   auto result = luau_load(L.get(), "HelloWorld", bytecode.get(), bytecode_size, 0);
   if (result != LUA_OK) {
-    std::cerr << "ScriptEnvironment: Failed to load bytecode '" << path << "': " << lua_tostring(L.get(), -1) << "\n";
+    std::cerr << "ScriptEnvironment: Failed to load bytecode '" << path << "': " << lua_tostring(L.get(), -1)
+              << "\n";
     assert(false && "Failed to load Luau bytecode.");
     return;
   }
 
   result = lua_pcall(L.get(), 0, 0, 0);
   if (result != LUA_OK) {
-    std::cerr << "ScriptEnvironment: Failed to execute script '" << path << "': " << lua_tostring(L.get(), -1) << "\n";
+    std::cerr << "ScriptEnvironment: Failed to execute script '" << path << "': " << lua_tostring(L.get(), -1)
+              << "\n";
     assert(false && "Failed to run Luau script.");
     return;
   }
 }
 
-inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs)
+inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs, AnimationStripRegistry &animation_strips)
     : ecs{ecs},
       L{luaL_newstate(), LuaStateDeleter()} {
   luaL_openlibs(L.get());
 
   luabridge::getGlobalNamespace(L.get())
       .beginNamespace("ECS")
-      .addFunction("create", [&ecs]() { return entt::to_integral(ecs.create()); })
+      .addFunction("create", [&ecs]() -> uint32_t { return entt::to_integral(ecs.create()); })
+      .endNamespace()
+      .beginNamespace("AnimationStrips")
+      .addFunction("create", [&animation_strips]() -> uint8_t { return animation_strips.create(); })
+      .addFunction(
+          "add_frame",
+          [&animation_strips](uint8_t id, int x, int y) {
+            animation_strips.add_frame(id, AnimationFrame{.x = x, .y = y});
+          }
+      )
       .endNamespace();
 }
 

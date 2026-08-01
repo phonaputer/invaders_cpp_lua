@@ -1,0 +1,58 @@
+#include "game/scenes/invasion/systems/animation.hpp"
+#include "framework/animation_strip_registry.hpp"
+#include "framework/system.hpp"
+#include "game/scenes/invasion/components/animation.hpp"
+#include "game/scenes/invasion/components/sprite.hpp"
+
+namespace systems {
+
+Animation::Animation(const framework::AnimationStripRegistry &animation_strips)
+    : animation_strips{animation_strips} {
+}
+
+void Animation::execute(framework::ExecuteCtx &ctx) {
+  auto view = ctx.ecs.view<components::Animation, components::Sprite>();
+
+  for (auto [entity, animation, sprite] : view.each()) {
+    if (!animation.playing) {
+      continue;
+    }
+
+    auto strip = animation_strips.get().get(animation.strip_id);
+    if (strip.empty()) {
+      continue;
+    }
+
+    bool should_update_frame = false;
+
+    animation.tick_counter++;
+    if (animation.tick_counter >= animation.ticks_per_frame) {
+      animation.tick_counter = 0;
+      should_update_frame = true;
+
+      if (animation.play_reversed) {
+        if (animation.cur_frame == 0) {
+          animation.cur_frame = strip.size() - 1;
+        } else {
+          animation.cur_frame--;
+        }
+      } else {
+        animation.cur_frame++;
+        if (animation.cur_frame >= strip.size()) {
+          animation.cur_frame = 0;
+        }
+      }
+    }
+
+    ctx.ecs.replace<components::Animation>(entity, animation);
+
+    if (should_update_frame) {
+      auto frame = strip.at(animation.cur_frame);
+
+      sprite.src_x = static_cast<float>(frame.x) * sprite.src_w;
+      sprite.src_y = static_cast<float>(frame.y) * sprite.src_h;
+    }
+  }
+}
+
+} // namespace systems

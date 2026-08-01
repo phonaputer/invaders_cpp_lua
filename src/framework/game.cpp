@@ -157,7 +157,8 @@ void Game::apply_new_scene_if_any() {
   asset_manager->clear_all();
   update_systems.clear();
   draw_systems.clear();
-  scripts = std::make_unique<ScriptEnvironment>(ecs);
+  animation_strips.clear();
+  scripts = std::make_unique<ScriptEnvironment>(ecs, animation_strips);
 
   new_scene.value()->initialize(
       SceneInitializationContext{
@@ -168,6 +169,7 @@ void Game::apply_new_scene_if_any() {
           .audio_player = *asset_manager,
           .scene_setter = *this,
           .scripts = *scripts,
+          .animation_strips = animation_strips,
       }
   );
 

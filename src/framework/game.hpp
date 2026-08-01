@@ -1,5 +1,6 @@
 #pragma once
 
+#include "framework/animation_strip_registry.hpp"
 #include "framework/event_broker.hpp"
 #include "framework/player_input_manager.hpp"
 #include "framework/renderer.hpp"
@@ -32,6 +33,7 @@ class Game : public SystemRegistry, public SceneSetter {
     std::shared_ptr<SDLAssetManager> asset_manager;
     EventBroker event_broker;
     entt::registry ecs;
+    AnimationStripRegistry animation_strips;
     std::unique_ptr<ScriptEnvironment> scripts;
 
     std::vector<std::unique_ptr<System>> update_systems;

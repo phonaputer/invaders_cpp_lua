@@ -1,5 +1,6 @@
 #pragma once
 
+#include "framework/animation_strip_registry.hpp"
 #include <entt.hpp>
 #include <filesystem>
 #include <fstream>
@@ -29,12 +30,16 @@ class ScriptEnvironment {
     void open_and_run_file(const std::string &path);
 
   public:
-    explicit ScriptEnvironment(entt::registry &ecs);
+    // TODO consider moving registration of these types into Luau out of this file
+    explicit ScriptEnvironment(entt::registry &ecs, AnimationStripRegistry &animation_strips);
+
     void exec_script_file(const std::string &path);
     void exec_all_script_files_in_dir(const std::string &path);
-    template <typename T, typename F> void register_component(const std::string &name, F &&fields_register_func);
+    template <typename T, typename F>
+    void register_component(const std::string &name, F &&fields_register_func);
     template <typename F> void register_function(const std::string &name, F &&func);
-    template <typename Result = void, typename... Args> Result call_function(const std::string &name, Args &&...args);
+    template <typename Result = void, typename... Args>
+    Result call_function(const std::string &name, Args &&...args);
 };
 
 } // namespace framework

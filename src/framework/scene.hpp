@@ -1,5 +1,6 @@
 #pragma once
 
+#include "framework/animation_strip_registry.hpp"
 #include "framework/asset_loader.hpp"
 #include "framework/audio_player.hpp"
 #include "framework/renderer.hpp"
@@ -24,6 +25,7 @@ struct SceneInitializationContext {
     AudioPlayer &audio_player;
     SceneSetter &scene_setter;
     ScriptEnvironment &scripts;
+    const AnimationStripRegistry &animation_strips;
 };
 // NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
 
