@@ -2,7 +2,7 @@ AlignAfterOpenBracket: BlockIndent
 BinPackParameters: OnePerLine
 BinPackArguments: false
 BreakBeforeBraces: Attach
-ColumnLimit: 120
+ColumnLimit: 110
 AllowShortFunctionsOnASingleLine: None
 IndentAccessModifiers: true
 IndentCaseLabels: true

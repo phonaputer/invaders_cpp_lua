@@ -2,13 +2,18 @@
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
+#include "game/scenes/invasion/systems/collision_detection.hpp"
 #include "game/scenes/invasion/systems/sprite_rendering.hpp"
+#include "game/scenes/invasion/systems/velocity.hpp"
 #include <memory>
 
 namespace invasion {
 
 void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.assets.load_images_in_dir_png("invasion");
+
+  ctx.systems.add_update_system(std::make_unique<systems::Velocity>());
+  ctx.systems.add_update_system(std::make_unique<systems::CollisionDetection>());
 
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
 

@@ -10,6 +10,8 @@ struct Position {
     float w = 0.0F;
     float h = 0.0F;
     uint8_t z = 0;
+
+    bool operator==(const Position &) const = default;
 };
 
 } // namespace components
