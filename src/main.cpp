@@ -5,11 +5,15 @@
 #include "game/scenes/invasion/scene.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
+#include <exception>
+#include <iostream>
 #include <memory>
+#include <utility>
 
 SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] int argc, [[maybe_unused]] char *argv[]) {
   framework::Game *game = nullptr;
   try {
+    // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
     game = new framework::Game();
     *appstate = game;
   } catch (const std::exception &e) {
@@ -19,13 +23,13 @@ SDL_AppResult SDL_AppInit(void **appstate, [[maybe_unused]] int argc, [[maybe_un
   auto scene = std::make_unique<invasion::Scene>();
   game->set_scene(std::move(scene));
 
-  SDL_Log("Setup complete...");
+  std::cout << "Setup complete...\n";
 
   return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppEvent(void *appstate, [[maybe_unused]] SDL_Event *event) {
-  auto game = (framework::Game *)appstate;
+  auto *game = static_cast<framework::Game *>(appstate);
 
   switch (event->type) {
     case SDL_EVENT_QUIT:
@@ -80,13 +84,16 @@ SDL_AppResult SDL_AppEvent(void *appstate, [[maybe_unused]] SDL_Event *event) {
           // do nothing
       }
       break;
+
+    default:
+      // do nothing
   }
 
   return SDL_APP_CONTINUE;
 }
 
 SDL_AppResult SDL_AppIterate(void *appstate) {
-  auto game = (framework::Game *)appstate;
+  auto *game = static_cast<framework::Game *>(appstate);
 
   game->update();
   game->draw();
@@ -95,9 +102,10 @@ SDL_AppResult SDL_AppIterate(void *appstate) {
 }
 
 void SDL_AppQuit(void *appstate, [[maybe_unused]] SDL_AppResult result) {
-  auto game = (framework::Game *)appstate;
+  auto *game = static_cast<framework::Game *>(appstate);
 
+  // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
   delete game;
 
-  SDL_Log("Quitting...");
+  std::cout << "Exiting...\n";
 }

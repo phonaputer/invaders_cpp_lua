@@ -23,11 +23,11 @@ class SDLAssetManager : public AssetLoader, public AudioPlayer {
     SDLAssetManager(SDL_Renderer *renderer, std::shared_ptr<MIX_Mixer> mixer);
 
     void load_image_png(std::string src_id, std::string path) override;
-    std::shared_ptr<SDL_Texture> get_texture(std::string src_id) const;
+    std::shared_ptr<SDL_Texture> get_texture(const std::string &src_id) const;
 
     void load_audio_wav(std::string sound_id, std::string path) override;
-    void play_sound(std::string sound_id) override;
-    void stop_sound(std::string sound_id) override;
+    void play_sound(const std::string &sound_id) override;
+    void stop_sound(const std::string &sound_id) override;
 
     void clear_all();
 };

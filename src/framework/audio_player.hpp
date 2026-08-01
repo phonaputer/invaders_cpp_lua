@@ -13,8 +13,8 @@ class AudioPlayer {
     AudioPlayer(AudioPlayer &&) = delete;
     AudioPlayer &operator=(AudioPlayer &&) = delete;
 
-    virtual void play_sound(std::string sound_id) = 0;
-    virtual void stop_sound(std::string sound_id) = 0;
+    virtual void play_sound(const std::string &sound_id) = 0;
+    virtual void stop_sound(const std::string &sound_id) = 0;
 };
 
 } // namespace framework
