@@ -1,13 +1,18 @@
 #include "framework/sdl_asset_manager.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
-#include <format>
+#include <cassert>
+#include <filesystem>
+#include <iostream>
 #include <memory>
-#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace framework {
+
+const std::string_view IMAGES_DIRECTORY_PREFIX = "./assets/images/";
+const std::string_view AUDIO_DIRECTORY_PREFIX = "./assets/audio/";
 
 struct SDLDeleter {
     void operator()(SDL_Texture *texture_p) const {
@@ -31,58 +36,102 @@ SDLAssetManager::SDLAssetManager(SDL_Renderer *renderer, std::shared_ptr<MIX_Mix
     : renderer{renderer},
       mixer(std::move(mixer)) {};
 
-void SDLAssetManager::load_image_png(std::string src_id, std::string path) {
-  auto png_surface = std::unique_ptr<SDL_Surface, SDLDeleter>(SDL_LoadPNG(path.c_str()));
-  if (png_surface == nullptr) {
-    throw std::runtime_error(std::format("Failed to create PNG surface '{}': {}", path, SDL_GetError()));
-  }
-
-  auto png_texture
-      = std::shared_ptr<SDL_Texture>(SDL_CreateTextureFromSurface(renderer, png_surface.get()), SDLDeleter());
-  if (png_texture == nullptr) {
-    throw std::runtime_error(std::format("Failed to create PNG texture from surface '{}': {}", path, SDL_GetError()));
-  }
-
-  SDL_SetTextureScaleMode(png_texture.get(), SDL_SCALEMODE_PIXELART);
-
-  textures.insert({src_id, png_texture});
+void SDLAssetManager::load_image_png(const std::string &path) {
+  create_texture_from_file_png(std::string(IMAGES_DIRECTORY_PREFIX) + path);
 }
 
-std::shared_ptr<SDL_Texture> SDLAssetManager::get_texture(const std::string &src_id) const {
-  return textures.at(src_id);
-}
-
-void SDLAssetManager::load_audio_wav(std::string sound_id, std::string path) {
-  auto audio_track = std::shared_ptr<MIX_Track>(MIX_CreateTrack(mixer.get()), SDLDeleter());
-  if (audio_track == nullptr) {
-    throw std::runtime_error(std::format("Couldn't create mix track '{}': {}", sound_id, SDL_GetError()));
-  }
-
-  auto audio = std::shared_ptr<MIX_Audio>(MIX_LoadAudio(mixer.get(), path.c_str(), true), SDLDeleter());
-  if (audio == nullptr) {
-    throw std::runtime_error(std::format("Failed to load audio '{}': {}", path, SDL_GetError()));
-  }
-
-  MIX_SetTrackAudio(audio_track.get(), audio.get());
-
-  audio_tracks.insert({sound_id, audio_track});
-}
-
-void SDLAssetManager::play_sound(const std::string &sound_id) {
-  if (audio_tracks.contains(sound_id)) {
-    MIX_PlayTrack(audio_tracks.at(sound_id).get(), 0);
+void SDLAssetManager::load_images_in_dir_png(const std::string &path) {
+  try {
+    for (const auto &entry : std::filesystem::directory_iterator(std::string(IMAGES_DIRECTORY_PREFIX) + path)) {
+      create_texture_from_file_png(entry.path().string());
+    }
+  } catch (const std::filesystem::filesystem_error &e) {
+    std::cerr << "SDLAssetManager: Failed to open image directory '" << path << "': " << e.what() << "\n";
+    assert(false && "Failed to open directory");
   }
 }
 
-void SDLAssetManager::stop_sound(const std::string &sound_id) {
-  if (audio_tracks.contains(sound_id)) {
-    MIX_StopTrack(audio_tracks.at(sound_id).get(), 0);
+std::shared_ptr<SDL_Texture> SDLAssetManager::get_texture(const std::string &filename) const {
+  // TODO check if texture exists and return a fallback texture if not
+  return textures.at(filename);
+}
+
+void SDLAssetManager::load_audio_wav(const std::string &path) {
+  create_audio_track_from_file_wav(std::string(AUDIO_DIRECTORY_PREFIX) + path);
+}
+
+void SDLAssetManager::load_audio_in_dir_wav(const std::string &path) {
+  try {
+    for (const auto &entry : std::filesystem::directory_iterator(std::string(AUDIO_DIRECTORY_PREFIX) + path)) {
+      create_audio_track_from_file_wav(entry.path().string());
+    }
+  } catch (const std::filesystem::filesystem_error &e) {
+    std::cerr << "SDLAssetManager: Failed to open audio directory '" << path << "': " << e.what() << "\n";
+    assert(false && "Failed to open directory");
+  }
+}
+
+void SDLAssetManager::play_sound(const std::string &filename) {
+  if (audio_tracks.contains(filename)) {
+    MIX_PlayTrack(audio_tracks.at(filename).get(), 0);
+  }
+}
+
+void SDLAssetManager::stop_sound(const std::string &filename) {
+  if (audio_tracks.contains(filename)) {
+    MIX_StopTrack(audio_tracks.at(filename).get(), 0);
   }
 }
 
 void SDLAssetManager::clear_all() {
   textures.clear();
   audio_tracks.clear();
+}
+
+void SDLAssetManager::create_texture_from_file_png(const std::string &path) {
+  auto png_surface = std::unique_ptr<SDL_Surface, SDLDeleter>(SDL_LoadPNG(path.c_str()));
+  if (png_surface == nullptr) {
+    std::cerr << "SDLAssetManager: Failed to create PNG surface '" << path << "': " << SDL_GetError() << "\n";
+    assert(false && "Failed to create PNG surface");
+    return;
+  }
+
+  auto png_texture
+      = std::shared_ptr<SDL_Texture>(SDL_CreateTextureFromSurface(renderer, png_surface.get()), SDLDeleter());
+  if (png_texture == nullptr) {
+    std::cerr << "SDLAssetManager: Failed to create PNG texture from surface'" << path << "': " << SDL_GetError()
+              << "\n";
+    assert(false && "Failed to create PNG texture from surface");
+    return;
+  }
+
+  SDL_SetTextureScaleMode(png_texture.get(), SDL_SCALEMODE_PIXELART);
+
+  const std::string filename = std::filesystem::path(path).filename();
+
+  textures.insert({filename, png_texture});
+}
+
+void SDLAssetManager::create_audio_track_from_file_wav(const std::string &path) {
+  auto audio_track = std::shared_ptr<MIX_Track>(MIX_CreateTrack(mixer.get()), SDLDeleter());
+  if (audio_track == nullptr) {
+    std::cerr << "SDLAssetManager: Failed to create mix track '" << path << "': " << SDL_GetError() << "\n";
+    assert(false && "Failed to create mix track");
+    return;
+  }
+
+  auto audio = std::shared_ptr<MIX_Audio>(MIX_LoadAudio(mixer.get(), path.c_str(), true), SDLDeleter());
+  if (audio == nullptr) {
+    std::cerr << "SDLAssetManager: Failed to load audio '" << path << "': " << SDL_GetError() << "\n";
+    assert(false && "Failed to load audio");
+    return;
+  }
+
+  MIX_SetTrackAudio(audio_track.get(), audio.get());
+
+  const std::string filename = std::filesystem::path(path).filename();
+
+  audio_tracks.insert({filename, audio_track});
 }
 
 } // namespace framework

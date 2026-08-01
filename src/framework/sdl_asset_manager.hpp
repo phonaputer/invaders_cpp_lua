@@ -19,15 +19,20 @@ class SDLAssetManager : public AssetLoader, public AudioPlayer {
     std::shared_ptr<MIX_Mixer> mixer;
     std::unordered_map<std::string, std::shared_ptr<MIX_Track>> audio_tracks;
 
+    void create_texture_from_file_png(const std::string &path);
+    void create_audio_track_from_file_wav(const std::string &path);
+
   public:
     SDLAssetManager(SDL_Renderer *renderer, std::shared_ptr<MIX_Mixer> mixer);
 
-    void load_image_png(std::string src_id, std::string path) override;
-    std::shared_ptr<SDL_Texture> get_texture(const std::string &src_id) const;
+    void load_image_png(const std::string &path) override;
+    void load_images_in_dir_png(const std::string &path) override;
+    std::shared_ptr<SDL_Texture> get_texture(const std::string &filename) const;
 
-    void load_audio_wav(std::string sound_id, std::string path) override;
-    void play_sound(const std::string &sound_id) override;
-    void stop_sound(const std::string &sound_id) override;
+    void load_audio_wav(const std::string &path) override;
+    void load_audio_in_dir_wav(const std::string &path) override;
+    void play_sound(const std::string &filename) override;
+    void stop_sound(const std::string &filename) override;
 
     void clear_all();
 };

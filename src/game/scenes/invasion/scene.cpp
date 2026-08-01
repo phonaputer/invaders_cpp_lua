@@ -8,7 +8,7 @@
 namespace invasion {
 
 void Scene::initialize(framework::SceneInitializationContext ctx) {
-  ctx.assets.load_image_png("spritesheet", "./assets/space_invaders.png");
+  ctx.assets.load_images_in_dir_png("invasion");
 
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
 
@@ -24,7 +24,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
-          .src_id = "spritesheet",
+          .src_id = "space_invaders.png",
           .src_x = 16,
           .src_y = 0,
           .src_w = 16,
