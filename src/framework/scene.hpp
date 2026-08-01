@@ -3,7 +3,6 @@
 #include "framework/asset_loader.hpp"
 #include "framework/audio_player.hpp"
 #include "framework/renderer.hpp"
-#include "framework/scene_setter.hpp"
 #include "framework/script_environment.hpp"
 #include "framework/system_registry.hpp"
 #include <entt.hpp>
@@ -13,6 +12,10 @@ namespace framework {
 
 class SceneSetter;
 
+// Intentionally using references here to simplify the API.
+// And anyways this is just a parameter object to clean up the initialize function signature.
+//
+// NOLINTBEGIN(cppcoreguidelines-avoid-const-or-ref-data-members)
 struct SceneInitializationContext {
     AssetLoader &assets;
     SystemRegistry &systems;
@@ -22,6 +25,7 @@ struct SceneInitializationContext {
     SceneSetter &scene_setter;
     ScriptEnvironment &scripts;
 };
+// NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
 
 class Scene {
   public:

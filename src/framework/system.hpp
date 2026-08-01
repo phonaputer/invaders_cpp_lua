@@ -6,11 +6,16 @@
 
 namespace framework {
 
+// Intentionally using references here to simplify the API.
+// And anyways this is just a parameter object to clean up the execute function signature.
+//
+// NOLINTBEGIN(cppcoreguidelines-avoid-const-or-ref-data-members)
 struct ExecuteCtx {
     entt::registry &ecs;
     framework::EventBroker &events;
     const PlayerInputManager &player_input;
 };
+// NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
 
 class System {
   public:

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "framework/scene.hpp"
 #include <memory>
 
 namespace framework {

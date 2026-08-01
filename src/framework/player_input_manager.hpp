@@ -1,10 +1,11 @@
 #pragma once
 
+#include <cstdint>
 #include <set>
 
 namespace framework {
 
-enum PlayerInput { LEFT, RIGHT, FIRE, UP, DOWN, PAUSE };
+enum class PlayerInput : uint8_t { LEFT, RIGHT, FIRE, UP, DOWN, PAUSE };
 
 class PlayerInputManager {
   private:
@@ -13,8 +14,8 @@ class PlayerInputManager {
     std::set<PlayerInput> previous_tick_inputs;
 
   public:
-    bool is_engaged(PlayerInput input) const;
-    bool is_initiated(PlayerInput input) const;
+    [[nodiscard]] bool is_engaged(PlayerInput input) const;
+    [[nodiscard]] bool is_initiated(PlayerInput input) const;
     void engage(PlayerInput input);
     void disengage(PlayerInput input);
     void update();

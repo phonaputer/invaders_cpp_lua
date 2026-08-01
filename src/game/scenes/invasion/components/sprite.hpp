@@ -6,12 +6,12 @@ namespace components {
 
 struct Sprite {
     std::string src_id;
-    float src_x;
-    float src_y;
-    float src_w;
-    float src_h;
-    float dst_w;
-    float dst_h;
+    float src_x = 0.0F;
+    float src_y = 0.0F;
+    float src_w = 0.0F;
+    float src_h = 0.0F;
+    float dst_w = 0.0F;
+    float dst_h = 0.0F;
 };
 
 } // namespace components

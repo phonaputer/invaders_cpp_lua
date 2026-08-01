@@ -1,7 +1,5 @@
 #pragma once
 
-#include "framework/script_environment.hpp"
-
 #include <entt.hpp>
 #include <filesystem>
 #include <fstream>
@@ -22,11 +20,12 @@ constexpr std::string SCRIPT_PATH_SUFFIX = ".luau";
 
 struct FreeDeleter {
     void operator()(void *ptr) const {
+      // NOLINTNEXTLINE(cppcoreguidelines-owning-memory, cppcoreguidelines-no-malloc, hicpp-no-malloc)
       std::free(ptr);
     }
 };
 
-inline void ScriptEnvironment::open_and_run_file(std::string path) {
+inline void ScriptEnvironment::open_and_run_file(const std::string &path) {
   std::ifstream script_file(path);
   if (!script_file.is_open()) {
     std::cerr << "ScriptEnvironment: Failed to open script file: " << path << "\n";
@@ -41,7 +40,7 @@ inline void ScriptEnvironment::open_and_run_file(std::string path) {
   const std::string source = script_buffer.str();
 
   size_t bytecode_size = 0;
-  std::unique_ptr<char, FreeDeleter> bytecode{
+  const std::unique_ptr<char, FreeDeleter> bytecode{
       luau_compile(source.c_str(), source.length(), nullptr, &bytecode_size), FreeDeleter()
   };
 
@@ -71,37 +70,42 @@ inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs)
       .endNamespace();
 }
 
-inline void ScriptEnvironment::exec_script_file(std::string path) {
+inline void ScriptEnvironment::exec_script_file(const std::string &path) {
   open_and_run_file(SCRIPT_PATH_PREFIX + path + SCRIPT_PATH_SUFFIX);
 }
 
-inline void ScriptEnvironment::exec_all_script_files_in_dir(std::string path) {
+inline void ScriptEnvironment::exec_all_script_files_in_dir(const std::string &path) {
   try {
     for (const auto &entry : std::filesystem::directory_iterator(SCRIPT_PATH_PREFIX + path)) {
       open_and_run_file(entry.path().string());
     }
-  } catch (std::filesystem::filesystem_error e) {
+  } catch (const std::filesystem::filesystem_error &e) {
     std::cout << "ScriptEnvironment: Failed to open directory '" << path << "': " << e.what() << "\n";
     assert(false && "Failed to open directory");
   }
 }
 
 template <typename T, typename F>
-void ScriptEnvironment::register_component(std::string name, F &&fields_register_func) {
+void ScriptEnvironment::register_component(const std::string &name, F &&fields_register_func) {
   luabridge::getGlobalNamespace(L.get())
       .beginNamespace("ECS")
       .addFunction(
           ("set" + name).c_str(),
-          [this](uint32_t e_int, T t) { ecs.emplace_or_replace<T>(static_cast<entt::entity>(e_int), t); }
+          [this](uint32_t entity_int, T component) {
+            ecs.get().emplace_or_replace<T>(static_cast<entt::entity>(entity_int), component);
+          }
       )
       .addFunction(
-          ("has" + name).c_str(), [this](uint32_t e_int) { return ecs.all_of<T>(static_cast<entt::entity>(e_int)); }
+          ("has" + name).c_str(),
+          [this](uint32_t entity_int) { return ecs.get().all_of<T>(static_cast<entt::entity>(entity_int)); }
       )
       .addFunction(
-          ("get" + name).c_str(), [this](uint32_t e_int) { return ecs.get<T>(static_cast<entt::entity>(e_int)); }
+          ("get" + name).c_str(),
+          [this](uint32_t entity_int) { return ecs.get().get<T>(static_cast<entt::entity>(entity_int)); }
       )
       .addFunction(
-          ("remove" + name).c_str(), [this](uint32_t e_int) { ecs.remove<T>(static_cast<entt::entity>(e_int)); }
+          ("remove" + name).c_str(),
+          [this](uint32_t entity_int) { ecs.get().remove<T>(static_cast<entt::entity>(entity_int)); }
       )
       .endNamespace();
 
