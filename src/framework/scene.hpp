@@ -25,7 +25,7 @@ struct SceneInitializationContext {
     AudioPlayer &audio_player;
     SceneSetter &scene_setter;
     ScriptEnvironment &scripts;
-    const AnimationStripRegistry &animation_strips;
+    AnimationStripRegistry &animation_strips;
 };
 // NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
 

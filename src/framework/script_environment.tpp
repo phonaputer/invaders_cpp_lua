@@ -73,7 +73,7 @@ inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs, AnimationStripR
       .beginNamespace("AnimationStrips")
       .addFunction("create", [&animation_strips]() -> uint8_t { return animation_strips.create(); })
       .addFunction(
-          "add_frame",
+          "addFrame",
           [&animation_strips](uint8_t id, int x, int y) {
             animation_strips.add_frame(id, AnimationFrame{.x = x, .y = y});
           }
@@ -146,12 +146,14 @@ Result ScriptEnvironment::call_function(const std::string &name, Args &&...args)
   if (!func.isFunction()) {
     std::cerr << "ScriptEnvironment: '" << name << "' is not a function\n";
     assert(false && "Tried to call a non-function type.");
+    return Result{};
   }
 
   auto result = func.call<Result>(std::forward<Args>(args)...);
   if (result.error()) {
-    std::cerr << "ScriptEnvironment: failed to call '" << name << "': " << result.error_cstr() << "\n";
+    std::cerr << "ScriptEnvironment: failed to call '" << name << "': " << result.message() << "\n";
     assert(false && "Failed to call function.");
+    return Result{};
   }
 
   return result.value();

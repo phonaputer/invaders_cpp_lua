@@ -1,13 +1,14 @@
 #pragma once
 
 #include "framework/animation_strip_registry.hpp"
+#include <cstdint>
 
 namespace components {
 
 struct Animation {
-    unsigned int cur_frame = 0;
-    unsigned int tick_counter = 0;
-    unsigned int ticks_per_frame = 0;
+    uint16_t tick_counter = 0;
+    uint16_t ticks_per_frame = 0;
+    uint8_t cur_frame = 0;
     framework::AnimationStripID strip_id = 0;
     bool playing = true;
     bool play_reversed = false;

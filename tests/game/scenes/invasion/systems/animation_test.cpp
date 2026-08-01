@@ -159,9 +159,9 @@ TEST(SystemAnimation, ExecuteCounterHasReachesTicksPerFrameShouldMoveToNextFrame
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .cur_frame = 0,
           .tick_counter = 1,
           .ticks_per_frame = 2,
+          .cur_frame = 0,
           .strip_id = strip_id,
           .playing = true,
       }
@@ -180,9 +180,9 @@ TEST(SystemAnimation, ExecuteCounterHasReachesTicksPerFrameShouldMoveToNextFrame
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .cur_frame = 1,
       .tick_counter = 0,
       .ticks_per_frame = 2,
+      .cur_frame = 1,
       .strip_id = strip_id,
       .playing = true,
   };
@@ -212,9 +212,9 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenAlreadyAtLastOneShouldMoveToFirstFram
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .cur_frame = 2,
           .tick_counter = 1,
           .ticks_per_frame = 2,
+          .cur_frame = 2,
           .strip_id = strip_id,
           .playing = true,
       }
@@ -233,9 +233,9 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenAlreadyAtLastOneShouldMoveToFirstFram
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .cur_frame = 0,
       .tick_counter = 0,
       .ticks_per_frame = 2,
+      .cur_frame = 0,
       .strip_id = strip_id,
       .playing = true,
   };
@@ -265,9 +265,9 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsShouldDecrementFrame)
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .cur_frame = 1,
           .tick_counter = 1,
           .ticks_per_frame = 2,
+          .cur_frame = 1,
           .strip_id = strip_id,
           .playing = true,
           .play_reversed = true,
@@ -287,9 +287,9 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsShouldDecrementFrame)
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .cur_frame = 0,
       .tick_counter = 0,
       .ticks_per_frame = 2,
+      .cur_frame = 0,
       .strip_id = strip_id,
       .playing = true,
       .play_reversed = true,
@@ -320,9 +320,9 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsAndAlreadyAtFirstFram
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .cur_frame = 0,
           .tick_counter = 1,
           .ticks_per_frame = 2,
+          .cur_frame = 0,
           .strip_id = strip_id,
           .playing = true,
           .play_reversed = true,
@@ -342,9 +342,9 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsAndAlreadyAtFirstFram
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .cur_frame = 2,
       .tick_counter = 0,
       .ticks_per_frame = 2,
+      .cur_frame = 2,
       .strip_id = strip_id,
       .playing = true,
       .play_reversed = true,
