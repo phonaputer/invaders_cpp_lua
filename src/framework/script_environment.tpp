@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <lua.h>
 #include <luacode.h>
 #include <lualib.h>
 #include <memory>
@@ -25,12 +26,45 @@ struct FreeDeleter {
     }
 };
 
-inline void ScriptEnvironment::open_and_run_file(const std::string &path) {
+// TODO add caching
+inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
+  if (executing_script.empty()) {
+    std::cerr << "ScriptEnvironment: Tried to call require outside loading a Luau file.\n";
+    assert(false && "Tried to call require outside loading a Luau file.");
+    return {local_L, false};
+  }
+
+  if (lua_isstring(local_L, 1) != 1) {
+    std::cerr << "ScriptEnvironment: Tried to require non-string while executing: " << executing_script.top()
+              << "\n";
+    assert(false && "Tried to require non-string.");
+    return {local_L, false};
+  }
+
+  const std::filesystem::path import_path(lua_tostring(local_L, 1));
+  const std::filesystem::path cur_script_path(executing_script.top());
+  auto path_to_execute = cur_script_path.parent_path() / import_path.lexically_normal();
+  const std::string file_to_execute = path_to_execute.string() + SCRIPT_PATH_SUFFIX;
+
+  const bool success = open_and_run_file(local_L, 1, file_to_execute);
+  if (!success) {
+    return {local_L, false};
+  }
+
+  auto result = luabridge::LuaRef::fromStack(local_L, -1);
+
+  lua_pop(local_L, 1);
+
+  return result;
+}
+
+inline bool
+ScriptEnvironment::open_and_run_file(lua_State *local_L, int num_results, const std::string &path) {
   std::ifstream script_file(path);
   if (!script_file.is_open()) {
     std::cerr << "ScriptEnvironment: Failed to open script file: " << path << "\n";
     assert(script_file.is_open() && "Failed to open script file.");
-    return;
+    return false;
   }
 
   std::stringstream script_buffer;
@@ -44,21 +78,27 @@ inline void ScriptEnvironment::open_and_run_file(const std::string &path) {
       luau_compile(source.c_str(), source.length(), nullptr, &bytecode_size), FreeDeleter()
   };
 
-  auto result = luau_load(L.get(), "HelloWorld", bytecode.get(), bytecode_size, 0);
+  auto result = luau_load(local_L, path.c_str(), bytecode.get(), bytecode_size, 0);
   if (result != LUA_OK) {
-    std::cerr << "ScriptEnvironment: Failed to load bytecode '" << path << "': " << lua_tostring(L.get(), -1)
+    std::cerr << "ScriptEnvironment: Failed to load bytecode '" << path << "': " << lua_tostring(local_L, -1)
               << "\n";
     assert(false && "Failed to load Luau bytecode.");
-    return;
+    return false;
   }
 
-  result = lua_pcall(L.get(), 0, 0, 0);
+  executing_script.push(path);
+  result = lua_pcall(local_L, 0, num_results, 0);
+  executing_script.pop();
+
   if (result != LUA_OK) {
-    std::cerr << "ScriptEnvironment: Failed to execute script '" << path << "': " << lua_tostring(L.get(), -1)
+    std::cerr << "ScriptEnvironment: Failed to execute script '" << path << "': " << lua_tostring(local_L, -1)
               << "\n";
+    lua_pop(local_L, 1);
     assert(false && "Failed to run Luau script.");
-    return;
+    return false;
   }
+
+  return true;
 }
 
 inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs, AnimationStripRegistry &animation_strips)
@@ -67,6 +107,7 @@ inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs, AnimationStripR
   luaL_openlibs(L.get());
 
   luabridge::getGlobalNamespace(L.get())
+      .addFunction("require", [this](lua_State *local_L) { return luau_require(local_L); })
       .beginNamespace("ECS")
       .addFunction("create", [&ecs]() -> uint32_t { return entt::to_integral(ecs.create()); })
       .endNamespace()
@@ -82,13 +123,13 @@ inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs, AnimationStripR
 }
 
 inline void ScriptEnvironment::exec_script_file(const std::string &path) {
-  open_and_run_file(SCRIPT_PATH_PREFIX + path + SCRIPT_PATH_SUFFIX);
+  open_and_run_file(L.get(), 0, SCRIPT_PATH_PREFIX + path + SCRIPT_PATH_SUFFIX);
 }
 
 inline void ScriptEnvironment::exec_all_script_files_in_dir(const std::string &path) {
   try {
     for (const auto &entry : std::filesystem::directory_iterator(SCRIPT_PATH_PREFIX + path)) {
-      open_and_run_file(entry.path().string());
+      open_and_run_file(L.get(), 0, entry.path().string());
     }
   } catch (const std::filesystem::filesystem_error &e) {
     std::cout << "ScriptEnvironment: Failed to open directory '" << path << "': " << e.what() << "\n";

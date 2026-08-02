@@ -1,6 +1,12 @@
 --!strict
 --!nolint FunctionUnused
 
+local test = require("./test")
+local test2 = require("./test_two")
+
+print(test.add(2, 3))
+print(test2.add(5, 6))
+
 function setScene(): ()
 	local entity = ECS.create()
 

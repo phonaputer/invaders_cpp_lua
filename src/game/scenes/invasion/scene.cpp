@@ -68,7 +68,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
 
   register_all_components_to_script_env(ctx);
-  ctx.scripts.exec_all_script_files_in_dir("invasion");
+  ctx.scripts.exec_script_file("invasion/set_scene");
   ctx.scripts.call_function("setScene");
 }
 

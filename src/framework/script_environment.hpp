@@ -10,6 +10,7 @@
 #include <lualib.h>
 #include <memory>
 #include <sstream>
+#include <stack>
 #include <string>
 
 #include <LuaBridge/LuaBridge.h>
@@ -27,7 +28,10 @@ class ScriptEnvironment {
     std::reference_wrapper<entt::registry> ecs;
     std::unique_ptr<lua_State, LuaStateDeleter> L;
 
-    void open_and_run_file(const std::string &path);
+    std::stack<std::string> executing_script;
+
+    luabridge::LuaRef luau_require(lua_State *local_L);
+    bool open_and_run_file(lua_State *local_L, int num_results, const std::string &path);
 
   public:
     // TODO consider moving registration of these types into Luau out of this file
