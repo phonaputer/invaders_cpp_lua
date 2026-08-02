@@ -1,10 +1,11 @@
 --!strict
 --!nolint FunctionUnused
 
-local test = require("./test")
-local test2 = require("./test_two")
+_G.test = require("@self/test")
+local test2 = require("@self/test_two")
+local _nested = require("./invasion/nested")
 
-print(test.add(2, 3))
+print(_G.test.add(2, 3))
 print(test2.add(5, 6))
 
 function setScene(): ()

@@ -68,8 +68,8 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
 
   register_all_components_to_script_env(ctx);
-  ctx.scripts.exec_script_file("invasion/set_scene");
-  ctx.scripts.call_function("setScene");
+  ctx.scripts.exec_package("invasion");
+  ctx.scripts.call_global_function("setScene");
 }
 
 } // namespace invasion

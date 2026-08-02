@@ -33,17 +33,21 @@ class ScriptEnvironment {
     luabridge::LuaRef luau_require(lua_State *local_L);
     bool open_and_run_file(lua_State *local_L, int num_results, const std::string &path);
 
+    static std::string get_require_path(const std::string &require_target, const std::string &current_script);
+
   public:
     // TODO consider moving registration of these types into Luau out of this file
     explicit ScriptEnvironment(entt::registry &ecs, AnimationStripRegistry &animation_strips);
 
     void exec_script_file(const std::string &path);
-    void exec_all_script_files_in_dir(const std::string &path);
+    void exec_package(const std::string &path);
     template <typename T, typename F>
     void register_component(const std::string &name, F &&fields_register_func);
     template <typename F> void register_function(const std::string &name, F &&func);
     template <typename Result = void, typename... Args>
-    Result call_function(const std::string &name, Args &&...args);
+    Result call_global_function(const std::string &name, Args &&...args);
+    template <typename Result = void, typename... Args>
+    Result call_function(const std::string &name_space, const std::string &function, Args &&...args);
 };
 
 } // namespace framework

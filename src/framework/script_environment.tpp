@@ -18,6 +18,7 @@ namespace framework {
 constexpr std::string CPP_NAMESPACE = "Host";
 constexpr std::string SCRIPT_PATH_PREFIX = "./scripts/";
 constexpr std::string SCRIPT_PATH_SUFFIX = ".luau";
+constexpr std::string PACKAGE_ENTRYPOINT_FILE = "/init.luau";
 
 struct FreeDeleter {
     void operator()(void *ptr) const {
@@ -26,7 +27,9 @@ struct FreeDeleter {
     }
 };
 
-// TODO add caching
+// TODO caching
+// TODO consider switching to exceptions here since this is only ever called from a Luau function
+// and I believe Luabridge may transform C++ exceptions to nice Luau error messages with line number.
 inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
   if (executing_script.empty()) {
     std::cerr << "ScriptEnvironment: Tried to call require outside loading a Luau file.\n";
@@ -41,10 +44,7 @@ inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
     return {local_L, false};
   }
 
-  const std::filesystem::path import_path(lua_tostring(local_L, 1));
-  const std::filesystem::path cur_script_path(executing_script.top());
-  auto path_to_execute = cur_script_path.parent_path() / import_path.lexically_normal();
-  const std::string file_to_execute = path_to_execute.string() + SCRIPT_PATH_SUFFIX;
+  const std::string file_to_execute = get_require_path(lua_tostring(local_L, 1), executing_script.top());
 
   const bool success = open_and_run_file(local_L, 1, file_to_execute);
   if (!success) {
@@ -54,6 +54,40 @@ inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
   auto result = luabridge::LuaRef::fromStack(local_L, -1);
 
   lua_pop(local_L, 1);
+
+  return result;
+}
+
+// TODO consider whether to reject .. since there probably will never be a reason to import from a parent dir.
+// Note that .. is handled correctly now.
+// Also, consider throwing an error for any path that doesn't start with "scripts/"
+inline std::string
+ScriptEnvironment::get_require_path(const std::string &require_target, const std::string &current_script) {
+  std::string file_name_str = require_target;
+  std::filesystem::path base_dir(current_script);
+
+  // Details on this special case for "init.luau" files may be found in this spec:
+  // https://rfcs.luau.org/abstract-module-paths-and-init-dot-luau.html
+  //
+  // Dunno why Luau feels the need to have this, but I implemented it.
+  if (current_script.ends_with(PACKAGE_ENTRYPOINT_FILE)) {
+    if (file_name_str.starts_with("@self")) {
+      file_name_str.replace(0, 5, ".");
+    } else {
+      base_dir = base_dir.parent_path();
+    }
+  }
+
+  const std::filesystem::path file_name(file_name_str);
+
+  auto result = (base_dir.parent_path() / file_name).lexically_normal().string();
+
+  std::error_code ec;
+  if (std::filesystem::is_directory(result, ec)) {
+    result += PACKAGE_ENTRYPOINT_FILE;
+  } else {
+    result += SCRIPT_PATH_SUFFIX;
+  }
 
   return result;
 }
@@ -126,15 +160,8 @@ inline void ScriptEnvironment::exec_script_file(const std::string &path) {
   open_and_run_file(L.get(), 0, SCRIPT_PATH_PREFIX + path + SCRIPT_PATH_SUFFIX);
 }
 
-inline void ScriptEnvironment::exec_all_script_files_in_dir(const std::string &path) {
-  try {
-    for (const auto &entry : std::filesystem::directory_iterator(SCRIPT_PATH_PREFIX + path)) {
-      open_and_run_file(L.get(), 0, entry.path().string());
-    }
-  } catch (const std::filesystem::filesystem_error &e) {
-    std::cout << "ScriptEnvironment: Failed to open directory '" << path << "': " << e.what() << "\n";
-    assert(false && "Failed to open directory");
-  }
+inline void ScriptEnvironment::exec_package(const std::string &path) {
+  open_and_run_file(L.get(), 0, SCRIPT_PATH_PREFIX + path + PACKAGE_ENTRYPOINT_FILE);
 }
 
 template <typename T, typename F>
@@ -180,8 +207,9 @@ template <typename F> void ScriptEnvironment::register_function(const std::strin
       .endNamespace();
 }
 
+// TODO caching
 template <typename Result, typename... Args>
-Result ScriptEnvironment::call_function(const std::string &name, Args &&...args) {
+Result ScriptEnvironment::call_global_function(const std::string &name, Args &&...args) {
   auto func = luabridge::getGlobal(L.get(), name.c_str());
 
   if (!func.isFunction()) {
@@ -193,6 +221,36 @@ Result ScriptEnvironment::call_function(const std::string &name, Args &&...args)
   auto result = func.call<Result>(std::forward<Args>(args)...);
   if (result.error()) {
     std::cerr << "ScriptEnvironment: failed to call '" << name << "': " << result.message() << "\n";
+    assert(false && "Failed to call function.");
+    return Result{};
+  }
+
+  return result.value();
+}
+
+// TODO caching
+template <typename Result, typename... Args>
+Result
+ScriptEnvironment::call_function(const std::string &name_space, const std::string &function, Args &&...args) {
+  auto space = luabridge::getGlobal(L.get(), name_space.c_str());
+  if (!space.isTable()) {
+    std::cerr << "ScriptEnvironment: '" << name_space << "' is not a table\n";
+    assert(false && "Tried to call a function in a non-table namespace.");
+    return Result{};
+  }
+
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+  auto func = space[function.c_str()];
+  if (!func.isFunction()) {
+    std::cerr << "ScriptEnvironment: '" << function << "' is not a function\n";
+    assert(false && "Tried to call a non-function type.");
+    return Result{};
+  }
+
+  auto result = func.call<Result>(std::forward<Args>(args)...);
+  if (result.error()) {
+    std::cerr << "ScriptEnvironment: failed to call '" << name_space << "." << function
+              << "': " << result.message() << "\n";
     assert(false && "Failed to call function.");
     return Result{};
   }
