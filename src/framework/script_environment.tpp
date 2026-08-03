@@ -10,8 +10,10 @@
 #include <lualib.h>
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include <LuaBridge/LuaBridge.h>
 
@@ -214,7 +216,7 @@ template <typename F> void ScriptEnvironment::register_function(const std::strin
 
 template <typename Result, typename... Args>
 Result ScriptEnvironment::call_global_function(const std::string &name, Args &&...args) {
-  auto maybe_func = get_function("_G", name);
+  auto maybe_func = get_function(name);
   if (!maybe_func.has_value()) {
     return Result{};
   }
@@ -230,17 +232,15 @@ Result ScriptEnvironment::call_global_function(const std::string &name, Args &&.
 }
 
 template <typename Result, typename... Args>
-Result
-ScriptEnvironment::call_function(const std::string &name_space, const std::string &function, Args &&...args) {
-  auto maybe_func = get_function(name_space, function);
+Result ScriptEnvironment::call_function(const std::string &name, Args &&...args) {
+  auto maybe_func = get_function(name);
   if (!maybe_func.has_value()) {
     return Result{};
   }
 
   auto result = maybe_func.value().call<Result>(std::forward<Args>(args)...);
   if (result.error()) {
-    std::cerr << "ScriptEnvironment: failed to call '" << name_space << "." << function
-              << "': " << result.message() << "\n";
+    std::cerr << "ScriptEnvironment: failed to call '" << name << "': " << result.message() << "\n";
     assert(false && "Failed to call function.");
     return Result{};
   }
@@ -248,30 +248,63 @@ ScriptEnvironment::call_function(const std::string &name_space, const std::strin
   return result.value();
 }
 
-inline std::optional<luabridge::LuaRef>
-ScriptEnvironment::get_function(const std::string &name_space, const std::string &function) {
-  const std::string cache_key = name_space + "." + function;
-
-  if (function_cache.contains(cache_key)) {
-    return function_cache.at(cache_key);
+inline std::optional<luabridge::LuaRef> get_function_from_state(lua_State *L, const std::string &name) {
+  std::vector<std::string> path;
+  auto split_range = name | std::views::split('.');
+  for (auto &&subrange : split_range) {
+    path.emplace_back(subrange.begin(), subrange.end());
   }
 
-  auto space = luabridge::getGlobal(L.get(), name_space.c_str());
+  if (path.size() == 1) {
+    return luabridge::getGlobal(L, path.at(0).c_str());
+  }
+
+  const std::string function_name = path.back();
+  path.pop_back();
+
+  auto space = luabridge::getGlobal(L, path.at(0).c_str());
   if (!space.isTable()) {
-    std::cerr << "ScriptEnvironment: '" << name_space << "' is not a table\n";
+    std::cerr << "ScriptEnvironment: '" << path.at(0) << "' is not a table\n";
     assert(false && "Tried to call a function in a non-table namespace.");
     return std::nullopt;
   }
 
+  for (size_t i = 1; i < path.size(); i++) {
+    std::cout << "getting table: " << path.at(i) << "\n";
+
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+    space = space[path.at(i).c_str()];
+    if (!space.isTable()) {
+      std::cerr << "ScriptEnvironment: '" << name << "': '" << path.at(i) << "' is not a table\n";
+      assert(false && "Tried to call a function in a non-table namespace.");
+      return std::nullopt;
+    }
+  }
+
+  std::cout << "getting function: " << function_name << "\n";
+
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
-  auto func = space[function.c_str()];
+  return space[function_name.c_str()];
+}
+
+inline std::optional<luabridge::LuaRef> ScriptEnvironment::get_function(const std::string &name) {
+  if (function_cache.contains(name)) {
+    return function_cache.at(name);
+  }
+
+  auto maybe_func = get_function_from_state(L.get(), name);
+  if (!maybe_func.has_value()) {
+    return std::nullopt;
+  }
+  auto func = maybe_func.value();
+
   if (!func.isFunction()) {
-    std::cerr << "ScriptEnvironment: '" << name_space << "." << function << "' is not a function\n";
+    std::cerr << "ScriptEnvironment: '" << name << "' is not a function\n";
     assert(false && "Tried to call a non-function type.");
     return std::nullopt;
   }
 
-  function_cache.insert({cache_key, func});
+  function_cache.insert({name, func});
 
   return func;
 }

@@ -25,6 +25,7 @@ struct LuaStateDeleter {
     }
 };
 
+// TODO instead of using globals, cache the tables output by scripts
 class ScriptEnvironment {
   private:
     std::reference_wrapper<entt::registry> ecs;
@@ -33,7 +34,7 @@ class ScriptEnvironment {
     std::stack<std::string> executing_script;
     std::unordered_map<std::string, luabridge::LuaRef> function_cache;
 
-    std::optional<luabridge::LuaRef> get_function(const std::string &name_space, const std::string &function);
+    std::optional<luabridge::LuaRef> get_function(const std::string &name);
     luabridge::LuaRef luau_require(lua_State *local_L);
     bool open_and_run_file(lua_State *local_L, int num_results, const std::string &path);
 
@@ -51,7 +52,7 @@ class ScriptEnvironment {
     template <typename Result = void, typename... Args>
     Result call_global_function(const std::string &name, Args &&...args);
     template <typename Result = void, typename... Args>
-    Result call_function(const std::string &name_space, const std::string &function, Args &&...args);
+    Result call_function(const std::string &name, Args &&...args);
 };
 
 } // namespace framework
