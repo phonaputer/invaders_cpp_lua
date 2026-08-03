@@ -9,9 +9,11 @@
 #include <luacode.h>
 #include <lualib.h>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <stack>
 #include <string>
+#include <unordered_map>
 
 #include <LuaBridge/LuaBridge.h>
 
@@ -29,7 +31,9 @@ class ScriptEnvironment {
     std::unique_ptr<lua_State, LuaStateDeleter> L;
 
     std::stack<std::string> executing_script;
+    std::unordered_map<std::string, luabridge::LuaRef> function_cache;
 
+    std::optional<luabridge::LuaRef> get_function(const std::string &name_space, const std::string &function);
     luabridge::LuaRef luau_require(lua_State *local_L);
     bool open_and_run_file(lua_State *local_L, int num_results, const std::string &path);
 

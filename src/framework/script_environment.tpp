@@ -8,6 +8,7 @@
 #include <luacode.h>
 #include <lualib.h>
 #include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 
@@ -16,7 +17,7 @@
 namespace framework {
 
 constexpr std::string CPP_NAMESPACE = "Host";
-constexpr std::string SCRIPT_PATH_PREFIX = "./scripts/";
+constexpr std::string SCRIPT_PATH_PREFIX = "scripts/";
 constexpr std::string SCRIPT_PATH_SUFFIX = ".luau";
 constexpr std::string PACKAGE_ENTRYPOINT_FILE = "/init.luau";
 
@@ -28,8 +29,6 @@ struct FreeDeleter {
 };
 
 // TODO caching
-// TODO consider switching to exceptions here since this is only ever called from a Luau function
-// and I believe Luabridge may transform C++ exceptions to nice Luau error messages with line number.
 inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
   if (executing_script.empty()) {
     std::cerr << "ScriptEnvironment: Tried to call require outside loading a Luau file.\n";
@@ -45,6 +44,11 @@ inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
   }
 
   const std::string file_to_execute = get_require_path(lua_tostring(local_L, 1), executing_script.top());
+  if (!file_to_execute.starts_with(SCRIPT_PATH_PREFIX)) {
+    std::cerr << "ScriptEnvironment: Disallowed require path: " << file_to_execute << "\n";
+    assert(false && "Disallowed require path.");
+    return {local_L, false};
+  }
 
   const bool success = open_and_run_file(local_L, 1, file_to_execute);
   if (!success) {
@@ -58,9 +62,6 @@ inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
   return result;
 }
 
-// TODO consider whether to reject .. since there probably will never be a reason to import from a parent dir.
-// Note that .. is handled correctly now.
-// Also, consider throwing an error for any path that doesn't start with "scripts/"
 inline std::string
 ScriptEnvironment::get_require_path(const std::string &require_target, const std::string &current_script) {
   std::string file_name_str = require_target;
@@ -210,15 +211,12 @@ template <typename F> void ScriptEnvironment::register_function(const std::strin
 // TODO caching
 template <typename Result, typename... Args>
 Result ScriptEnvironment::call_global_function(const std::string &name, Args &&...args) {
-  auto func = luabridge::getGlobal(L.get(), name.c_str());
-
-  if (!func.isFunction()) {
-    std::cerr << "ScriptEnvironment: '" << name << "' is not a function\n";
-    assert(false && "Tried to call a non-function type.");
+  auto maybe_func = get_function("_G", name);
+  if (!maybe_func.has_value()) {
     return Result{};
   }
 
-  auto result = func.call<Result>(std::forward<Args>(args)...);
+  auto result = maybe_func.value().call<Result>(std::forward<Args>(args)...);
   if (result.error()) {
     std::cerr << "ScriptEnvironment: failed to call '" << name << "': " << result.message() << "\n";
     assert(false && "Failed to call function.");
@@ -232,22 +230,12 @@ Result ScriptEnvironment::call_global_function(const std::string &name, Args &&.
 template <typename Result, typename... Args>
 Result
 ScriptEnvironment::call_function(const std::string &name_space, const std::string &function, Args &&...args) {
-  auto space = luabridge::getGlobal(L.get(), name_space.c_str());
-  if (!space.isTable()) {
-    std::cerr << "ScriptEnvironment: '" << name_space << "' is not a table\n";
-    assert(false && "Tried to call a function in a non-table namespace.");
+  auto maybe_func = get_function(name_space, function);
+  if (!maybe_func.has_value()) {
     return Result{};
   }
 
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
-  auto func = space[function.c_str()];
-  if (!func.isFunction()) {
-    std::cerr << "ScriptEnvironment: '" << function << "' is not a function\n";
-    assert(false && "Tried to call a non-function type.");
-    return Result{};
-  }
-
-  auto result = func.call<Result>(std::forward<Args>(args)...);
+  auto result = maybe_func.value().call<Result>(std::forward<Args>(args)...);
   if (result.error()) {
     std::cerr << "ScriptEnvironment: failed to call '" << name_space << "." << function
               << "': " << result.message() << "\n";
@@ -256,6 +244,34 @@ ScriptEnvironment::call_function(const std::string &name_space, const std::strin
   }
 
   return result.value();
+}
+
+inline std::optional<luabridge::LuaRef>
+ScriptEnvironment::get_function(const std::string &name_space, const std::string &function) {
+  const std::string cache_key = name_space + "." + function;
+
+  if (function_cache.contains(cache_key)) {
+    return function_cache.at(cache_key);
+  }
+
+  auto space = luabridge::getGlobal(L.get(), name_space.c_str());
+  if (!space.isTable()) {
+    std::cerr << "ScriptEnvironment: '" << name_space << "' is not a table\n";
+    assert(false && "Tried to call a function in a non-table namespace.");
+    return std::nullopt;
+  }
+
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
+  auto func = space[function.c_str()];
+  if (!func.isFunction()) {
+    std::cerr << "ScriptEnvironment: '" << name_space << "." << function << "' is not a function\n";
+    assert(false && "Tried to call a non-function type.");
+    return std::nullopt;
+  }
+
+  function_cache.insert({cache_key, func});
+
+  return func;
 }
 
 } // namespace framework
