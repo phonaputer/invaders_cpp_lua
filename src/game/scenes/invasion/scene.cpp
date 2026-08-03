@@ -9,6 +9,7 @@
 #include "game/scenes/invasion/systems/animation.hpp"
 #include "game/scenes/invasion/systems/collision_detection.hpp"
 #include "game/scenes/invasion/systems/deletion.hpp"
+#include "game/scenes/invasion/systems/player_movement.hpp"
 #include "game/scenes/invasion/systems/sprite_rendering.hpp"
 #include "game/scenes/invasion/systems/velocity.hpp"
 #include <memory>
@@ -64,6 +65,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_update_system(std::make_unique<systems::CollisionDetection>());
   ctx.systems.add_update_system(std::make_unique<systems::Deletion>());
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
+  ctx.systems.add_update_system(std::make_unique<systems::PlayerMovement>());
 
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
 

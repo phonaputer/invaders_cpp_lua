@@ -4,6 +4,7 @@ target_sources(
   animation.cpp
   collision_detection.cpp
   deletion.cpp
+  player_movement.cpp
   sprite_rendering.cpp
   velocity.cpp
 )

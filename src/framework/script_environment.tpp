@@ -28,7 +28,6 @@ struct FreeDeleter {
     }
 };
 
-// TODO caching
 inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
   if (executing_script.empty()) {
     std::cerr << "ScriptEnvironment: Tried to call require outside loading a Luau file.\n";
@@ -208,7 +207,6 @@ template <typename F> void ScriptEnvironment::register_function(const std::strin
       .endNamespace();
 }
 
-// TODO caching
 template <typename Result, typename... Args>
 Result ScriptEnvironment::call_global_function(const std::string &name, Args &&...args) {
   auto maybe_func = get_function("_G", name);
@@ -226,7 +224,6 @@ Result ScriptEnvironment::call_global_function(const std::string &name, Args &&.
   return result.value();
 }
 
-// TODO caching
 template <typename Result, typename... Args>
 Result
 ScriptEnvironment::call_function(const std::string &name_space, const std::string &function, Args &&...args) {
