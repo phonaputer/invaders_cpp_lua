@@ -15,6 +15,10 @@ export type Collision = {
     isPassive: boolean,
 }
 
+export type PlayerMovement = {
+    xSpeed: number,
+}
+
 export type Position = {
     x: number,
     y: number,
@@ -43,10 +47,11 @@ export type Velocity = {
 declare Components: {
     Animation: (() -> Animation),
     Collision: (() -> Collision),
+    PlayerMovement: (() -> PlayerMovement),
     Position: (() -> Position),
     Sprite: (() -> Sprite),
     ToBeDeleted: (() -> ToBeDeleted),
-    Velocity: (() -> Velocity)
+    Velocity: (() -> Velocity),
 }
 
 type Entity = number
@@ -63,6 +68,11 @@ declare ECS: {
     getCollision: (Entity) -> Collision,
     setCollision: (Entity, Collision) -> (),
     removeCollision: (Entity) -> (),
+
+    hasPlayerMovement: (Entity) -> (boolean),
+    getPlayerMovement: (Entity) -> PlayerMovement,
+    setPlayerMovement: (Entity, PlayerMovement) -> (),
+    removePlayerMovement: (Entity) -> (),
 
     hasPosition: (Entity) -> (boolean),
     getPosition: (Entity) -> Position,
@@ -82,12 +92,17 @@ declare ECS: {
     hasVelocity: (Entity) -> (boolean),
     getVelocity: (Entity) -> Velocity,
     setVelocity: (Entity, Velocity) -> (),
-    removeVelocity: (Entity) -> ()
+    removeVelocity: (Entity) -> (),
 }
 
 type AnimationStrip = number
 
 declare AnimationStrips: {
     create: () -> (AnimationStrip),
-    addFrame: (AnimationStrip, number, number) -> ()
+    addFrame: (AnimationStrip, number, number) -> (),
+}
+
+declare Game: {
+    WINDOW_WIDTH: number,
+    WINDOW_HEIGHT: number,
 }

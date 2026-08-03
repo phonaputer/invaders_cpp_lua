@@ -2,6 +2,7 @@
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
 #include "game/scenes/invasion/components/collision.hpp"
+#include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
@@ -32,6 +33,9 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
         .addProperty("hitboxW", &components::Collision::hitbox_w, &components::Collision::hitbox_w)
         .addProperty("hitboxH", &components::Collision::hitbox_h, &components::Collision::hitbox_h)
         .addProperty("isPassive", &components::Collision::is_passive, &components::Collision::is_passive);
+  });
+  ctx.scripts.register_component<components::PlayerMovement>("PlayerMovement", [](auto &clazz) {
+    clazz.addProperty("xSpeed", &components::PlayerMovement::x_speed, &components::PlayerMovement::x_speed);
   });
   ctx.scripts.register_component<components::Position>("Position", [](auto &clazz) {
     clazz.addProperty("x", &components::Position::x, &components::Position::x)

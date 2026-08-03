@@ -1,5 +1,6 @@
 #pragma once
 
+#include "framework/constants.hpp"
 #include <entt.hpp>
 #include <filesystem>
 #include <fstream>
@@ -27,6 +28,31 @@ struct FreeDeleter {
       std::free(ptr);
     }
 };
+
+inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs, AnimationStripRegistry &animation_strips)
+    : ecs{ecs},
+      L{luaL_newstate(), LuaStateDeleter()} {
+  luaL_openlibs(L.get());
+
+  luabridge::getGlobalNamespace(L.get())
+      .addFunction("require", [this](lua_State *local_L) { return luau_require(local_L); })
+      .beginNamespace("Game")
+      .addProperty("WINDOW_WIDTH", &WINDOW_WIDTH)
+      .addProperty("WINDOW_HEIGHT", &WINDOW_HEIGHT)
+      .endNamespace()
+      .beginNamespace("ECS")
+      .addFunction("create", [&ecs]() -> uint32_t { return entt::to_integral(ecs.create()); })
+      .endNamespace()
+      .beginNamespace("AnimationStrips")
+      .addFunction("create", [&animation_strips]() -> uint8_t { return animation_strips.create(); })
+      .addFunction(
+          "addFrame",
+          [&animation_strips](uint8_t id, int x, int y) {
+            animation_strips.add_frame(id, AnimationFrame{.x = x, .y = y});
+          }
+      )
+      .endNamespace();
+}
 
 inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
   if (executing_script.empty()) {
@@ -133,27 +159,6 @@ ScriptEnvironment::open_and_run_file(lua_State *local_L, int num_results, const 
   }
 
   return true;
-}
-
-inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs, AnimationStripRegistry &animation_strips)
-    : ecs{ecs},
-      L{luaL_newstate(), LuaStateDeleter()} {
-  luaL_openlibs(L.get());
-
-  luabridge::getGlobalNamespace(L.get())
-      .addFunction("require", [this](lua_State *local_L) { return luau_require(local_L); })
-      .beginNamespace("ECS")
-      .addFunction("create", [&ecs]() -> uint32_t { return entt::to_integral(ecs.create()); })
-      .endNamespace()
-      .beginNamespace("AnimationStrips")
-      .addFunction("create", [&animation_strips]() -> uint8_t { return animation_strips.create(); })
-      .addFunction(
-          "addFrame",
-          [&animation_strips](uint8_t id, int x, int y) {
-            animation_strips.add_frame(id, AnimationFrame{.x = x, .y = y});
-          }
-      )
-      .endNamespace();
 }
 
 inline void ScriptEnvironment::exec_script_file(const std::string &path) {
