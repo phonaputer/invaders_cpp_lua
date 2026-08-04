@@ -2,6 +2,7 @@
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
 #include "game/scenes/invasion/components/collision.hpp"
+#include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
@@ -10,6 +11,7 @@
 #include "game/scenes/invasion/systems/animation.hpp"
 #include "game/scenes/invasion/systems/collision_detection.hpp"
 #include "game/scenes/invasion/systems/deletion.hpp"
+#include "game/scenes/invasion/systems/player_attack.hpp"
 #include "game/scenes/invasion/systems/player_movement.hpp"
 #include "game/scenes/invasion/systems/sprite_rendering.hpp"
 #include "game/scenes/invasion/systems/velocity.hpp"
@@ -33,6 +35,11 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
         .addProperty("hitboxW", &components::Collision::hitbox_w, &components::Collision::hitbox_w)
         .addProperty("hitboxH", &components::Collision::hitbox_h, &components::Collision::hitbox_h)
         .addProperty("isPassive", &components::Collision::is_passive, &components::Collision::is_passive);
+  });
+  ctx.scripts.register_component<components::PlayerAttack>("PlayerAttack", [](auto &clazz) {
+    clazz.addProperty("ticksPerAttack", &components::PlayerAttack::ticks_per_attack, &components::PlayerAttack::ticks_per_attack)
+    .addProperty("tickCounter", &components::PlayerAttack::tick_counter, &components::PlayerAttack::tick_counter)
+    .addProperty("callback", &components::PlayerAttack::callback, &components::PlayerAttack::callback);
   });
   ctx.scripts.register_component<components::PlayerMovement>("PlayerMovement", [](auto &clazz) {
     clazz.addProperty("xSpeed", &components::PlayerMovement::x_speed, &components::PlayerMovement::x_speed);
@@ -70,6 +77,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_update_system(std::make_unique<systems::Deletion>());
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
   ctx.systems.add_update_system(std::make_unique<systems::PlayerMovement>());
+  ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>());
 
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
 

@@ -15,6 +15,12 @@ export type Collision = {
     isPassive: boolean,
 }
 
+export type PlayerAttack = {
+    ticksPerAttack: number,
+    tickCounter: number,
+    callback: string,
+}
+
 export type PlayerMovement = {
     xSpeed: number,
 }
@@ -47,6 +53,7 @@ export type Velocity = {
 declare Components: {
     Animation: (() -> Animation),
     Collision: (() -> Collision),
+    PlayerAttack: (() -> PlayerAttack),
     PlayerMovement: (() -> PlayerMovement),
     Position: (() -> Position),
     Sprite: (() -> Sprite),
@@ -68,6 +75,11 @@ declare ECS: {
     getCollision: (Entity) -> Collision,
     setCollision: (Entity, Collision) -> (),
     removeCollision: (Entity) -> (),
+
+    hasPlayerAttack: (Entity) -> (boolean),
+    getPlayerAttack: (Entity) -> PlayerAttack,
+    setPlayerAttack: (Entity, PlayerAttack) -> (),
+    removePlayerAttack: (Entity) -> (),
 
     hasPlayerMovement: (Entity) -> (boolean),
     getPlayerMovement: (Entity) -> PlayerMovement,

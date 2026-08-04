@@ -87,6 +87,7 @@ void Game::update() {
       .ecs = ecs,
       .events = event_broker,
       .player_input = *player_input_manager,
+      .scripts = *scripts,
   };
 
   event_broker.clear_all_draw();
@@ -123,6 +124,7 @@ void Game::draw() {
       .ecs = ecs,
       .events = event_broker,
       .player_input = *player_input_manager,
+      .scripts = *scripts,
   };
 
   for (const auto &system : draw_systems) {
