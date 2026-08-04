@@ -2,7 +2,7 @@
 
 local Player = {}
 
-function Player.new()
+function Player.new(): ()
 	local entity = ECS.create()
 
 	local strip = AnimationStrips.create()
@@ -21,6 +21,11 @@ function Player.new()
 	collision.hitboxW = 15
 	collision.hitboxH = 5
 	ECS.setCollision(entity, collision)
+
+	local playerAttack = Components.PlayerAttack()
+	playerAttack.ticksPerAttack = 8
+	playerAttack.callback = "Entities.Player.newProjectile"
+	ECS.setPlayerAttack(entity, playerAttack)
 
 	local playerMovement = Components.PlayerMovement()
 	playerMovement.xSpeed = 1
@@ -43,6 +48,39 @@ function Player.new()
 	sprite.dstW = 16
 	sprite.dstH = 16
 	ECS.setSprite(entity, sprite)
+end
+
+function Player.newProjectile(x: number, y: number): ()
+	local entity = ECS.create()
+
+	local collision = Components.Collision()
+	collision.hitboxOffsetX = 7
+	collision.hitboxOffsetY = 6
+	collision.hitboxW = 1
+	collision.hitboxH = 4
+	ECS.setCollision(entity, collision)
+
+	local position = Components.Position()
+	position.x = x - 2
+	position.y = y - 2
+	position.w = 16
+	position.h = 16
+	position.z = 100
+	ECS.setPosition(entity, position)
+
+	local sprite = Components.Sprite()
+	sprite.srcID = "space_invaders.png"
+	sprite.srcX = 112
+	sprite.srcY = 16
+	sprite.srcW = 16
+	sprite.srcH = 16
+	sprite.dstW = 16
+	sprite.dstH = 16
+	ECS.setSprite(entity, sprite)
+
+	local velocity = Components.Velocity()
+	velocity.y = -4
+	ECS.setVelocity(entity, velocity)
 end
 
 return Player

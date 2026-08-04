@@ -77,7 +77,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_update_system(std::make_unique<systems::Deletion>());
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
   ctx.systems.add_update_system(std::make_unique<systems::PlayerMovement>());
-  ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>());
+  ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>(ctx.scripts));
 
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
 
