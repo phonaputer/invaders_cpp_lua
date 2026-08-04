@@ -2,6 +2,7 @@
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
 #include "game/scenes/invasion/components/collision.hpp"
+#include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
@@ -35,6 +36,9 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
         .addProperty("hitboxW", &components::Collision::hitbox_w, &components::Collision::hitbox_w)
         .addProperty("hitboxH", &components::Collision::hitbox_h, &components::Collision::hitbox_h)
         .addProperty("isPassive", &components::Collision::is_passive, &components::Collision::is_passive);
+  });
+  ctx.scripts.register_component<components::DeletionCallback>("DeletionCallback", [](auto &clazz) {
+    clazz.addProperty("callback", &components::DeletionCallback::callback, &components::DeletionCallback::callback);
   });
   ctx.scripts.register_component<components::PlayerAttack>("PlayerAttack", [](auto &clazz) {
     clazz.addProperty("ticksPerAttack", &components::PlayerAttack::ticks_per_attack, &components::PlayerAttack::ticks_per_attack)
@@ -74,7 +78,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
 
   ctx.systems.add_update_system(std::make_unique<systems::Velocity>());
   ctx.systems.add_update_system(std::make_unique<systems::CollisionDetection>());
-  ctx.systems.add_update_system(std::make_unique<systems::Deletion>());
+  ctx.systems.add_update_system(std::make_unique<systems::Deletion>(ctx.scripts));
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
   ctx.systems.add_update_system(std::make_unique<systems::PlayerMovement>());
   ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>(ctx.scripts));

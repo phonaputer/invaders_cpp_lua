@@ -11,7 +11,7 @@ class PlayerAttack : public framework::System {
     std::reference_wrapper<framework::ScriptEnvironment> scripts;
 
   public:
-    PlayerAttack(framework::ScriptEnvironment &scripts);
+    explicit PlayerAttack(framework::ScriptEnvironment &scripts);
     void execute(framework::ExecuteCtx &ctx) override;
 };
 

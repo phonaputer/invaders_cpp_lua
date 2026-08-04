@@ -50,7 +50,19 @@ function Player.new(): ()
 	ECS.setSprite(entity, sprite)
 end
 
+Player.ProjectileCount = 0
+
+function Player.decrementProjectileCount()
+	Player.ProjectileCount -= 1
+end
+
 function Player.newProjectile(x: number, y: number): ()
+	if Player.ProjectileCount >= 3 then
+		return
+	end
+
+	Player.ProjectileCount += 1
+
 	local entity = ECS.create()
 
 	local collision = Components.Collision()
@@ -59,6 +71,10 @@ function Player.newProjectile(x: number, y: number): ()
 	collision.hitboxW = 1
 	collision.hitboxH = 4
 	ECS.setCollision(entity, collision)
+
+	local deletionCallback = Components.DeletionCallback()
+	deletionCallback.callback = "Entities.Player.decrementProjectileCount"
+	ECS.setDeletionCallback(entity, deletionCallback)
 
 	local position = Components.Position()
 	position.x = x - 2
