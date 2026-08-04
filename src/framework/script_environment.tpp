@@ -167,8 +167,36 @@ inline void ScriptEnvironment::exec_script_file(const std::string &path) {
   open_and_run_file(L.get(), 0, SCRIPT_PATH_PREFIX + path + SCRIPT_PATH_SUFFIX);
 }
 
-inline void ScriptEnvironment::exec_package(const std::string &path) {
-  open_and_run_file(L.get(), 0, SCRIPT_PATH_PREFIX + path + PACKAGE_ENTRYPOINT_FILE);
+inline std::optional<luabridge::LuaRef> ScriptEnvironment::load_package(const std::string &package) {
+  auto success = open_and_run_file(L.get(), 1, SCRIPT_PATH_PREFIX + package + PACKAGE_ENTRYPOINT_FILE);
+  if (!success) {
+    return std::nullopt;
+  }
+
+  auto result = luabridge::LuaRef::fromStack(L.get(), -1);
+  lua_pop(L.get(), 1);
+
+  if (!result.isTable()) {
+    std::cerr << "ScriptEnvironment: Package '" << package << "' did not return a table.\n";
+    return std::nullopt;
+  }
+
+  return result;
+}
+
+inline std::optional<luabridge::LuaRef> ScriptEnvironment::get_package(const std::string &package) {
+  if (package_cache.contains(package)) {
+    return package_cache.at(package);
+  }
+
+  auto result = load_package(package);
+  if (!result.has_value()) {
+    return std::nullopt;
+  }
+
+  package_cache.insert_or_assign(package, result.value());
+
+  return result;
 }
 
 template <typename T, typename F>
@@ -216,15 +244,15 @@ template <typename F> void ScriptEnvironment::register_function(const std::strin
 
 template <typename Result, typename... Args>
 Result ScriptEnvironment::call_global_function(const std::string &name, Args &&...args) {
-  auto maybe_func = get_function(name);
+  auto maybe_func = get_global_function(name);
   if (!maybe_func.has_value()) {
     return Result{};
   }
 
   auto result = maybe_func.value().call<Result>(std::forward<Args>(args)...);
   if (result.error()) {
-    std::cerr << "ScriptEnvironment: failed to call '" << name << "': " << result.message() << "\n";
-    assert(false && "Failed to call function.");
+    std::cerr << "ScriptEnvironment: failed to call global '" << name << "': " << result.message() << "\n";
+    assert(false && "Failed to call global function.");
     return Result{};
   }
 
@@ -232,8 +260,8 @@ Result ScriptEnvironment::call_global_function(const std::string &name, Args &&.
 }
 
 template <typename Result, typename... Args>
-Result ScriptEnvironment::call_function(const std::string &name, Args &&...args) {
-  auto maybe_func = get_function(name);
+Result ScriptEnvironment::call_function(const std::string &package, const std::string &name, Args &&...args) {
+  auto maybe_func = get_function(package, name);
   if (!maybe_func.has_value()) {
     return Result{};
   }
@@ -248,63 +276,81 @@ Result ScriptEnvironment::call_function(const std::string &name, Args &&...args)
   return result.value();
 }
 
-inline std::optional<luabridge::LuaRef> get_function_from_state(lua_State *L, const std::string &name) {
+inline std::optional<luabridge::LuaRef>
+get_function_from_table(const luabridge::LuaRef &table, const std::string &name) {
+  if (!table.isTable()) {
+    std::cerr << "ScriptEnvironment: tried to get'" << name << "' with a non table.\n";
+    return std::nullopt;
+  }
+
   std::vector<std::string> path;
   auto split_range = name | std::views::split('.');
   for (auto &&subrange : split_range) {
     path.emplace_back(subrange.begin(), subrange.end());
   }
 
-  if (path.size() == 1) {
-    return luabridge::getGlobal(L, path.at(0).c_str());
-  }
-
   const std::string function_name = path.back();
   path.pop_back();
 
-  auto space = luabridge::getGlobal(L, path.at(0).c_str());
-  if (!space.isTable()) {
-    std::cerr << "ScriptEnvironment: '" << path.at(0) << "' is not a table\n";
-    assert(false && "Tried to call a function in a non-table namespace.");
-    return std::nullopt;
-  }
+  auto name_space = table;
 
-  for (size_t i = 1; i < path.size(); i++) {
-    std::cout << "getting table: " << path.at(i) << "\n";
-
+  for (const auto &element : path) {
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
-    space = space[path.at(i).c_str()];
-    if (!space.isTable()) {
-      std::cerr << "ScriptEnvironment: '" << name << "': '" << path.at(i) << "' is not a table\n";
-      assert(false && "Tried to call a function in a non-table namespace.");
+    name_space = name_space[element.c_str()];
+    if (!name_space.isTable()) {
+      std::cerr << "ScriptEnvironment: '" << name << "': '" << element << "' is not a table\n";
       return std::nullopt;
     }
   }
 
-  std::cout << "getting function: " << function_name << "\n";
-
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-avoid-unchecked-container-access)
-  return space[function_name.c_str()];
-}
-
-inline std::optional<luabridge::LuaRef> ScriptEnvironment::get_function(const std::string &name) {
-  if (function_cache.contains(name)) {
-    return function_cache.at(name);
+  auto func = name_space[function_name.c_str()];
+  if (!func.isFunction()) {
+    std::cerr << "ScriptEnvironment: '" << name << "' is not a function.\n";
+    return std::nullopt;
   }
 
-  auto maybe_func = get_function_from_state(L.get(), name);
+  return func;
+}
+
+inline std::optional<luabridge::LuaRef>
+ScriptEnvironment::get_function(const std::string &package, const std::string &function) {
+  const std::string cache_key = package + "::" + function;
+
+  if (function_cache.contains(cache_key)) {
+    return function_cache.at(cache_key);
+  }
+
+  auto maybe_package_ref = get_package(package);
+  if (!maybe_package_ref.has_value()) {
+    return std::nullopt;
+  }
+
+  auto maybe_func = get_function_from_table(maybe_package_ref.value(), function);
   if (!maybe_func.has_value()) {
     return std::nullopt;
   }
   auto func = maybe_func.value();
 
-  if (!func.isFunction()) {
-    std::cerr << "ScriptEnvironment: '" << name << "' is not a function\n";
-    assert(false && "Tried to call a non-function type.");
-    return std::nullopt;
+  function_cache.insert({cache_key, func});
+
+  return func;
+}
+
+inline std::optional<luabridge::LuaRef> ScriptEnvironment::get_global_function(const std::string &function) {
+  if (global_function_cache.contains(function)) {
+    return global_function_cache.at(function);
   }
 
-  function_cache.insert({name, func});
+  auto table = luabridge::getGlobal(L.get(), "_G");
+
+  auto maybe_func = get_function_from_table(table, function);
+  if (!maybe_func.has_value()) {
+    return std::nullopt;
+  }
+  auto func = maybe_func.value();
+
+  global_function_cache.insert({function, func});
 
   return func;
 }

@@ -2,12 +2,12 @@
 
 local Invaders = {}
 
-function Invaders.newJellyfish()
+function Invaders.newJellyfish(x: number, y: number)
 	local entity = ECS.create()
 
 	local position = Components.Position()
-	position.x = 25
-	position.y = 25
+	position.x = x
+	position.y = y
 	position.w = 16
 	position.h = 16
 	position.z = 1

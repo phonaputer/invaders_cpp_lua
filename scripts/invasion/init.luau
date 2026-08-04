@@ -1,10 +1,15 @@
 --!strict
---!nolint FunctionUnused
+
+local Invasion = {}
 
 local Entities = require("@self/entities")
 
-function setScene(): ()
-	Entities.Invaders.newJellyfish()
+function Invasion.setScene(): ()
+	Entities.Invaders.newJellyfish(25, 25)
 
 	Entities.Player.new()
 end
+
+Invasion.Entities = Entities
+
+return Invasion
