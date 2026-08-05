@@ -23,7 +23,8 @@ export type DeletionCallback = {
 export type PlayerAttack = {
     ticksPerAttack: number,
     tickCounter: number,
-    callback: string,
+    callbackPackage: string,
+    callbackFunction: string,
 }
 
 export type PlayerMovement = {

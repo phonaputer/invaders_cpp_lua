@@ -5,6 +5,7 @@
 #include "framework/system.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/position.hpp"
+#include <entt.hpp>
 
 namespace systems {
 
@@ -19,7 +20,9 @@ void PlayerAttack::execute(framework::ExecuteCtx &ctx) {
     if (attack.tick_counter >= attack.ticks_per_attack
         && ctx.player_input.is_engaged(framework::PlayerInput::FIRE)) {
       attack.tick_counter = 0;
-      scripts.get().call_function("invasion", attack.callback, position.x, position.y);
+      scripts.get().call_function(
+          attack.callback_package, attack.callback_function, entt::to_integral(entity), position.x, position.y
+      );
     } else {
       attack.tick_counter++;
     }

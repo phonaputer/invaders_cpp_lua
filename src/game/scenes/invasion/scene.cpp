@@ -47,7 +47,8 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   ctx.scripts.register_component<components::PlayerAttack>("PlayerAttack", [](auto &clazz) {
     clazz.addProperty("ticksPerAttack", &components::PlayerAttack::ticks_per_attack, &components::PlayerAttack::ticks_per_attack)
       .addProperty("tickCounter", &components::PlayerAttack::tick_counter, &components::PlayerAttack::tick_counter)
-      .addProperty("callback", &components::PlayerAttack::callback, &components::PlayerAttack::callback);
+      .addProperty("callbackPackage", &components::PlayerAttack::callback_package, &components::PlayerAttack::callback_package)
+      .addProperty("callbackFunction", &components::PlayerAttack::callback_function, &components::PlayerAttack::callback_function);
   });
   ctx.scripts.register_component<components::PlayerMovement>("PlayerMovement", [](auto &clazz) {
     clazz.addProperty("xSpeed", &components::PlayerMovement::x_speed, &components::PlayerMovement::x_speed);
@@ -89,13 +90,13 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
 void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.assets.load_images_in_dir_png("invasion");
 
-  ctx.systems.add_update_system(std::make_unique<systems::Velocity>());
-  ctx.systems.add_update_system(std::make_unique<systems::PositionFollowing>());
   ctx.systems.add_update_system(std::make_unique<systems::CollisionDetection>());
   ctx.systems.add_update_system(std::make_unique<systems::Deletion>(ctx.scripts));
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
+  ctx.systems.add_update_system(std::make_unique<systems::Velocity>());
   ctx.systems.add_update_system(std::make_unique<systems::PlayerMovement>());
   ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>(ctx.scripts));
+  ctx.systems.add_update_system(std::make_unique<systems::PositionFollowing>());
 
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
 
