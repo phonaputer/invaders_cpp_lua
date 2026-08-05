@@ -5,6 +5,7 @@
 namespace components {
 
 struct DeletionCallback {
+    std::string package;
     std::string callback;
 };
 

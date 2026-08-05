@@ -16,6 +16,7 @@ export type Collision = {
 }
 
 export type DeletionCallback = {
+    package: string,
     callback: string,
 }
 
@@ -55,6 +56,11 @@ export type Sprite = {
 
 export type ToBeDeleted = {}
 
+export type TTL = {
+    ticksToLive: number,
+    tickCounter: number,
+}
+
 export type Velocity = {
     x: number,
     y: number,
@@ -70,6 +76,7 @@ declare Components: {
     PositionFollowing: (() -> PositionFollowing),
     Sprite: (() -> Sprite),
     ToBeDeleted: (() -> ToBeDeleted),
+    TTL: (() -> TTL),
     Velocity: (() -> Velocity),
 }
 
@@ -122,6 +129,11 @@ declare ECS: {
     getToBeDeleted: (Entity) -> ToBeDeleted,
     setToBeDeleted: (Entity, ToBeDeleted) -> (),
     removeToBeDeleted: (Entity) -> (),
+
+    hasTTL: (Entity) -> (boolean),
+    getTTL: (Entity) -> TTL,
+    setTTL: (Entity, TTL) -> (),
+    removeTTL: (Entity) -> (),
 
     hasVelocity: (Entity) -> (boolean),
     getVelocity: (Entity) -> Velocity,

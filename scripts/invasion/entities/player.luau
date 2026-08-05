@@ -73,6 +73,7 @@ function Player.newProjectile(x: number, y: number): ()
 	ECS.setCollision(entity, collision)
 
 	local deletionCallback = Components.DeletionCallback()
+	deletionCallback.package = "invasion"
 	deletionCallback.callback = "Entities.Player.decrementProjectileCount"
 	ECS.setDeletionCallback(entity, deletionCallback)
 
