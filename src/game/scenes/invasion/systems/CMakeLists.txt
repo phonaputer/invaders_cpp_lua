@@ -6,6 +6,7 @@ target_sources(
   deletion.cpp
   player_attack.cpp
   player_movement.cpp
+  position_following.cpp
   sprite_rendering.cpp
   velocity.cpp
 )

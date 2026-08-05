@@ -6,6 +6,7 @@
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
+#include "game/scenes/invasion/components/position_following.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/components/velocity.hpp"
@@ -14,6 +15,7 @@
 #include "game/scenes/invasion/systems/deletion.hpp"
 #include "game/scenes/invasion/systems/player_attack.hpp"
 #include "game/scenes/invasion/systems/player_movement.hpp"
+#include "game/scenes/invasion/systems/position_following.hpp"
 #include "game/scenes/invasion/systems/sprite_rendering.hpp"
 #include "game/scenes/invasion/systems/velocity.hpp"
 #include <memory>
@@ -55,6 +57,11 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
         .addProperty("h", &components::Position::y, &components::Position::h)
         .addProperty("z", &components::Position::z, &components::Position::z);
   });
+  ctx.scripts.register_component<components::PositionFollowing>("PositionFollowing", [](auto &clazz) {
+    clazz.addProperty("leader", &components::PositionFollowing::leader, &components::PositionFollowing::leader)
+        .addProperty("xOffset", &components::PositionFollowing::x_offset, &components::PositionFollowing::x_offset)
+        .addProperty("yOffset", &components::PositionFollowing::y_offset, &components::PositionFollowing::y_offset);
+  });
   ctx.scripts.register_component<components::Sprite>("Sprite", [](auto &clazz) {
     clazz.addProperty("srcID", &components::Sprite::src_id, &components::Sprite::src_id)
         .addProperty("srcX", &components::Sprite::src_x, &components::Sprite::src_x)
@@ -77,6 +84,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.assets.load_images_in_dir_png("invasion");
 
   ctx.systems.add_update_system(std::make_unique<systems::Velocity>());
+  ctx.systems.add_update_system(std::make_unique<systems::PositionFollowing>());
   ctx.systems.add_update_system(std::make_unique<systems::CollisionDetection>());
   ctx.systems.add_update_system(std::make_unique<systems::Deletion>(ctx.scripts));
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));

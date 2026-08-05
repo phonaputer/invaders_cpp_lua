@@ -37,6 +37,12 @@ export type Position = {
     z: number,
 }
 
+export type PositionFollowing = {
+    leader: number,
+    xOffset: number,
+    yOffset: number,
+}
+
 export type Sprite = {
     srcID: string,
     srcX: number,
@@ -61,6 +67,7 @@ declare Components: {
     PlayerAttack: (() -> PlayerAttack),
     PlayerMovement: (() -> PlayerMovement),
     Position: (() -> Position),
+    PositionFollowing: (() -> PositionFollowing),
     Sprite: (() -> Sprite),
     ToBeDeleted: (() -> ToBeDeleted),
     Velocity: (() -> Velocity),
@@ -100,6 +107,11 @@ declare ECS: {
     getPosition: (Entity) -> Position,
     setPosition: (Entity, Position) -> (),
     removePosition: (Entity) -> (),
+
+    hasPositionFollowing: (Entity) -> (boolean),
+    getPositionFollowing: (Entity) -> PositionFollowing,
+    setPositionFollowing: (Entity, PositionFollowing) -> (),
+    removePositionFollowing: (Entity) -> (),
 
     hasSprite: (Entity) -> (boolean),
     getSprite: (Entity) -> Sprite,
