@@ -1,12 +1,47 @@
 #include "framework/event_broker.hpp"
 #include "framework/player_input_manager.hpp"
+#include "framework/script_environment.hpp"
 #include "framework/system.hpp"
+#include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
+#include "game/scenes/invasion/components/ttl.hpp"
 #include "game/scenes/invasion/systems/deletion.hpp"
 #include <entt.hpp>
 #include <gtest/gtest.h>
+#include <memory>
 
 namespace testing::deletion_system {
+
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+std::unique_ptr<framework::ScriptEnvironment> scripts;
+
+const std::string TEST_LUAU = R"(
+  local Pack = {}
+
+  Pack.CallCount = 0
+
+  function Pack.callback(): ()
+    Pack.CallCount += 1
+  end
+
+  function Pack.resetCallCount(): ()
+    Pack.CallCount = 0
+  end
+
+  function Pack.getCallCount(): number
+    return Pack.CallCount
+  end
+
+  return Pack
+)";
+
+class SystemDeletion : public ::testing::Test {
+  protected:
+    static void SetUpTestSuite() {
+      scripts = std::make_unique<framework::ScriptEnvironment>();
+      scripts->exec_script_string(TEST_LUAU, "pack");
+    }
+};
 
 struct TestSetup {
     entt::registry ecs;
@@ -28,11 +63,52 @@ TestSetup setupTest() {
       .ecs = entt::registry(),
       .events = framework::EventBroker(),
       .player_input = framework::PlayerInputManager(),
-      .system = systems::Deletion(),
+      .system = systems::Deletion(*scripts),
   };
 }
 
-TEST(SystemDeletion, ExecuteEntityIsTaggedToDeleteShouldBeDeleted) {
+TEST_F(SystemDeletion, ExecuteHasDeletionCallbackShouldCallTheCallbackAndDeleteTheEntity) {
+  TestSetup setup = setupTest();
+  auto ctx = setup.ctx();
+  auto entity = ctx.ecs.create();
+  ctx.ecs.emplace<components::ToBeDeleted>(entity);
+  ctx.ecs.emplace<components::DeletionCallback>(
+      entity, components::DeletionCallback{.package = "pack", .callback = "callback"}
+  );
+  scripts->call_function("pack", "resetCallCount");
+
+  setup.system.execute(ctx);
+
+  auto callbackCallCount = scripts->call_function<double>("pack", "getCallCount");
+  EXPECT_EQ(1, callbackCallCount);
+  EXPECT_FALSE(ctx.ecs.valid(entity));
+}
+
+TEST_F(SystemDeletion, ExecuteTTLHasNotReachedLifetimeShouldIncrement) {
+  TestSetup setup = setupTest();
+  auto ctx = setup.ctx();
+  auto entity = ctx.ecs.create();
+  ctx.ecs.emplace<components::TTL>(entity, components::TTL{.ticks_to_live = 100, .tick_counter = 99});
+
+  setup.system.execute(ctx);
+
+  EXPECT_TRUE(ctx.ecs.valid(entity));
+  const auto expected_ttl = components::TTL{.ticks_to_live = 100, .tick_counter = 100};
+  EXPECT_EQ(expected_ttl, setup.ecs.get<components::TTL>(entity));
+}
+
+TEST_F(SystemDeletion, ExecuteTTLReachesLifetimeShouldDeleteEntity) {
+  TestSetup setup = setupTest();
+  auto ctx = setup.ctx();
+  auto entity = ctx.ecs.create();
+  ctx.ecs.emplace<components::TTL>(entity, components::TTL{.ticks_to_live = 100, .tick_counter = 100});
+
+  setup.system.execute(ctx);
+
+  EXPECT_FALSE(ctx.ecs.valid(entity));
+}
+
+TEST_F(SystemDeletion, ExecuteEntityIsTaggedToDeleteShouldBeDeleted) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity = ctx.ecs.create();
@@ -43,7 +119,7 @@ TEST(SystemDeletion, ExecuteEntityIsTaggedToDeleteShouldBeDeleted) {
   EXPECT_FALSE(ctx.ecs.valid(entity));
 }
 
-TEST(SystemDeletion, ExecuteEntityIsNotTaggedToDeleteShouldNotBeDeleted) {
+TEST_F(SystemDeletion, ExecuteEntityIsNotTaggedToDeleteShouldNotBeDeleted) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity = ctx.ecs.create();

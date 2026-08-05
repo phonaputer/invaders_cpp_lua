@@ -25,7 +25,7 @@ namespace invasion {
 
 void register_all_components_to_script_env(framework::SceneInitializationContext ctx) {
   // clang-format off
-  ctx.scripts.register_component<components::Animation>("Animation", [](auto &clazz) {
+  ctx.scripts.register_component<components::Animation>(ctx.ecs, "Animation", [](auto &clazz) {
     clazz.addProperty("curFrame", &components::Animation::cur_frame, &components::Animation::cur_frame)
       .addProperty("tickCounter", &components::Animation::tick_counter, &components::Animation::tick_counter)
       .addProperty("ticksPerFrame", &components::Animation::ticks_per_frame, &components::Animation::ticks_per_frame)
@@ -33,39 +33,39 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("playing", &components::Animation::playing, &components::Animation::playing)
       .addProperty("playReversed", &components::Animation::play_reversed, &components::Animation::play_reversed);
   });
-  ctx.scripts.register_component<components::Collision>("Collision", [](auto &clazz) {
+  ctx.scripts.register_component<components::Collision>(ctx.ecs, "Collision", [](auto &clazz) {
     clazz.addProperty("hitboxOffsetX", &components::Collision::hitbox_offset_x, &components::Collision::hitbox_offset_x)
       .addProperty("hitboxOffsetY", &components::Collision::hitbox_offset_y, &components::Collision::hitbox_offset_y)
       .addProperty("hitboxW", &components::Collision::hitbox_w, &components::Collision::hitbox_w)
       .addProperty("hitboxH", &components::Collision::hitbox_h, &components::Collision::hitbox_h)
       .addProperty("isPassive", &components::Collision::is_passive, &components::Collision::is_passive);
   });
-  ctx.scripts.register_component<components::DeletionCallback>("DeletionCallback", [](auto &clazz) {
+  ctx.scripts.register_component<components::DeletionCallback>(ctx.ecs, "DeletionCallback", [](auto &clazz) {
     clazz.addProperty("package", &components::DeletionCallback::package, &components::DeletionCallback::package)
       .addProperty("callback", &components::DeletionCallback::callback, &components::DeletionCallback::callback);
   });
-  ctx.scripts.register_component<components::PlayerAttack>("PlayerAttack", [](auto &clazz) {
+  ctx.scripts.register_component<components::PlayerAttack>(ctx.ecs, "PlayerAttack", [](auto &clazz) {
     clazz.addProperty("ticksPerAttack", &components::PlayerAttack::ticks_per_attack, &components::PlayerAttack::ticks_per_attack)
       .addProperty("tickCounter", &components::PlayerAttack::tick_counter, &components::PlayerAttack::tick_counter)
       .addProperty("callbackPackage", &components::PlayerAttack::callback_package, &components::PlayerAttack::callback_package)
       .addProperty("callbackFunction", &components::PlayerAttack::callback_function, &components::PlayerAttack::callback_function);
   });
-  ctx.scripts.register_component<components::PlayerMovement>("PlayerMovement", [](auto &clazz) {
+  ctx.scripts.register_component<components::PlayerMovement>(ctx.ecs, "PlayerMovement", [](auto &clazz) {
     clazz.addProperty("xSpeed", &components::PlayerMovement::x_speed, &components::PlayerMovement::x_speed);
   });
-  ctx.scripts.register_component<components::Position>("Position", [](auto &clazz) {
+  ctx.scripts.register_component<components::Position>(ctx.ecs, "Position", [](auto &clazz) {
     clazz.addProperty("x", &components::Position::x, &components::Position::x)
       .addProperty("y", &components::Position::y, &components::Position::y)
       .addProperty("w", &components::Position::y, &components::Position::w)
       .addProperty("h", &components::Position::y, &components::Position::h)
       .addProperty("z", &components::Position::z, &components::Position::z);
   });
-  ctx.scripts.register_component<components::PositionFollowing>("PositionFollowing", [](auto &clazz) {
+  ctx.scripts.register_component<components::PositionFollowing>(ctx.ecs, "PositionFollowing", [](auto &clazz) {
     clazz.addProperty("leader", &components::PositionFollowing::leader, &components::PositionFollowing::leader)
       .addProperty("xOffset", &components::PositionFollowing::x_offset, &components::PositionFollowing::x_offset)
       .addProperty("yOffset", &components::PositionFollowing::y_offset, &components::PositionFollowing::y_offset);
   });
-  ctx.scripts.register_component<components::Sprite>("Sprite", [](auto &clazz) {
+  ctx.scripts.register_component<components::Sprite>(ctx.ecs, "Sprite", [](auto &clazz) {
     clazz.addProperty("srcID", &components::Sprite::src_id, &components::Sprite::src_id)
       .addProperty("srcX", &components::Sprite::src_x, &components::Sprite::src_x)
       .addProperty("srcY", &components::Sprite::src_y, &components::Sprite::src_y)
@@ -74,13 +74,13 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("dstW", &components::Sprite::dst_w, &components::Sprite::dst_w)
       .addProperty("dstH", &components::Sprite::dst_h, &components::Sprite::dst_h);
   });
-  ctx.scripts.register_component<components::ToBeDeleted>("ToBeDeleted", []([[maybe_unused]] auto &clazz) {
+  ctx.scripts.register_component<components::ToBeDeleted>(ctx.ecs, "ToBeDeleted", []([[maybe_unused]] auto &clazz) {
   });
-  ctx.scripts.register_component<components::TTL>("TTL", [](auto &clazz) {
+  ctx.scripts.register_component<components::TTL>(ctx.ecs, "TTL", [](auto &clazz) {
     clazz.addProperty("ticksToLive", &components::TTL::ticks_to_live, &components::TTL::ticks_to_live)
       .addProperty("tickCounter", &components::TTL::tick_counter, &components::TTL::tick_counter);
   });
-  ctx.scripts.register_component<components::Velocity>("Velocity", [](auto &clazz) {
+  ctx.scripts.register_component<components::Velocity>(ctx.ecs, "Velocity", [](auto &clazz) {
     clazz.addProperty("x", &components::Velocity::x, &components::Velocity::x)
       .addProperty("y", &components::Velocity::y, &components::Velocity::y);
   });

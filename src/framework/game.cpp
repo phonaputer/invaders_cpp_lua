@@ -158,7 +158,10 @@ void Game::apply_new_scene_if_any() {
   update_systems.clear();
   draw_systems.clear();
   animation_strips.clear();
-  scripts = std::make_unique<ScriptEnvironment>(ecs, animation_strips);
+  scripts = std::make_unique<ScriptEnvironment>();
+  register_scene_components_to_script_env(
+      SceneComponents{.scripts = *scripts, .ecs = ecs, .animation_strips = animation_strips}
+  );
 
   new_scene.value()->initialize(
       SceneInitializationContext{

@@ -31,9 +31,12 @@ struct GetFunctionArgs {
     std::string function;
 };
 
+// TODO
+// . Add hot reloading.
+// . Add registry of callbacks so that entites don't need to contain strings.
+// . Think about the lifetime of this type relative to a scene.
 class ScriptEnvironment {
   private:
-    std::reference_wrapper<entt::registry> ecs;
     std::unique_ptr<lua_State, LuaStateDeleter> L;
 
     std::stack<std::string> executing_script;
@@ -42,6 +45,7 @@ class ScriptEnvironment {
     std::unordered_map<std::string, luabridge::LuaRef> package_cache;
 
     bool open_and_run_file(lua_State *local_L, int num_results, const std::string &path);
+    bool exec_source(lua_State *local_L, int num_results, const std::string &path, const std::string &source);
 
     std::optional<luabridge::LuaRef> get_function(const std::string &package, const std::string &function);
     std::optional<luabridge::LuaRef> get_global_function(const std::string &function);
@@ -53,8 +57,7 @@ class ScriptEnvironment {
     static std::string get_require_path(const std::string &require_target, const std::string &current_script);
 
   public:
-    // TODO consider moving registration of these types into Luau out of this file
-    explicit ScriptEnvironment(entt::registry &ecs, AnimationStripRegistry &animation_strips);
+    ScriptEnvironment();
 
     // Execute any script file.
     //
@@ -63,6 +66,13 @@ class ScriptEnvironment {
     //
     // For example, the input "example/test" will run the file "scripts/example/test.luau".
     void exec_script_file(const std::string &path);
+
+    // Execute a string containing Luau code.
+    // This is primarily intended for unit testing.
+    //
+    // If the script returns a table, the optional "package" parameter must be set.
+    // Then any functions in the table can be invoked by calling call_function with the same package name.
+    void exec_script_string(const std::string &source, const std::string &package = "");
 
     // Call a function in Luau's global namespace.
     //
@@ -98,13 +108,30 @@ class ScriptEnvironment {
     // Register a component to the Luau environment so that Luau may perform CRUD operations on this component
     // in the EnTT ECS.
     template <typename T, typename F>
-    void register_component(const std::string &name, F &&fields_register_func);
+    void register_component(entt::registry &ecs, const std::string &name, F &&fields_register_func);
 
     // Register a C++ function so that it may be called from Luau.
     //
     // All functions registered here will be added to a global table named "Host".
     template <typename F> void register_function(const std::string &name, F &&func);
+
+    // Get the Luau state embeded in the environment.
+    //
+    // For when it's necessary do something in the Luau state not supported by the above helpers.
+    lua_State &get_lua_state();
 };
+
+// Intentionally using references here since this is a parameter object.
+//
+// NOLINTBEGIN(cppcoreguidelines-avoid-const-or-ref-data-members)
+struct SceneComponents {
+    ScriptEnvironment &scripts;
+    entt::registry &ecs;
+    AnimationStripRegistry &animation_strips;
+};
+// NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
+
+void register_scene_components_to_script_env(SceneComponents args);
 
 } // namespace framework
 

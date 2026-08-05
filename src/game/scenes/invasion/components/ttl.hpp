@@ -7,6 +7,8 @@ namespace components {
 struct TTL {
     uint16_t ticks_to_live = 0;
     uint16_t tick_counter = 0;
+
+    bool operator==(const TTL &) const = default;
 };
 
 } // namespace components

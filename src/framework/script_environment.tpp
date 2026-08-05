@@ -31,29 +31,12 @@ struct FreeDeleter {
     }
 };
 
-inline ScriptEnvironment::ScriptEnvironment(entt::registry &ecs, AnimationStripRegistry &animation_strips)
-    : ecs{ecs},
-      L{luaL_newstate(), LuaStateDeleter()} {
+inline ScriptEnvironment::ScriptEnvironment()
+    : L{luaL_newstate(), LuaStateDeleter()} {
   luaL_openlibs(L.get());
-
-  luabridge::getGlobalNamespace(L.get())
-      .addFunction("require", [this](lua_State *local_L) { return luau_require(local_L); })
-      .beginNamespace("Game")
-      .addProperty("WINDOW_WIDTH", &WINDOW_WIDTH)
-      .addProperty("WINDOW_HEIGHT", &WINDOW_HEIGHT)
-      .endNamespace()
-      .beginNamespace("ECS")
-      .addFunction("create", [&ecs]() -> uint32_t { return entt::to_integral(ecs.create()); })
-      .endNamespace()
-      .beginNamespace("AnimationStrips")
-      .addFunction("create", [&animation_strips]() -> uint8_t { return animation_strips.create(); })
-      .addFunction(
-          "addFrame",
-          [&animation_strips](uint8_t id, int x, int y) {
-            animation_strips.add_frame(id, AnimationFrame{.x = x, .y = y});
-          }
-      )
-      .endNamespace();
+  luabridge::getGlobalNamespace(L.get()).addFunction("require", [this](lua_State *local_L) {
+    return luau_require(local_L);
+  });
 }
 
 inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
@@ -135,6 +118,12 @@ ScriptEnvironment::open_and_run_file(lua_State *local_L, int num_results, const 
 
   const std::string source = script_buffer.str();
 
+  return exec_source(local_L, num_results, path, source);
+}
+
+inline bool ScriptEnvironment::exec_source(
+    lua_State *local_L, int num_results, const std::string &path, const std::string &source
+) {
   size_t bytecode_size = 0;
   const std::unique_ptr<char, FreeDeleter> bytecode{
       luau_compile(source.c_str(), source.length(), nullptr, &bytecode_size), FreeDeleter()
@@ -165,6 +154,30 @@ ScriptEnvironment::open_and_run_file(lua_State *local_L, int num_results, const 
 
 inline void ScriptEnvironment::exec_script_file(const std::string &path) {
   open_and_run_file(L.get(), 0, SCRIPT_PATH_PREFIX + path + SCRIPT_PATH_SUFFIX);
+}
+
+inline void ScriptEnvironment::exec_script_string(const std::string &source, const std::string &package) {
+  const bool is_package = !package.empty();
+
+  int num_results = 0;
+  if (is_package) {
+    num_results = 1;
+  }
+  auto success = exec_source(L.get(), num_results, "raw-string", source);
+  if (!success) {
+    return;
+  }
+
+  if (is_package) {
+    auto result = luabridge::LuaRef::fromStack(L.get(), -1);
+    lua_pop(L.get(), 1);
+    if (!result.isTable()) {
+      std::cerr << "ScriptEnvironment: String script did not return a table.\n";
+      return;
+    }
+
+    package_cache.insert_or_assign(package, result);
+  }
 }
 
 inline std::optional<luabridge::LuaRef> ScriptEnvironment::load_package(const std::string &package) {
@@ -200,26 +213,28 @@ inline std::optional<luabridge::LuaRef> ScriptEnvironment::get_package(const std
 }
 
 template <typename T, typename F>
-void ScriptEnvironment::register_component(const std::string &name, F &&fields_register_func) {
+void ScriptEnvironment::register_component(
+    entt::registry &ecs, const std::string &name, F &&fields_register_func
+) {
   luabridge::getGlobalNamespace(L.get())
       .beginNamespace("ECS")
       .addFunction(
           ("set" + name).c_str(),
-          [this](uint32_t entity_int, T component) {
-            ecs.get().emplace_or_replace<T>(static_cast<entt::entity>(entity_int), component);
+          [&ecs](uint32_t entity_int, T component) {
+            ecs.emplace_or_replace<T>(static_cast<entt::entity>(entity_int), component);
           }
       )
       .addFunction(
           ("has" + name).c_str(),
-          [this](uint32_t entity_int) { return ecs.get().all_of<T>(static_cast<entt::entity>(entity_int)); }
+          [&ecs](uint32_t entity_int) { return ecs.all_of<T>(static_cast<entt::entity>(entity_int)); }
       )
       .addFunction(
           ("get" + name).c_str(),
-          [this](uint32_t entity_int) { return ecs.get().get<T>(static_cast<entt::entity>(entity_int)); }
+          [&ecs](uint32_t entity_int) { return ecs.get<T>(static_cast<entt::entity>(entity_int)); }
       )
       .addFunction(
           ("remove" + name).c_str(),
-          [this](uint32_t entity_int) { ecs.get().remove<T>(static_cast<entt::entity>(entity_int)); }
+          [&ecs](uint32_t entity_int) { ecs.remove<T>(static_cast<entt::entity>(entity_int)); }
       )
       .endNamespace();
 
@@ -240,6 +255,10 @@ template <typename F> void ScriptEnvironment::register_function(const std::strin
       .beginNamespace(CPP_NAMESPACE.c_str())
       .addFunction(name.c_str(), std::forward<F>(func))
       .endNamespace();
+}
+
+inline lua_State &ScriptEnvironment::get_lua_state() {
+  return *L;
 }
 
 template <typename Result, typename... Args>
@@ -353,6 +372,33 @@ inline std::optional<luabridge::LuaRef> ScriptEnvironment::get_global_function(c
   global_function_cache.insert({function, func});
 
   return func;
+}
+
+inline void register_scene_components_to_script_env(SceneComponents args) {
+  lua_State &L = args.scripts.get_lua_state();
+
+  luaL_openlibs(&L);
+
+  luabridge::getGlobalNamespace(&L)
+      .beginNamespace("Game")
+      .addProperty("WINDOW_WIDTH", &WINDOW_WIDTH)
+      .addProperty("WINDOW_HEIGHT", &WINDOW_HEIGHT)
+      .endNamespace()
+      .beginNamespace("ECS")
+      .addFunction("create", [&ecs = args.ecs]() -> uint32_t { return entt::to_integral(ecs.create()); })
+      .endNamespace()
+      .beginNamespace("AnimationStrips")
+      .addFunction(
+          "create",
+          [&animation_strips = args.animation_strips]() -> uint8_t { return animation_strips.create(); }
+      )
+      .addFunction(
+          "addFrame",
+          [&animation_strips = args.animation_strips](uint8_t id, int x, int y) {
+            animation_strips.add_frame(id, AnimationFrame{.x = x, .y = y});
+          }
+      )
+      .endNamespace();
 }
 
 } // namespace framework

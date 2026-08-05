@@ -3,7 +3,7 @@ target_sources(
   PRIVATE
   animation_test.cpp
   collision_detection_test.cpp
-  #deletion_test.cpp // TODO bring this back
+  deletion_test.cpp
   position_following_test.cpp
   velocity_test.cpp
 )
