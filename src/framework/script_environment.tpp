@@ -287,7 +287,7 @@ Result ScriptEnvironment::call_function(const std::string &package, const std::s
 
   auto result = maybe_func.value().call<Result>(std::forward<Args>(args)...);
   if (result.error()) {
-    std::cerr << "ScriptEnvironment: failed to call '" << name << "': " << result.message() << "\n";
+    std::cerr << "ScriptEnvironment: failed to call '" << name << "': " << result.error_cstr() << "\n";
     assert(false && "Failed to call function.");
     return Result{};
   }

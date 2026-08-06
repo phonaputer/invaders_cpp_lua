@@ -9,6 +9,8 @@ struct PlayerAttack {
     int tick_counter = 0;
     std::string callback_package;
     std::string callback_function;
+
+    bool operator==(const PlayerAttack &) const = default;
 };
 
 } 

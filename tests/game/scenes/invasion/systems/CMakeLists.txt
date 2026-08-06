@@ -4,6 +4,9 @@ target_sources(
   animation_test.cpp
   collision_detection_test.cpp
   deletion_test.cpp
+  player_attack_test.cpp
+  player_movement_test.cpp
   position_following_test.cpp
+  sprite_rendering_test.cpp
   velocity_test.cpp
 )
