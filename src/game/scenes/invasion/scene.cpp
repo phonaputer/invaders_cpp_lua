@@ -3,6 +3,8 @@
 #include "game/scenes/invasion/components/animation.hpp"
 #include "game/scenes/invasion/components/collision.hpp"
 #include "game/scenes/invasion/components/deletion_callback.hpp"
+#include "game/scenes/invasion/components/game_over.hpp"
+#include "game/scenes/invasion/components/hud.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
@@ -14,6 +16,7 @@
 #include "game/scenes/invasion/systems/animation.hpp"
 #include "game/scenes/invasion/systems/collision_detection.hpp"
 #include "game/scenes/invasion/systems/deletion.hpp"
+#include "game/scenes/invasion/systems/hud_rendering.hpp"
 #include "game/scenes/invasion/systems/player_attack.hpp"
 #include "game/scenes/invasion/systems/player_movement.hpp"
 #include "game/scenes/invasion/systems/position_following.hpp"
@@ -98,7 +101,11 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>(ctx.scripts));
   ctx.systems.add_update_system(std::make_unique<systems::PositionFollowing>());
 
+  ctx.systems.add_draw_system(std::make_unique<systems::HUDRendering>(ctx.renderer));
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
+
+  ctx.ecs.ctx().emplace<components::HUD>();
+  ctx.ecs.ctx().emplace<components::GameOver>();
 
   register_all_components_to_script_env(ctx);
   ctx.scripts.call_function("invasion", "setScene");

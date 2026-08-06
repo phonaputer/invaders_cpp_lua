@@ -4,6 +4,7 @@ target_sources(
   animation.cpp
   collision_detection.cpp
   deletion.cpp
+  hud_rendering.cpp
   player_attack.cpp
   player_movement.cpp
   position_following.cpp
