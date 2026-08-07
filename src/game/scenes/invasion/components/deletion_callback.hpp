@@ -1,12 +1,11 @@
 #pragma once
 
-#include <string>
+#include "game/scenes/invasion/infra/callback_registry.hpp"
 
 namespace components {
 
 struct DeletionCallback {
-    std::string package;
-    std::string callback;
+    infra::CallbackID callback = 0;
 };
 
 } // namespace components

@@ -5,12 +5,14 @@
 #include "framework/system.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/position.hpp"
+#include "game/scenes/invasion/infra/callback_registry.hpp"
 #include <entt.hpp>
 
 namespace systems {
 
-PlayerAttack::PlayerAttack(framework::ScriptEnvironment &scripts)
-    : scripts{scripts} {
+PlayerAttack::PlayerAttack(framework::ScriptEnvironment &scripts, infra::CallbackGetter &callbacks)
+    : scripts{scripts},
+      callbacks{callbacks} {
 }
 
 void PlayerAttack::execute(framework::ExecuteCtx &ctx) {
@@ -20,9 +22,14 @@ void PlayerAttack::execute(framework::ExecuteCtx &ctx) {
     if (attack.tick_counter >= attack.ticks_per_attack
         && ctx.player_input.is_engaged(framework::PlayerInput::FIRE)) {
       attack.tick_counter = 0;
-      scripts.get().call_function(
-          attack.callback_package, attack.callback_function, entt::to_integral(entity), position.x, position.y
-      );
+
+      auto maybe_callback = callbacks.get().get_callback(attack.callback);
+      if (maybe_callback.has_value()) {
+        const auto &callback = maybe_callback.value();
+        scripts.get().call_function(
+            callback.package, callback.function, entt::to_integral(entity), position.x, position.y
+        );
+      }
     } else {
       attack.tick_counter++;
     }

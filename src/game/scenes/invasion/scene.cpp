@@ -13,6 +13,7 @@
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/components/ttl.hpp"
 #include "game/scenes/invasion/components/velocity.hpp"
+#include "game/scenes/invasion/infra/callback_registry.hpp"
 #include "game/scenes/invasion/systems/animation.hpp"
 #include "game/scenes/invasion/systems/collision_detection.hpp"
 #include "game/scenes/invasion/systems/deletion.hpp"
@@ -44,14 +45,12 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("isPassive", &components::Collision::is_passive, &components::Collision::is_passive);
   });
   ctx.scripts.register_component<components::DeletionCallback>(ctx.ecs, "DeletionCallback", [](auto &clazz) {
-    clazz.addProperty("package", &components::DeletionCallback::package, &components::DeletionCallback::package)
-      .addProperty("callback", &components::DeletionCallback::callback, &components::DeletionCallback::callback);
+    clazz.addProperty("callback", &components::DeletionCallback::callback, &components::DeletionCallback::callback);
   });
   ctx.scripts.register_component<components::PlayerAttack>(ctx.ecs, "PlayerAttack", [](auto &clazz) {
     clazz.addProperty("ticksPerAttack", &components::PlayerAttack::ticks_per_attack, &components::PlayerAttack::ticks_per_attack)
       .addProperty("tickCounter", &components::PlayerAttack::tick_counter, &components::PlayerAttack::tick_counter)
-      .addProperty("callbackPackage", &components::PlayerAttack::callback_package, &components::PlayerAttack::callback_package)
-      .addProperty("callbackFunction", &components::PlayerAttack::callback_function, &components::PlayerAttack::callback_function);
+      .addProperty("callback", &components::PlayerAttack::callback, &components::PlayerAttack::callback);
   });
   ctx.scripts.register_component<components::PlayerMovement>(ctx.ecs, "PlayerMovement", [](auto &clazz) {
     clazz.addProperty("xSpeed", &components::PlayerMovement::x_speed, &components::PlayerMovement::x_speed);
@@ -94,11 +93,11 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.assets.load_images_in_dir_png("invasion");
 
   ctx.systems.add_update_system(std::make_unique<systems::CollisionDetection>());
-  ctx.systems.add_update_system(std::make_unique<systems::Deletion>(ctx.scripts));
+  ctx.systems.add_update_system(std::make_unique<systems::Deletion>(ctx.scripts, callback_registry));
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
   ctx.systems.add_update_system(std::make_unique<systems::Velocity>());
   ctx.systems.add_update_system(std::make_unique<systems::PlayerMovement>());
-  ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>(ctx.scripts));
+  ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>(ctx.scripts, callback_registry));
   ctx.systems.add_update_system(std::make_unique<systems::PositionFollowing>());
 
   ctx.systems.add_draw_system(std::make_unique<systems::HUDRendering>(ctx.renderer));
@@ -108,6 +107,8 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.ecs.ctx().emplace<components::GameOver>();
 
   register_all_components_to_script_env(ctx);
+  infra::add_callback_registry_to_script_env(ctx.scripts, callback_registry);
+
   ctx.scripts.call_function("invasion", "setScene");
 }
 

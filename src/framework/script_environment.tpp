@@ -19,7 +19,6 @@
 
 namespace framework {
 
-constexpr std::string CPP_NAMESPACE = "Host";
 constexpr std::string SCRIPT_PATH_PREFIX = "scripts/";
 constexpr std::string SCRIPT_PATH_SUFFIX = ".luau";
 constexpr std::string PACKAGE_ENTRYPOINT_FILE = "/init.luau";
@@ -250,9 +249,10 @@ void ScriptEnvironment::register_component(
   clazz.endClass().endNamespace();
 }
 
-template <typename F> void ScriptEnvironment::register_function(const std::string &name, F &&func) {
+template <typename F>
+void ScriptEnvironment::register_function(const std::string &name_space, const std::string &name, F &&func) {
   luabridge::getGlobalNamespace(L.get())
-      .beginNamespace(CPP_NAMESPACE.c_str())
+      .beginNamespace(name_space.c_str())
       .addFunction(name.c_str(), std::forward<F>(func))
       .endNamespace();
 }

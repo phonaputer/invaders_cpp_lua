@@ -5,10 +5,12 @@
 #include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/components/ttl.hpp"
+#include "game/scenes/invasion/infra/callback_registry.hpp"
 #include "game/scenes/invasion/systems/deletion.hpp"
 #include <entt.hpp>
 #include <gtest/gtest.h>
 #include <memory>
+#include <optional>
 
 namespace testing::deletion_system {
 
@@ -35,6 +37,16 @@ const std::string TEST_LUAU = R"(
   return Pack
 )";
 
+class MockCallbackGetter : public infra::CallbackGetter {
+  public:
+    [[nodiscard]] std::optional<infra::Callback> get_callback(infra::CallbackID id) const override {
+      if (id == 1) {
+        return infra::Callback{.package = "pack", .function = "callback"};
+      }
+      return infra::Callback{.package = "", .function = ""};
+    }
+};
+
 class SystemDeletion : public ::testing::Test {
   protected:
     static void SetUpTestSuite() {
@@ -47,6 +59,8 @@ struct TestSetup {
     entt::registry ecs;
     framework::EventBroker events;
     framework::PlayerInputManager player_input;
+    std::shared_ptr<infra::CallbackGetter> callbacks;
+
     systems::Deletion system;
 
     framework::ExecuteCtx ctx() {
@@ -59,11 +73,14 @@ struct TestSetup {
 };
 
 TestSetup setupTest() {
+  const std::shared_ptr<infra::CallbackGetter> callbacks = std::make_shared<MockCallbackGetter>();
+
   return TestSetup{
       .ecs = entt::registry(),
       .events = framework::EventBroker(),
       .player_input = framework::PlayerInputManager(),
-      .system = systems::Deletion(*scripts),
+      .callbacks = callbacks,
+      .system = systems::Deletion(*scripts, *callbacks),
   };
 }
 
@@ -72,9 +89,7 @@ TEST_F(SystemDeletion, ExecuteHasDeletionCallbackShouldCallTheCallbackAndDeleteT
   auto ctx = setup.ctx();
   auto entity = ctx.ecs.create();
   ctx.ecs.emplace<components::ToBeDeleted>(entity);
-  ctx.ecs.emplace<components::DeletionCallback>(
-      entity, components::DeletionCallback{.package = "pack", .callback = "callback"}
-  );
+  ctx.ecs.emplace<components::DeletionCallback>(entity, components::DeletionCallback{.callback = 1});
   scripts->call_function("pack", "resetCallCount");
 
   setup.system.execute(ctx);

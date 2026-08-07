@@ -1,14 +1,13 @@
 #pragma once
 
-#include <string>
+#include "game/scenes/invasion/infra/callback_registry.hpp"
 
 namespace components {
 
 struct PlayerAttack {
     int ticks_per_attack = 0;
     int tick_counter = 0;
-    std::string callback_package;
-    std::string callback_function;
+    infra::CallbackID callback = 0;
 
     bool operator==(const PlayerAttack &) const = default;
 };

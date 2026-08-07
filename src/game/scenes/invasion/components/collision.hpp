@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/scenes/invasion/infra/callback_registry.hpp"
+
 namespace components {
 
 struct Collision {
@@ -7,6 +9,7 @@ struct Collision {
     float hitbox_offset_y = 0.0F;
     float hitbox_w = 0.0F;
     float hitbox_h = 0.0F;
+    infra::CallbackID callback = 0;
 
     // Optimization to avoid checking collision for entities that, for example, don't move.
     //

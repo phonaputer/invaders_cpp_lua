@@ -75,7 +75,7 @@ Game::Game() {
 void Game::update() {
   apply_new_scene_if_any();
 
-  if (!have_active_scene) {
+  if (!scene.has_value()) {
     return;
   }
 
@@ -112,7 +112,7 @@ void Game::update() {
 }
 
 void Game::draw() {
-  if (!have_active_scene) {
+  if (!scene.has_value()) {
     return;
   }
 
@@ -176,8 +176,8 @@ void Game::apply_new_scene_if_any() {
       }
   );
 
+  scene = std::move(new_scene.value());
   new_scene = std::nullopt;
-  have_active_scene = true;
 }
 
 } // namespace framework

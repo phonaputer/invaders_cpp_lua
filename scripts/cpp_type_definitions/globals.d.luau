@@ -1,8 +1,26 @@
+type AnimationStrip = number
+
+declare AnimationStrips: {
+    create: () -> (AnimationStrip),
+    addFrame: (AnimationStrip, number, number) -> (),
+}
+
+type Callback = number
+
+declare Callbacks: {
+    register: (package: string, func: string) -> (Callback),
+}
+
+declare Game: {
+    WINDOW_WIDTH: number,
+    WINDOW_HEIGHT: number,
+}
+
 export type Animation = {
     curFrame: number,
     tickCounter: number,
     ticksPerFrame: number,
-    stripID: number,
+    stripID: AnimationStrip,
     playing: boolean,
     playReversed: boolean,
 }
@@ -16,15 +34,13 @@ export type Collision = {
 }
 
 export type DeletionCallback = {
-    package: string,
-    callback: string,
+    callback: Callback,
 }
 
 export type PlayerAttack = {
     ticksPerAttack: number,
     tickCounter: number,
-    callbackPackage: string,
-    callbackFunction: string,
+    callback: Callback,
 }
 
 export type PlayerMovement = {
@@ -140,16 +156,4 @@ declare ECS: {
     getVelocity: (Entity) -> Velocity,
     setVelocity: (Entity, Velocity) -> (),
     removeVelocity: (Entity) -> (),
-}
-
-type AnimationStrip = number
-
-declare AnimationStrips: {
-    create: () -> (AnimationStrip),
-    addFrame: (AnimationStrip, number, number) -> (),
-}
-
-declare Game: {
-    WINDOW_WIDTH: number,
-    WINDOW_HEIGHT: number,
 }

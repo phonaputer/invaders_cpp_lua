@@ -24,8 +24,7 @@ function Player.new(): ()
 
 	local playerAttack = Components.PlayerAttack()
 	playerAttack.ticksPerAttack = 8
-	playerAttack.callbackPackage = "invasion"
-	playerAttack.callbackFunction = "Entities.Player.attack"
+	playerAttack.callback = Callbacks.register("invasion", "Entities.Player.attack")
 	ECS.setPlayerAttack(entity, playerAttack)
 
 	local playerMovement = Components.PlayerMovement()
@@ -81,8 +80,7 @@ function Player.newProjectile(x: number, y: number): ()
 	ECS.setCollision(entity, collision)
 
 	local deletionCallback = Components.DeletionCallback()
-	deletionCallback.package = "invasion"
-	deletionCallback.callback = "Entities.Player.decrementProjectileCount"
+	deletionCallback.callback = Callbacks.register("invasion", "Entities.Player.decrementProjectileCount")
 	ECS.setDeletionCallback(entity, deletionCallback)
 
 	local position = Components.Position()

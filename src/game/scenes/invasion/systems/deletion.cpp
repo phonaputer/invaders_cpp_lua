@@ -4,11 +4,13 @@
 #include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/components/ttl.hpp"
+#include "game/scenes/invasion/infra/callback_registry.hpp"
 
 namespace systems {
 
-Deletion::Deletion(framework::ScriptEnvironment &scripts)
-    : scripts{scripts} {
+Deletion::Deletion(framework::ScriptEnvironment &scripts, infra::CallbackGetter &callbacks)
+    : scripts{scripts},
+      callbacks{callbacks} {
 }
 
 void Deletion::execute(framework::ExecuteCtx &ctx) {
@@ -23,7 +25,11 @@ void Deletion::execute(framework::ExecuteCtx &ctx) {
 
   auto callback_view = ctx.ecs.view<components::ToBeDeleted, components::DeletionCallback>();
   for (auto [entity, callback] : callback_view.each()) {
-    scripts.get().call_function(callback.package, callback.callback);
+    auto maybe_callback = callbacks.get().get_callback(callback.callback);
+
+    if (maybe_callback.has_value()) {
+      scripts.get().call_function(maybe_callback.value().package, maybe_callback.value().function);
+    }
   }
 
   auto deletion_view = ctx.ecs.view<components::ToBeDeleted>();

@@ -111,9 +111,8 @@ class ScriptEnvironment {
     void register_component(entt::registry &ecs, const std::string &name, F &&fields_register_func);
 
     // Register a C++ function so that it may be called from Luau.
-    //
-    // All functions registered here will be added to a global table named "Host".
-    template <typename F> void register_function(const std::string &name, F &&func);
+    template <typename F>
+    void register_function(const std::string &name_space, const std::string &name, F &&func);
 
     // Get the Luau state embeded in the environment.
     //

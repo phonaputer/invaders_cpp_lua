@@ -4,4 +4,5 @@ target_sources(
   scene.cpp
 )
 
+add_subdirectory(infra)
 add_subdirectory(systems)
