@@ -15,6 +15,7 @@
 #include "game/scenes/invasion/components/velocity.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
 #include "game/scenes/invasion/systems/animation.hpp"
+#include "game/scenes/invasion/systems/collision_callback.hpp"
 #include "game/scenes/invasion/systems/collision_detection.hpp"
 #include "game/scenes/invasion/systems/deletion.hpp"
 #include "game/scenes/invasion/systems/hud_rendering.hpp"
@@ -42,6 +43,7 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("hitboxOffsetY", &components::Collision::hitbox_offset_y, &components::Collision::hitbox_offset_y)
       .addProperty("hitboxW", &components::Collision::hitbox_w, &components::Collision::hitbox_w)
       .addProperty("hitboxH", &components::Collision::hitbox_h, &components::Collision::hitbox_h)
+      .addProperty("callback", &components::Collision::callback, &components::Collision::callback)
       .addProperty("isPassive", &components::Collision::is_passive, &components::Collision::is_passive);
   });
   ctx.scripts.register_component<components::DeletionCallback>(ctx.ecs, "DeletionCallback", [](auto &clazz) {
@@ -93,6 +95,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.assets.load_images_in_dir_png("invasion");
 
   ctx.systems.add_update_system(std::make_unique<systems::CollisionDetection>());
+  ctx.systems.add_update_system(std::make_unique<systems::CollisionCallback>(ctx.scripts, callback_registry));
   ctx.systems.add_update_system(std::make_unique<systems::Deletion>(ctx.scripts, callback_registry));
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
   ctx.systems.add_update_system(std::make_unique<systems::Velocity>());

@@ -2,6 +2,7 @@ target_sources(
   ${PROJECT_NAME}_lib
   PRIVATE
   animation.cpp
+  collision_callback.cpp
   collision_detection.cpp
   deletion.cpp
   hud_rendering.cpp

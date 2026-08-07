@@ -2,8 +2,30 @@
 
 local Invaders = {}
 
+function Invaders.callback(me: Entity, whoIHit: Entity): ()
+	print("called me back!")
+end
+
 function Invaders.newJellyfish(x: number, y: number)
 	local entity = ECS.create()
+
+	local strip = AnimationStrips.create()
+	AnimationStrips.addFrame(strip, 1, 0)
+	AnimationStrips.addFrame(strip, 0, 0)
+	AnimationStrips.addFrame(strip, 1, 0)
+	AnimationStrips.addFrame(strip, 2, 0)
+	local animation = Components.Animation()
+	animation.ticksPerFrame = 25
+	animation.stripID = strip
+	ECS.setAnimation(entity, animation)
+
+	local collision = Components.Collision()
+	collision.hitboxOffsetX = 1
+	collision.hitboxOffsetY = 3
+	collision.hitboxW = 12
+	collision.hitboxH = 8
+	collision.callback = Callbacks.register("invasion", "Entities.Invaders.callback")
+	ECS.setCollision(entity, collision)
 
 	local position = Components.Position()
 	position.x = x
@@ -22,16 +44,6 @@ function Invaders.newJellyfish(x: number, y: number)
 	sprite.dstW = 16
 	sprite.dstH = 16
 	ECS.setSprite(entity, sprite)
-
-	local strip = AnimationStrips.create()
-	AnimationStrips.addFrame(strip, 1, 0)
-	AnimationStrips.addFrame(strip, 0, 0)
-	AnimationStrips.addFrame(strip, 1, 0)
-	AnimationStrips.addFrame(strip, 2, 0)
-	local animation = Components.Animation()
-	animation.ticksPerFrame = 25
-	animation.stripID = strip
-	ECS.setAnimation(entity, animation)
 end
 
 return Invaders

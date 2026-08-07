@@ -77,6 +77,7 @@ function Player.newProjectile(x: number, y: number): ()
 	collision.hitboxOffsetY = 6
 	collision.hitboxW = 1
 	collision.hitboxH = 4
+	collision.isPassive = false
 	ECS.setCollision(entity, collision)
 
 	local deletionCallback = Components.DeletionCallback()

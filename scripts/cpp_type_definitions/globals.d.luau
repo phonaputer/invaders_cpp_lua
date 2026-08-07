@@ -1,11 +1,11 @@
-type AnimationStrip = number
+export type AnimationStrip = number
 
 declare AnimationStrips: {
     create: () -> (AnimationStrip),
     addFrame: (AnimationStrip, number, number) -> (),
 }
 
-type Callback = number
+export type Callback = number
 
 declare Callbacks: {
     register: (package: string, func: string) -> (Callback),
@@ -30,6 +30,7 @@ export type Collision = {
     hitboxOffsetY: number,
     hitboxW: number,
     hitboxH: number,
+    callback: Callback,
     isPassive: boolean,
 }
 
@@ -97,7 +98,7 @@ declare Components: {
     Velocity: (() -> Velocity),
 }
 
-type Entity = number
+export type Entity = number
 
 declare ECS: {
     create: () -> (Entity),
