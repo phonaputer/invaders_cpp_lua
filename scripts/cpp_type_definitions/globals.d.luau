@@ -11,7 +11,15 @@ declare Callbacks: {
     register: (package: string, func: string) -> (Callback),
 }
 
-declare Game: {
+export type DamageType = {
+    ALIEN: number,
+    PLAYER: number,
+    FORTRESS: number,
+    ALIEN_PROJECTILE: number,
+    PLAYER_PROJECTILE: number,
+}
+
+export type Game = {
     WINDOW_WIDTH: number,
     WINDOW_HEIGHT: number,
 }
@@ -34,8 +42,18 @@ export type Collision = {
     isPassive: boolean,
 }
 
+export type Damage = {
+    type: number,
+    amount: number,
+}
+
 export type DeletionCallback = {
     callback: Callback,
+}
+
+export type Hitpoints = {
+    susceptibleTo: number,
+    curHitpoints: number,
 }
 
 export type PlayerAttack = {
@@ -87,7 +105,9 @@ export type Velocity = {
 declare Components: {
     Animation: (() -> Animation),
     Collision: (() -> Collision),
+    Damage: (() -> Damage),
     DeletionCallback: (() -> DeletionCallback),
+    Hitpoints: (() -> Hitpoints),
     PlayerAttack: (() -> PlayerAttack),
     PlayerMovement: (() -> PlayerMovement),
     Position: (() -> Position),
@@ -113,10 +133,20 @@ declare ECS: {
     setCollision: (Entity, Collision) -> (),
     removeCollision: (Entity) -> (),
 
+    hasDamage: (Entity) -> (boolean),
+    getDamage: (Entity) -> Damage,
+    setDamage: (Entity, Damage) -> (),
+    removeDamage: (Entity) -> (),
+
     hasDeletionCallback: (Entity) -> (boolean),
     getDeletionCallback: (Entity) -> DeletionCallback,
     setDeletionCallback: (Entity, DeletionCallback) -> (),
     removeDeletionCallback: (Entity) -> (),
+
+    hasHitpoints: (Entity) -> (boolean),
+    getHitpoints: (Entity) -> Hitpoints,
+    setHitpoints: (Entity, Hitpoints) -> (),
+    removeHitpoints: (Entity) -> (),
 
     hasPlayerAttack: (Entity) -> (boolean),
     getPlayerAttack: (Entity) -> PlayerAttack,

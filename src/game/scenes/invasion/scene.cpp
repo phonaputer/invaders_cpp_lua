@@ -2,8 +2,11 @@
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
 #include "game/scenes/invasion/components/collision.hpp"
+#include "game/scenes/invasion/components/damage.hpp"
+#include "game/scenes/invasion/components/damage_type_enum.hpp"
 #include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/game_over.hpp"
+#include "game/scenes/invasion/components/hitpoints.hpp"
 #include "game/scenes/invasion/components/hud.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
@@ -46,8 +49,16 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("callback", &components::Collision::callback, &components::Collision::callback)
       .addProperty("isPassive", &components::Collision::is_passive, &components::Collision::is_passive);
   });
+  ctx.scripts.register_component<components::Damage>(ctx.ecs, "Damage", [](auto &clazz) {
+    clazz.addProperty("type", &components::Damage::type, &components::Damage::type)
+      .addProperty("amount", &components::Damage::amount, &components::Damage::amount);
+  });
   ctx.scripts.register_component<components::DeletionCallback>(ctx.ecs, "DeletionCallback", [](auto &clazz) {
     clazz.addProperty("callback", &components::DeletionCallback::callback, &components::DeletionCallback::callback);
+  });
+  ctx.scripts.register_component<components::Hitpoints>(ctx.ecs, "Hitpoints", [](auto &clazz) {
+    clazz.addProperty("susceptibleTo", &components::Hitpoints::susceptible_to, &components::Hitpoints::susceptible_to)
+      .addProperty("curHitpoints", &components::Hitpoints::cur_hitpoints, &components::Hitpoints::cur_hitpoints);
   });
   ctx.scripts.register_component<components::PlayerAttack>(ctx.ecs, "PlayerAttack", [](auto &clazz) {
     clazz.addProperty("ticksPerAttack", &components::PlayerAttack::ticks_per_attack, &components::PlayerAttack::ticks_per_attack)
@@ -110,6 +121,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.ecs.ctx().emplace<components::GameOver>();
 
   register_all_components_to_script_env(ctx);
+  components::register_damage_type_enum_to_script_env(ctx.scripts);
   infra::add_callback_registry_to_script_env(ctx.scripts, callback_registry);
 
   ctx.scripts.call_function("invasion", "setScene");
