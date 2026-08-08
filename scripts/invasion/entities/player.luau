@@ -67,6 +67,10 @@ function Player.canFire(): boolean
 	return Player.ProjectileCount < 3
 end
 
+function Player.projectileOnHit(me: Entity, whoIHit: Entity): ()
+	Host.takeDamage(me, whoIHit)
+end
+
 function Player.newProjectile(x: number, y: number): ()
 	Player.ProjectileCount += 1
 
@@ -80,9 +84,23 @@ function Player.newProjectile(x: number, y: number): ()
 	collision.isPassive = false
 	ECS.setCollision(entity, collision)
 
+	local collisionCallback = Components.CollisionCallback()
+	collisionCallback.callback = Callbacks.register("invasion", "Entities.Player.projectileOnHit")
+	ECS.setCollisionCallback(entity, collisionCallback)
+
+	local damage = Components.Damage()
+	damage.type = DamageType.PLAYER_PROJECTILE
+	damage.amount = 1
+	ECS.setDamage(entity, damage)
+
 	local deletionCallback = Components.DeletionCallback()
 	deletionCallback.callback = Callbacks.register("invasion", "Entities.Player.decrementProjectileCount")
 	ECS.setDeletionCallback(entity, deletionCallback)
+
+	local hitpoints = Components.Hitpoints()
+	hitpoints.susceptibleTo = bit32.bor(DamageType.ALIEN_PROJECTILE, DamageType.ALIEN, DamageType.FORTRESS)
+	hitpoints.curHitpoints = 1
+	ECS.setHitpoints(entity, hitpoints)
 
 	local position = Components.Position()
 	position.x = x - 2

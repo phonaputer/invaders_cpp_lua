@@ -1,3 +1,4 @@
+local boolean = require("../../out/build/debug-clang/_deps/luau-src/tests/require/without_config/types/boolean")
 export type AnimationStrip = number
 
 declare AnimationStrips: {
@@ -11,7 +12,7 @@ declare Callbacks: {
     register: (package: string, func: string) -> (Callback),
 }
 
-export type DamageType = {
+declare DamageType: {
     ALIEN: number,
     PLAYER: number,
     FORTRESS: number,
@@ -19,7 +20,13 @@ export type DamageType = {
     PLAYER_PROJECTILE: number,
 }
 
-export type Game = {
+export type Entity = number
+
+declare Host: {
+    takeDamage: (receiver: Entity, dealer: Entity) -> (boolean),
+}
+
+declare Game: {
     WINDOW_WIDTH: number,
     WINDOW_HEIGHT: number,
 }
@@ -38,8 +45,11 @@ export type Collision = {
     hitboxOffsetY: number,
     hitboxW: number,
     hitboxH: number,
-    callback: Callback,
     isPassive: boolean,
+}
+
+export type CollisionCallback = {
+    callback: Callback,
 }
 
 export type Damage = {
@@ -105,6 +115,7 @@ export type Velocity = {
 declare Components: {
     Animation: (() -> Animation),
     Collision: (() -> Collision),
+    CollisionCallback: (() -> CollisionCallback),
     Damage: (() -> Damage),
     DeletionCallback: (() -> DeletionCallback),
     Hitpoints: (() -> Hitpoints),
@@ -118,8 +129,6 @@ declare Components: {
     Velocity: (() -> Velocity),
 }
 
-export type Entity = number
-
 declare ECS: {
     create: () -> (Entity),
 
@@ -132,6 +141,11 @@ declare ECS: {
     getCollision: (Entity) -> Collision,
     setCollision: (Entity, Collision) -> (),
     removeCollision: (Entity) -> (),
+
+    hasCollisionCallback: (Entity) -> (boolean),
+    getCollisionCallback: (Entity) -> CollisionCallback,
+    setCollisionCallback: (Entity, CollisionCallback) -> (),
+    removeCollisionCallback: (Entity) -> (),
 
     hasDamage: (Entity) -> (boolean),
     getDamage: (Entity) -> Damage,

@@ -2,8 +2,8 @@
 
 local Invaders = {}
 
-function Invaders.callback(me: Entity, whoIHit: Entity): ()
-	print("called me back!")
+function Invaders.onHit(me: Entity, whoIHit: Entity): ()
+	Host.takeDamage(me, whoIHit)
 end
 
 function Invaders.newJellyfish(x: number, y: number)
@@ -19,13 +19,26 @@ function Invaders.newJellyfish(x: number, y: number)
 	animation.stripID = strip
 	ECS.setAnimation(entity, animation)
 
+	local damage = Components.Damage()
+	damage.type = DamageType.ALIEN
+	damage.amount = 1
+	ECS.setDamage(entity, damage)
+
 	local collision = Components.Collision()
 	collision.hitboxOffsetX = 1
 	collision.hitboxOffsetY = 3
 	collision.hitboxW = 12
 	collision.hitboxH = 8
-	collision.callback = Callbacks.register("invasion", "Entities.Invaders.callback")
 	ECS.setCollision(entity, collision)
+
+	local collisionCallback = Components.CollisionCallback()
+	collisionCallback.callback = Callbacks.register("invasion", "Entities.Invaders.onHit")
+	ECS.setCollisionCallback(entity, collisionCallback)
+
+	local hitpoints = Components.Hitpoints()
+	hitpoints.susceptibleTo = DamageType.PLAYER_PROJECTILE
+	hitpoints.curHitpoints = 1
+	ECS.setHitpoints(entity, hitpoints)
 
 	local position = Components.Position()
 	position.x = x

@@ -34,4 +34,4 @@ CheckOptions:
   - key: readability-identifier-length.IgnoredParameterNames
     value: 'x|y|z'
   - key: misc-include-cleaner.IgnoreHeaders
-    value: 'SDL3_mixer/.*;SDL3/.*'
+    value: 'SDL3_mixer/.*;SDL3/.*;LuaBridge/.*'
