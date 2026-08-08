@@ -3,6 +3,7 @@ target_sources(
   PRIVATE
   animation_test.cpp
   collision_detection_test.cpp
+  damage_test.cpp
   deletion_test.cpp
   player_attack_test.cpp
   player_movement_test.cpp

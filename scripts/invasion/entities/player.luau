@@ -67,10 +67,6 @@ function Player.canFire(): boolean
 	return Player.ProjectileCount < 3
 end
 
-function Player.projectileOnHit(me: Entity, whoIHit: Entity): ()
-	Host.takeDamage(me, whoIHit)
-end
-
 function Player.newProjectile(x: number, y: number): ()
 	Player.ProjectileCount += 1
 
@@ -83,10 +79,6 @@ function Player.newProjectile(x: number, y: number): ()
 	collision.hitboxH = 4
 	collision.isPassive = false
 	ECS.setCollision(entity, collision)
-
-	local collisionCallback = Components.CollisionCallback()
-	collisionCallback.callback = Callbacks.register("invasion", "Entities.Player.projectileOnHit")
-	ECS.setCollisionCallback(entity, collisionCallback)
 
 	local damage = Components.Damage()
 	damage.type = DamageType.PLAYER_PROJECTILE

@@ -22,10 +22,6 @@ declare DamageType: {
 
 export type Entity = number
 
-declare Host: {
-    takeDamage: (receiver: Entity, dealer: Entity) -> (boolean),
-}
-
 declare Game: {
     WINDOW_WIDTH: number,
     WINDOW_HEIGHT: number,

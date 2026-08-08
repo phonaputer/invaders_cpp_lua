@@ -4,6 +4,7 @@ target_sources(
   animation.cpp
   collision_callback.cpp
   collision_detection.cpp
+  damage.cpp
   deletion.cpp
   hud_rendering.cpp
   player_attack.cpp

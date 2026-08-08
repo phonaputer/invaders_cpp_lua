@@ -7,6 +7,7 @@
 #include "game/scenes/invasion/systems/animation.hpp"
 #include "game/scenes/invasion/systems/collision_callback.hpp"
 #include "game/scenes/invasion/systems/collision_detection.hpp"
+#include "game/scenes/invasion/systems/damage.hpp"
 #include "game/scenes/invasion/systems/deletion.hpp"
 #include "game/scenes/invasion/systems/hud_rendering.hpp"
 #include "game/scenes/invasion/systems/player_attack.hpp"
@@ -23,6 +24,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
 
   ctx.systems.add_update_system(std::make_unique<systems::CollisionDetection>());
   ctx.systems.add_update_system(std::make_unique<systems::CollisionCallback>(ctx.scripts, callback_registry));
+  ctx.systems.add_update_system(std::make_unique<systems::Damage>());
   ctx.systems.add_update_system(std::make_unique<systems::Deletion>(ctx.scripts, callback_registry));
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
   ctx.systems.add_update_system(std::make_unique<systems::Velocity>());

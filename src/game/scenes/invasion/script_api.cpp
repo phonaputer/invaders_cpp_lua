@@ -96,46 +96,9 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   // clang-format on
 }
 
-// returns "true" if the receiver has reached 0 hitpoints
-bool take_damage(entt::registry &ecs, uint32_t receiver, uint32_t dealer) {
-  auto *damage = ecs.try_get<components::Damage>(entt::entity(dealer));
-  if (damage == nullptr) {
-    return false;
-  }
-
-  auto *hitpoints = ecs.try_get<components::Hitpoints>(entt::entity(receiver));
-  if (hitpoints == nullptr) {
-    return false;
-  }
-
-  const bool can_damage = (damage->type & hitpoints->susceptible_to) > 0;
-  if (!can_damage) {
-    return false;
-  }
-
-  hitpoints->cur_hitpoints -= damage->amount;
-
-  if (hitpoints->cur_hitpoints < 1) {
-    ecs.emplace<components::ToBeDeleted>(entt::entity(receiver));
-    return true;
-  }
-
-  return false;
-}
-
 void register_cpp_api_to_script_env(framework::SceneInitializationContext &ctx) {
   register_all_components_to_script_env(ctx);
   components::register_damage_type_enum_to_script_env(ctx.scripts);
-
-  lua_State &L = ctx.scripts.get_lua_state();
-
-  luabridge::getGlobalNamespace(&L)
-      .beginNamespace("Host")
-      .addFunction(
-          "takeDamage",
-          [&ecs = ctx.ecs](uint32_t receiver, uint32_t dealer) { return take_damage(ecs, receiver, dealer); }
-      )
-      .endNamespace();
 }
 
 } // namespace invasion

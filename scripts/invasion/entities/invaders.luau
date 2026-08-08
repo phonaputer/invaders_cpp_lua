@@ -3,7 +3,7 @@
 local Invaders = {}
 
 function Invaders.onHit(me: Entity, whoIHit: Entity): ()
-	Host.takeDamage(me, whoIHit)
+	print("TODO: spawn an explosion.")
 end
 
 function Invaders.newJellyfish(x: number, y: number)
