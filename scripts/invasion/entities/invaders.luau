@@ -24,12 +24,12 @@ function Invaders.newJellyfish(x: number, y: number)
 	damage.amount = 1
 	ECS.setDamage(entity, damage)
 
-	local collision = Components.Collision()
+	local collision = Components.CollisionPassive()
 	collision.hitboxOffsetX = 1
 	collision.hitboxOffsetY = 3
 	collision.hitboxW = 12
 	collision.hitboxH = 8
-	ECS.setCollision(entity, collision)
+	ECS.setCollisionPassive(entity, collision)
 
 	local collisionCallback = Components.CollisionCallback()
 	collisionCallback.callback = Callbacks.register("invasion", "Entities.Invaders.onHit")

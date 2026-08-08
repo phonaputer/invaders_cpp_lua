@@ -15,12 +15,12 @@ function Player.new(): ()
 	animation.playing = false
 	ECS.setAnimation(entity, animation)
 
-	local collision = Components.Collision()
+	local collision = Components.CollisionPassive()
 	collision.hitboxOffsetX = 0
 	collision.hitboxOffsetY = 7
 	collision.hitboxW = 15
 	collision.hitboxH = 5
-	ECS.setCollision(entity, collision)
+	ECS.setCollisionPassive(entity, collision)
 
 	local playerAttack = Components.PlayerAttack()
 	playerAttack.ticksPerAttack = 8
@@ -72,13 +72,12 @@ function Player.newProjectile(x: number, y: number): ()
 
 	local entity = ECS.create()
 
-	local collision = Components.Collision()
+	local collision = Components.CollisionActive()
 	collision.hitboxOffsetX = 7
 	collision.hitboxOffsetY = 6
 	collision.hitboxW = 1
 	collision.hitboxH = 4
-	collision.isPassive = false
-	ECS.setCollision(entity, collision)
+	ECS.setCollisionActive(entity, collision)
 
 	local damage = Components.Damage()
 	damage.type = DamageType.PLAYER_PROJECTILE

@@ -1,8 +1,9 @@
 #include "game/scenes/invasion/script_api.hpp"
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
-#include "game/scenes/invasion/components/collision.hpp"
+#include "game/scenes/invasion/components/collision_active.hpp"
 #include "game/scenes/invasion/components/collision_callback.hpp"
+#include "game/scenes/invasion/components/collision_passive.hpp"
 #include "game/scenes/invasion/components/damage.hpp"
 #include "game/scenes/invasion/components/damage_type_enum.hpp"
 #include "game/scenes/invasion/components/deletion_callback.hpp"
@@ -15,9 +16,7 @@
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/components/ttl.hpp"
 #include "game/scenes/invasion/components/velocity.hpp"
-#include <cstdint>
 #include <entt.hpp>
-#include <lua.h>
 
 #include <LuaBridge/LuaBridge.h>
 
@@ -33,12 +32,17 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("playing", &components::Animation::playing, &components::Animation::playing)
       .addProperty("playReversed", &components::Animation::play_reversed, &components::Animation::play_reversed);
   });
-  ctx.scripts.register_component<components::Collision>(ctx.ecs, "Collision", [](auto &clazz) {
-    clazz.addProperty("hitboxOffsetX", &components::Collision::hitbox_offset_x, &components::Collision::hitbox_offset_x)
-      .addProperty("hitboxOffsetY", &components::Collision::hitbox_offset_y, &components::Collision::hitbox_offset_y)
-      .addProperty("hitboxW", &components::Collision::hitbox_w, &components::Collision::hitbox_w)
-      .addProperty("hitboxH", &components::Collision::hitbox_h, &components::Collision::hitbox_h)
-      .addProperty("isPassive", &components::Collision::is_passive, &components::Collision::is_passive);
+  ctx.scripts.register_component<components::CollisionActive>(ctx.ecs, "CollisionActive", [](auto &clazz) {
+    clazz.addProperty("hitboxOffsetX", &components::CollisionActive::hitbox_offset_x, &components::CollisionActive::hitbox_offset_x)
+      .addProperty("hitboxOffsetY", &components::CollisionActive::hitbox_offset_y, &components::CollisionActive::hitbox_offset_y)
+      .addProperty("hitboxW", &components::CollisionActive::hitbox_w, &components::CollisionActive::hitbox_w)
+      .addProperty("hitboxH", &components::CollisionActive::hitbox_h, &components::CollisionActive::hitbox_h);
+  });
+  ctx.scripts.register_component<components::CollisionPassive>(ctx.ecs, "CollisionPassive", [](auto &clazz) {
+    clazz.addProperty("hitboxOffsetX", &components::CollisionPassive::hitbox_offset_x, &components::CollisionPassive::hitbox_offset_x)
+      .addProperty("hitboxOffsetY", &components::CollisionPassive::hitbox_offset_y, &components::CollisionPassive::hitbox_offset_y)
+      .addProperty("hitboxW", &components::CollisionPassive::hitbox_w, &components::CollisionPassive::hitbox_w)
+      .addProperty("hitboxH", &components::CollisionPassive::hitbox_h, &components::CollisionPassive::hitbox_h);
   });
   ctx.scripts.register_component<components::CollisionCallback>(ctx.ecs, "CollisionCallback", [](auto &clazz) {
     clazz.addProperty("callback", &components::CollisionCallback::callback, &components::CollisionCallback::callback);

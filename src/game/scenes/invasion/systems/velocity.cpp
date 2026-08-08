@@ -16,7 +16,11 @@ void Velocity::execute(framework::ExecuteCtx &ctx) {
   for (auto [entity, position, velocity] : view.each()) {
     position.x += velocity.x;
     position.y += velocity.y;
+  }
 
+  auto deletion_view = ctx.ecs.view<components::Position, components::Velocity>();
+
+  for (auto [entity, position, velocity] : deletion_view.each()) {
     if (position.x > framework::WINDOW_WIDTH + OFFSCREEN_BOUNDARY
         || position.x + position.w < 0 - OFFSCREEN_BOUNDARY
         || position.y > framework::WINDOW_HEIGHT + OFFSCREEN_BOUNDARY

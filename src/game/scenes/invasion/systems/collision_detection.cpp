@@ -1,6 +1,7 @@
 #include "game/scenes/invasion/systems/collision_detection.hpp"
 #include "framework/system.hpp"
-#include "game/scenes/invasion/components/collision.hpp"
+#include "game/scenes/invasion/components/collision_active.hpp"
+#include "game/scenes/invasion/components/collision_passive.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/events/collision_occurred.hpp"
 #include <cmath>
@@ -27,17 +28,22 @@ BucketKey CollisionDetection::to_bucket_key(float x, float y) {
   };
 }
 
+// Passive vs Active is an optimization to avoid checking collision for entities that,
+// for example, don't move.
+//
+// If two "passive" entities touch one another, a hit will not be registered.
+// But if either or both are "active" entities, a hit will be registered.
 void CollisionDetection::fill_buckets(entt::registry &ecs) {
-  auto view = ecs.view<const components::Collision, const components::Position>();
+  auto active_view = ecs.view<const components::CollisionActive, const components::Position>();
 
-  for (auto [entity, collision, position] : view.each()) {
+  for (auto [entity, collision, position] : active_view.each()) {
     auto hitbox = Hitbox{
         .entity = entity,
         .x = collision.hitbox_offset_x + position.x,
         .y = collision.hitbox_offset_y + position.y,
         .w = collision.hitbox_w,
         .h = collision.hitbox_h,
-        .is_passive = collision.is_passive,
+        .is_passive = false,
     };
 
     const auto min_bucket = to_bucket_key(hitbox.x, hitbox.y);
@@ -46,9 +52,29 @@ void CollisionDetection::fill_buckets(entt::registry &ecs) {
     for (auto bucket_x = min_bucket.x; bucket_x <= max_bucket.x; bucket_x++) {
       for (auto bucket_y = min_bucket.y; bucket_y <= max_bucket.y; bucket_y++) {
         add_to_bucket(hitbox, bucket_x, bucket_y);
-        if (!collision.is_passive) {
-          buckets_to_check.insert(BucketKey{.x = bucket_x, .y = bucket_y});
-        }
+        buckets_to_check.insert(BucketKey{.x = bucket_x, .y = bucket_y});
+      }
+    }
+  }
+
+  auto passive_view = ecs.view<const components::CollisionPassive, const components::Position>();
+
+  for (auto [entity, collision, position] : passive_view.each()) {
+    auto hitbox = Hitbox{
+        .entity = entity,
+        .x = collision.hitbox_offset_x + position.x,
+        .y = collision.hitbox_offset_y + position.y,
+        .w = collision.hitbox_w,
+        .h = collision.hitbox_h,
+        .is_passive = true,
+    };
+
+    const auto min_bucket = to_bucket_key(hitbox.x, hitbox.y);
+    const auto max_bucket = to_bucket_key(hitbox.x + hitbox.w, hitbox.y + hitbox.h);
+
+    for (auto bucket_x = min_bucket.x; bucket_x <= max_bucket.x; bucket_x++) {
+      for (auto bucket_y = min_bucket.y; bucket_y <= max_bucket.y; bucket_y++) {
+        add_to_bucket(hitbox, bucket_x, bucket_y);
       }
     }
   }

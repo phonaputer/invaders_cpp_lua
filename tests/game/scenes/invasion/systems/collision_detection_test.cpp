@@ -1,7 +1,8 @@
 #include "framework/event_broker.hpp"
 #include "framework/player_input_manager.hpp"
 #include "framework/system.hpp"
-#include "game/scenes/invasion/components/collision.hpp"
+#include "game/scenes/invasion/components/collision_active.hpp"
+#include "game/scenes/invasion/components/collision_passive.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/events/collision_occurred.hpp"
 #include "game/scenes/invasion/systems/collision_detection.hpp"
@@ -11,7 +12,8 @@
 
 namespace events {
 void PrintTo(const CollisionOccurred &col, std::ostream *os) {
-  *os << "CollisionOccurred(" << entt::to_integral(col.who_am_i) << "," << entt::to_integral(col.who_i_hit) << ")";
+  *os << "CollisionOccurred(" << entt::to_integral(col.who_am_i) << "," << entt::to_integral(col.who_i_hit)
+      << ")";
 }
 } // namespace events
 
@@ -55,16 +57,27 @@ createEntityWithHitbox(framework::ExecuteCtx &ctx, float x, float y, float w, fl
           .z = 100,
       }
   );
-  ctx.ecs.emplace<components::Collision>(
-      e,
-      components::Collision{
-          .hitbox_offset_x = 0,
-          .hitbox_offset_y = 0,
-          .hitbox_w = w,
-          .hitbox_h = h,
-          .is_passive = passive,
-      }
-  );
+  if (passive) {
+    ctx.ecs.emplace<components::CollisionPassive>(
+        e,
+        components::CollisionPassive{
+            .hitbox_offset_x = 0,
+            .hitbox_offset_y = 0,
+            .hitbox_w = w,
+            .hitbox_h = h,
+        }
+    );
+  } else {
+    ctx.ecs.emplace<components::CollisionActive>(
+        e,
+        components::CollisionActive{
+            .hitbox_offset_x = 0,
+            .hitbox_offset_y = 0,
+            .hitbox_w = w,
+            .hitbox_h = h,
+        }
+    );
+  }
 
   return e;
 }
@@ -78,8 +91,12 @@ void assertTotalHits(framework::ExecuteCtx &ctx, size_t expected) {
 void assertHitEachOther(framework::ExecuteCtx &ctx, entt::entity left, entt::entity right) {
   auto hit_messages = ctx.events.get_all<events::CollisionOccurred>();
 
-  EXPECT_THAT(hit_messages, testing::Contains(events::CollisionOccurred{.who_am_i = left, .who_i_hit = right}));
-  EXPECT_THAT(hit_messages, testing::Contains(events::CollisionOccurred{.who_am_i = right, .who_i_hit = left}));
+  EXPECT_THAT(
+      hit_messages, testing::Contains(events::CollisionOccurred{.who_am_i = left, .who_i_hit = right})
+  );
+  EXPECT_THAT(
+      hit_messages, testing::Contains(events::CollisionOccurred{.who_am_i = right, .who_i_hit = left})
+  );
 }
 
 void assertHitNothing(framework::ExecuteCtx &ctx, entt::entity entity) {
@@ -168,7 +185,9 @@ TEST(SystemCollisionDetection, ExecuteWhenEntitiesBarelyTouchingShouldMarkThemAs
   assertHitEachOther(ctx, entity_one, entity_two);
 }
 
-TEST(SystemCollisionDetection, ExecuteBigEntityCrossingMultipleBucketsShouldStillRegisterCollisionsCorrectly) {
+TEST(
+    SystemCollisionDetection, ExecuteBigEntityCrossingMultipleBucketsShouldStillRegisterCollisionsCorrectly
+) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity_one = createEntityWithHitbox(ctx, 8, 8, 16, 16);
@@ -308,7 +327,10 @@ TEST(SystemCollisionDetection, ExecuteHitboxIntersectsRightSideOfLongEnitityShou
   assertHitEachOther(ctx, entity_one, entity_two);
 }
 
-TEST(SystemCollisionDetection, ExecuteMultipleOverlapsAndAllButOneEntityArePassiveShouldOnlyCheckForTheActiveEntity) {
+TEST(
+    SystemCollisionDetection,
+    ExecuteMultipleOverlapsAndAllButOneEntityArePassiveShouldOnlyCheckForTheActiveEntity
+) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity_one = createEntityWithHitbox(ctx, 1, 1, 1, 1);

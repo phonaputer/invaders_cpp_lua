@@ -8,11 +8,11 @@
 namespace components {
 
 enum class DamageType : uint8_t {
-  Alien = 1,
-  Player = 1 << 1,
-  Fortress = 1 << 2,
-  Alien_Projectile = 1 << 3,
-  Player_Projectile = 1 << 4
+  Alien = 1U,
+  Player = 1U << 1U,
+  Fortress = 1U << 2U,
+  Alien_Projectile = 1U << 3U,
+  Player_Projectile = 1U << 4U
 };
 
 using DamageTypeSet = uint8_t;
@@ -28,6 +28,7 @@ constexpr DamageTypeSet operator|(DamageTypeSet l, DamageType r) {
 inline void register_damage_type_enum_to_script_env(framework::ScriptEnvironment &scripts) {
   lua_State &L = scripts.get_lua_state();
 
+  // LuaBridge doesn't like the enum class type being passed to it, so it's necessary to cast to uint8.
   luabridge::getGlobalNamespace(&L)
       .beginNamespace("DamageType")
       .addProperty("ALIEN", []() { return static_cast<uint8_t>(DamageType::Alien); })

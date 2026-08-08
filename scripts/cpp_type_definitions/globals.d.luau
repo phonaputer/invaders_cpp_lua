@@ -36,16 +36,22 @@ export type Animation = {
     playReversed: boolean,
 }
 
-export type Collision = {
+export type CollisionActive = {
     hitboxOffsetX: number,
     hitboxOffsetY: number,
     hitboxW: number,
     hitboxH: number,
-    isPassive: boolean,
 }
 
 export type CollisionCallback = {
     callback: Callback,
+}
+
+export type CollisionPassive = {
+    hitboxOffsetX: number,
+    hitboxOffsetY: number,
+    hitboxW: number,
+    hitboxH: number,
 }
 
 export type Damage = {
@@ -110,8 +116,9 @@ export type Velocity = {
 
 declare Components: {
     Animation: (() -> Animation),
-    Collision: (() -> Collision),
+    CollisionActive: (() -> CollisionActive),
     CollisionCallback: (() -> CollisionCallback),
+    CollisionPassive: (() -> CollisionPassive),
     Damage: (() -> Damage),
     DeletionCallback: (() -> DeletionCallback),
     Hitpoints: (() -> Hitpoints),
@@ -133,15 +140,20 @@ declare ECS: {
     setAnimation: (Entity, Animation) -> (),
     removeAnimation: (Entity) -> (),
 
-    hasCollision: (Entity) -> (boolean),
-    getCollision: (Entity) -> Collision,
-    setCollision: (Entity, Collision) -> (),
-    removeCollision: (Entity) -> (),
+    hasCollisionActive: (Entity) -> (boolean),
+    getCollisionActive: (Entity) -> CollisionActive,
+    setCollisionActive: (Entity, CollisionActive) -> (),
+    removeCollisionActive: (Entity) -> (),
 
     hasCollisionCallback: (Entity) -> (boolean),
     getCollisionCallback: (Entity) -> CollisionCallback,
     setCollisionCallback: (Entity, CollisionCallback) -> (),
     removeCollisionCallback: (Entity) -> (),
+
+    hasCollisionPassive: (Entity) -> (boolean),
+    getCollisionPassive: (Entity) -> CollisionPassive,
+    setCollisionPassive: (Entity, CollisionPassive) -> (),
+    removeCollisionPassive: (Entity) -> (),
 
     hasDamage: (Entity) -> (boolean),
     getDamage: (Entity) -> Damage,
