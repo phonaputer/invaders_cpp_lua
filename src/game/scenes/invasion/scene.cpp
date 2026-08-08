@@ -26,11 +26,11 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_update_system(std::make_unique<systems::CollisionCallback>(ctx.scripts, callback_registry));
   ctx.systems.add_update_system(std::make_unique<systems::Damage>());
   ctx.systems.add_update_system(std::make_unique<systems::Deletion>(ctx.scripts, callback_registry));
-  ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
   ctx.systems.add_update_system(std::make_unique<systems::Velocity>());
   ctx.systems.add_update_system(std::make_unique<systems::PlayerMovement>());
   ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>(ctx.scripts, callback_registry));
   ctx.systems.add_update_system(std::make_unique<systems::PositionFollowing>());
+  ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
 
   ctx.systems.add_draw_system(std::make_unique<systems::HUDRendering>(ctx.renderer));
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
