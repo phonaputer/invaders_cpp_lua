@@ -21,9 +21,11 @@ const std::string TEST_LUAU = R"(
   local Pack = {}
 
   Pack.CallCount = 0
+  Pack.CalledEntity = -1
 
-  function Pack.callback(): ()
+  function Pack.callback(entity: number): ()
     Pack.CallCount += 1
+    Pack.CalledEntity = entity
   end
 
   function Pack.resetCallCount(): ()
@@ -32,6 +34,14 @@ const std::string TEST_LUAU = R"(
 
   function Pack.getCallCount(): number
     return Pack.CallCount
+  end
+
+  function Pack.assertCalledWith(entity: number): number
+    if entity == Pack.CalledEntity then
+      return 1
+    else 
+      return 0
+    end
   end
 
   return Pack
@@ -94,8 +104,8 @@ TEST_F(SystemDeletion, ExecuteHasDeletionCallbackShouldCallTheCallbackAndDeleteT
 
   setup.system.execute(ctx);
 
-  auto callbackCallCount = scripts->call_function<double>("pack", "getCallCount");
-  EXPECT_EQ(1, callbackCallCount);
+  EXPECT_EQ(1, scripts->call_function<double>("pack", "getCallCount"));
+  EXPECT_EQ(1, scripts->call_function<double>("pack", "assertCalledWith", entt::to_integral(entity)));
   EXPECT_FALSE(ctx.ecs.valid(entity));
 }
 

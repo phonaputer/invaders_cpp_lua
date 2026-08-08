@@ -2,8 +2,9 @@
 
 local Invaders = {}
 
-function Invaders.onHit(me: Entity, whoIHit: Entity): ()
-	print("TODO: spawn an explosion.")
+function Invaders.onDeleteExplode(entity: Entity): ()
+	local position = ECS.getPosition(entity)
+	Invaders.newExplosion(position.x, position.y)
 end
 
 function Invaders.newJellyfish(x: number, y: number)
@@ -19,11 +20,6 @@ function Invaders.newJellyfish(x: number, y: number)
 	animation.stripID = strip
 	ECS.setAnimation(entity, animation)
 
-	local damage = Components.Damage()
-	damage.type = DamageType.ALIEN
-	damage.amount = 1
-	ECS.setDamage(entity, damage)
-
 	local collision = Components.CollisionPassive()
 	collision.hitboxOffsetX = 1
 	collision.hitboxOffsetY = 3
@@ -31,9 +27,14 @@ function Invaders.newJellyfish(x: number, y: number)
 	collision.hitboxH = 8
 	ECS.setCollisionPassive(entity, collision)
 
-	local collisionCallback = Components.CollisionCallback()
-	collisionCallback.callback = Callbacks.register("invasion", "Entities.Invaders.onHit")
-	ECS.setCollisionCallback(entity, collisionCallback)
+	local damage = Components.Damage()
+	damage.type = DamageType.ALIEN
+	damage.amount = 1
+	ECS.setDamage(entity, damage)
+
+	local deletionCallback = Components.DeletionCallback()
+	deletionCallback.callback = Callbacks.register("invasion", "Entities.Invaders.onDeleteExplode")
+	ECS.setDeletionCallback(entity, deletionCallback)
 
 	local hitpoints = Components.Hitpoints()
 	hitpoints.susceptibleTo = DamageType.PLAYER_PROJECTILE
@@ -57,6 +58,42 @@ function Invaders.newJellyfish(x: number, y: number)
 	sprite.dstW = 16
 	sprite.dstH = 16
 	ECS.setSprite(entity, sprite)
+end
+
+function Invaders.newExplosion(x: number, y: number)
+	local entity = ECS.create()
+
+	local strip = AnimationStrips.create()
+	AnimationStrips.addFrame(strip, 3, 1)
+	AnimationStrips.addFrame(strip, 4, 1)
+	AnimationStrips.addFrame(strip, 5, 1)
+	AnimationStrips.addFrame(strip, 6, 1)
+	local animation = Components.Animation()
+	animation.ticksPerFrame = 5
+	animation.stripID = strip
+	ECS.setAnimation(entity, animation)
+
+	local position = Components.Position()
+	position.x = x
+	position.y = y
+	position.w = 16
+	position.h = 16
+	position.z = 200
+	ECS.setPosition(entity, position)
+
+	local sprite = Components.Sprite()
+	sprite.srcID = "space_invaders.png"
+	sprite.srcX = 48
+	sprite.srcY = 16
+	sprite.srcW = 16
+	sprite.srcH = 16
+	sprite.dstW = 16
+	sprite.dstH = 16
+	ECS.setSprite(entity, sprite)
+
+	local ttl = Components.TTL()
+	ttl.ticksToLive = 20
+	ECS.setTTL(entity, ttl)
 end
 
 return Invaders

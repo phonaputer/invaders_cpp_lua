@@ -12,6 +12,8 @@ Animation::Animation(const framework::AnimationStripRegistry &animation_strips)
 
 // This could be refactored to be more "data-oriented"
 // But since really only the player is animated I'll leave this for now
+//
+// TODO add benchmarks
 void Animation::execute(framework::ExecuteCtx &ctx) {
   auto view = ctx.ecs.view<components::Animation, components::Sprite>();
 

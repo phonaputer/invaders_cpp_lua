@@ -28,7 +28,9 @@ void Deletion::execute(framework::ExecuteCtx &ctx) {
     auto maybe_callback = callbacks.get().get_callback(callback.callback);
 
     if (maybe_callback.has_value()) {
-      scripts.get().call_function(maybe_callback.value().package, maybe_callback.value().function);
+      scripts.get().call_function(
+          maybe_callback.value().package, maybe_callback.value().function, entt::to_integral(entity)
+      );
     }
   }
 
