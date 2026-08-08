@@ -8,6 +8,7 @@
 #include "game/scenes/invasion/components/damage_type_enum.hpp"
 #include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/hitpoints.hpp"
+#include "game/scenes/invasion/components/hud.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
@@ -100,9 +101,22 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   // clang-format on
 }
 
+void increment_score(entt::registry &ecs, int amount) {
+  auto &hud = ecs.ctx().get<components::HUD>();
+  hud.score += amount;
+
+  if (hud.high_score < hud.score) {
+    hud.high_score = hud.score;
+  }
+}
+
 void register_cpp_api_to_script_env(framework::SceneInitializationContext &ctx) {
   register_all_components_to_script_env(ctx);
   components::register_damage_type_enum_to_script_env(ctx.scripts);
+
+  ctx.scripts.register_function("HUD", "incrementScore", [&ecs = ctx.ecs](double amount) {
+    increment_score(ecs, static_cast<int>(amount));
+  });
 }
 
 } // namespace invasion

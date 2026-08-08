@@ -22,6 +22,10 @@ declare DamageType: {
 
 export type Entity = number
 
+declare HUD: {
+    incrementScore: (number) -> (),
+}
+
 declare Game: {
     WINDOW_WIDTH: number,
     WINDOW_HEIGHT: number,

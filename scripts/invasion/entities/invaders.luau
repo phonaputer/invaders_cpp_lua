@@ -5,6 +5,7 @@ local Invaders = {}
 function Invaders.onDeleteExplode(entity: Entity): ()
 	local position = ECS.getPosition(entity)
 	Invaders.newExplosion(position.x, position.y)
+	HUD.incrementScore(30)
 end
 
 function Invaders.newJellyfish(x: number, y: number)
