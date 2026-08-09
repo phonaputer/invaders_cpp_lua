@@ -77,13 +77,16 @@ export type InvaderAnimation = {
 }
 
 export type InvaderOrchestrationState = {
-    noInvadersCallback: number,
+    noInvadersCallback: Callback,
+    shootCallback: Callback,
     baseTicksPerMove: number,
     tickCounter: number,
     xSpeed: number,
     ySpeed: number,
     lastInvaderXSpeed: number,
     lastInvaderYSpeed: number,
+    ticksPerShot: number,
+    shootTickCounter: number,
     movingLeft: boolean,
 }
 

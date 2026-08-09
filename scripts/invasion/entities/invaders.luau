@@ -30,6 +30,10 @@ function Invaders.rerack(): ()
 	end
 end
 
+function Invaders.shoot(): ()
+	print("pow")
+end
+
 function onDeleteInvader(entity: Entity): ()
 	local position = ECS.getPosition(entity)
 	newExplosion(position.x, position.y)

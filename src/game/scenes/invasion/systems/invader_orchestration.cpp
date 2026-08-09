@@ -32,6 +32,8 @@ void InvaderOrchestration::execute(framework::ExecuteCtx &ctx) {
     return;
   }
 
+  shoot(state);
+
   if (!should_move_this_tick(state, invader_count)) {
     return;
   }
@@ -145,6 +147,21 @@ void InvaderOrchestration::animate_invaders(framework::ExecuteCtx &ctx) {
     auto frame = strip.at(animation.cur_frame);
     sprite.src_x = static_cast<float>(frame.x) * sprite.src_w;
     sprite.src_y = static_cast<float>(frame.y) * sprite.src_h;
+  }
+}
+
+void InvaderOrchestration::shoot(components::InvaderOrchestrationState &state) {
+  if (state.shoot_tick_counter < state.ticks_per_shot) {
+    state.shoot_tick_counter++;
+    return;
+  }
+
+  state.shoot_tick_counter = 0;
+
+  const auto maybe_callback = callbacks.get().get_callback(state.shoot_callback);
+  if (maybe_callback.has_value()) {
+    const auto &callback = maybe_callback.value();
+    scripts.get().call_function(callback.package, callback.function);
   }
 }
 

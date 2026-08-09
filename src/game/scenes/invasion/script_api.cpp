@@ -69,12 +69,15 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   });
   ctx.scripts.register_singleton_component<components::InvaderOrchestrationState>(ctx.ecs, "InvaderOrchestrationState", [](auto &clazz) {
     clazz.addProperty("noInvadersCallback", &components::InvaderOrchestrationState::no_invaders_callback, &components::InvaderOrchestrationState::no_invaders_callback)
+      .addProperty("shootCallback", &components::InvaderOrchestrationState::shoot_callback, &components::InvaderOrchestrationState::shoot_callback)
       .addProperty("baseTicksPerMove", &components::InvaderOrchestrationState::base_ticks_per_move, &components::InvaderOrchestrationState::base_ticks_per_move)
       .addProperty("tickCounter", &components::InvaderOrchestrationState::tick_counter, &components::InvaderOrchestrationState::tick_counter)
       .addProperty("xSpeed", &components::InvaderOrchestrationState::x_speed, &components::InvaderOrchestrationState::x_speed)
       .addProperty("ySpeed", &components::InvaderOrchestrationState::y_speed, &components::InvaderOrchestrationState::y_speed)
       .addProperty("lastInvaderXSpeed", &components::InvaderOrchestrationState::last_invader_x_speed, &components::InvaderOrchestrationState::last_invader_x_speed)
       .addProperty("lastInvaderYSpeed", &components::InvaderOrchestrationState::last_invader_y_speed, &components::InvaderOrchestrationState::last_invader_y_speed)
+      .addProperty("ticksPerShot", &components::InvaderOrchestrationState::ticks_per_shot, &components::InvaderOrchestrationState::ticks_per_shot)
+      .addProperty("shootTickCounter", &components::InvaderOrchestrationState::shoot_tick_counter, &components::InvaderOrchestrationState::shoot_tick_counter)
       .addProperty("movingLeft", &components::InvaderOrchestrationState::moving_left, &components::InvaderOrchestrationState::moving_left);
   });
   ctx.scripts.register_component<components::OrchestratedInvader>(ctx.ecs, "OrchestratedInvader", []([[maybe_unused]] auto &clazz) {

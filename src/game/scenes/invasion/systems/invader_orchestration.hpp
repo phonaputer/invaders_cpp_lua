@@ -28,6 +28,7 @@ class InvaderOrchestration : public framework::System {
         framework::ExecuteCtx &ctx, components::InvaderOrchestrationState &state, const size_t invader_count
     );
     void animate_invaders(framework::ExecuteCtx &ctx);
+    void shoot(components::InvaderOrchestrationState &state);
 
   public:
     InvaderOrchestration(
