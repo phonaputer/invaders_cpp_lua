@@ -7,6 +7,7 @@ target_sources(
   damage.cpp
   deletion.cpp
   hud_rendering.cpp
+  invader_orchestration.cpp
   player_attack.cpp
   player_movement.cpp
   position_following.cpp

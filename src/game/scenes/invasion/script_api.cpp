@@ -9,6 +9,7 @@
 #include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/hitpoints.hpp"
 #include "game/scenes/invasion/components/hud.hpp"
+#include "game/scenes/invasion/components/orchestrated_invader.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
@@ -58,6 +59,8 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   ctx.scripts.register_component<components::Hitpoints>(ctx.ecs, "Hitpoints", [](auto &clazz) {
     clazz.addProperty("susceptibleTo", &components::Hitpoints::susceptible_to, &components::Hitpoints::susceptible_to)
       .addProperty("curHitpoints", &components::Hitpoints::cur_hitpoints, &components::Hitpoints::cur_hitpoints);
+  });
+  ctx.scripts.register_component<components::OrchestratedInvader>(ctx.ecs, "OrchestratedInvader", []([[maybe_unused]] auto &clazz) {
   });
   ctx.scripts.register_component<components::PlayerAttack>(ctx.ecs, "PlayerAttack", [](auto &clazz) {
     clazz.addProperty("ticksPerAttack", &components::PlayerAttack::ticks_per_attack, &components::PlayerAttack::ticks_per_attack)

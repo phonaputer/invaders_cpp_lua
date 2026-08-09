@@ -72,6 +72,8 @@ export type Hitpoints = {
     curHitpoints: number,
 }
 
+export type OrchestratedInvader = {}
+
 export type PlayerAttack = {
     ticksPerAttack: number,
     tickCounter: number,
@@ -126,6 +128,7 @@ declare Components: {
     Damage: (() -> Damage),
     DeletionCallback: (() -> DeletionCallback),
     Hitpoints: (() -> Hitpoints),
+    OrchestratedInvader: (() -> OrchestratedInvader),
     PlayerAttack: (() -> PlayerAttack),
     PlayerMovement: (() -> PlayerMovement),
     Position: (() -> Position),
@@ -173,6 +176,11 @@ declare ECS: {
     getHitpoints: (Entity) -> Hitpoints,
     setHitpoints: (Entity, Hitpoints) -> (),
     removeHitpoints: (Entity) -> (),
+
+    hasOrchestratedInvader: (Entity) -> (boolean),
+    getOrchestratedInvader: (Entity) -> OrchestratedInvader,
+    setOrchestratedInvader: (Entity, OrchestratedInvader) -> (),
+    removeOrchestratedInvader: (Entity) -> (),
 
     hasPlayerAttack: (Entity) -> (boolean),
     getPlayerAttack: (Entity) -> PlayerAttack,

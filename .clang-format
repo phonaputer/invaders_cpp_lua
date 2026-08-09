@@ -1,10 +1,12 @@
 AlignAfterOpenBracket: BlockIndent
-BinPackParameters: OnePerLine
+AllowShortFunctionsOnASingleLine: None
 BinPackArguments: false
+BinPackParameters: OnePerLine
+BreakAfterReturnType: None
+BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Attach
 ColumnLimit: 110
-AllowShortFunctionsOnASingleLine: None
 IndentAccessModifiers: true
 IndentCaseLabels: true
 PackConstructorInitializers: Never
-BreakBeforeBinaryOperators: All
+PenaltyReturnTypeOnItsOwnLine: 1000
