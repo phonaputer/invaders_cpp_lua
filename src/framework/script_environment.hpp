@@ -43,6 +43,7 @@ class ScriptEnvironment {
     std::unordered_map<std::string, luabridge::LuaRef> function_cache;
     std::unordered_map<std::string, luabridge::LuaRef> global_function_cache;
     std::unordered_map<std::string, luabridge::LuaRef> package_cache;
+    std::unordered_map<std::string, luabridge::LuaRef> require_cache;
 
     bool open_and_run_file(lua_State *local_L, int num_results, const std::string &path);
     bool exec_source(lua_State *local_L, int num_results, const std::string &path, const std::string &source);

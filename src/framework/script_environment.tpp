@@ -59,6 +59,10 @@ inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
     return {local_L, false};
   }
 
+  if (require_cache.contains(file_to_execute)) {
+    return require_cache.at(file_to_execute);
+  }
+
   const bool success = open_and_run_file(local_L, 1, file_to_execute);
   if (!success) {
     return {local_L, false};
@@ -67,6 +71,8 @@ inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
   auto result = luabridge::LuaRef::fromStack(local_L, -1);
 
   lua_pop(local_L, 1);
+
+  require_cache.insert({file_to_execute, result});
 
   return result;
 }
