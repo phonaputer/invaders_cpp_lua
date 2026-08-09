@@ -13,7 +13,7 @@ function Invasion.setScene(): ()
 	invaderOrchestrationState.ySpeed = 12
 	invaderOrchestrationState.lastInvaderXSpeed = 16
 	invaderOrchestrationState.lastInvaderYSpeed = 12
-	invaderOrchestrationState.ticksPerShot = 12
+	invaderOrchestrationState.ticksPerShot = 50
 	ECS.setInvaderOrchestrationState(invaderOrchestrationState)
 
 	Invasion.Entities.Player.new()

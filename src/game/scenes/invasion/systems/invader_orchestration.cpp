@@ -136,8 +136,7 @@ bool InvaderOrchestration::handle_wall_hit_if_any(
 }
 
 void InvaderOrchestration::animate_invaders(framework::ExecuteCtx &ctx) {
-  auto view
-      = ctx.ecs.view<components::InvaderAnimation, components::OrchestratedInvader, components::Sprite>();
+  auto view = ctx.ecs.view<components::InvaderAnimation, components::Sprite>();
 
   for (auto [entity, animation, sprite] : view.each()) {
     auto strip = animation_strips.get().get(animation.strip_id);

@@ -2,16 +2,17 @@
 
 local Player = {}
 
+local playerStrip = AnimationStrips.create()
+AnimationStrips.addFrame(playerStrip, 0, 2)
+AnimationStrips.addFrame(playerStrip, 1, 2)
+AnimationStrips.addFrame(playerStrip, 2, 2)
+
 function Player.new(): ()
 	local entity = ECS.create()
 
-	local strip = AnimationStrips.create()
-	AnimationStrips.addFrame(strip, 0, 2)
-	AnimationStrips.addFrame(strip, 1, 2)
-	AnimationStrips.addFrame(strip, 2, 2)
 	local animation = Components.Animation()
 	animation.ticksPerFrame = 4
-	animation.stripID = strip
+	animation.stripID = playerStrip
 	animation.playing = false
 	ECS.setAnimation(entity, animation)
 
@@ -67,6 +68,8 @@ function Player.canFire(): boolean
 	return Player.ProjectileCount < 3
 end
 
+local projectileOnDeleteCallback = Callbacks.register("invasion", "Entities.Player.decrementProjectileCount")
+
 function Player.newProjectile(x: number, y: number): ()
 	Player.ProjectileCount += 1
 
@@ -85,7 +88,7 @@ function Player.newProjectile(x: number, y: number): ()
 	ECS.setDamage(entity, damage)
 
 	local deletionCallback = Components.DeletionCallback()
-	deletionCallback.callback = Callbacks.register("invasion", "Entities.Player.decrementProjectileCount")
+	deletionCallback.callback = projectileOnDeleteCallback
 	ECS.setDeletionCallback(entity, deletionCallback)
 
 	local hitpoints = Components.Hitpoints()
@@ -116,15 +119,16 @@ function Player.newProjectile(x: number, y: number): ()
 	ECS.setVelocity(entity, velocity)
 end
 
+local muzzleFlashStrip = AnimationStrips.create()
+AnimationStrips.addFrame(muzzleFlashStrip, 3, 2)
+AnimationStrips.addFrame(muzzleFlashStrip, 4, 2)
+
 function Player.newMuzzleFlash(player_entity: number): ()
 	local entity = ECS.create()
 
-	local strip = AnimationStrips.create()
-	AnimationStrips.addFrame(strip, 3, 2)
-	AnimationStrips.addFrame(strip, 4, 2)
 	local animation = Components.Animation()
 	animation.ticksPerFrame = 10
-	animation.stripID = strip
+	animation.stripID = muzzleFlashStrip
 	ECS.setAnimation(entity, animation)
 
 	local position = Components.Position()

@@ -31,7 +31,12 @@ function Invaders.rerack(): ()
 end
 
 function Invaders.shoot(): ()
-	print("pow")
+	if math.random(3) ~= 1 then
+		return
+	end
+
+	local x = math.random(5, Game.WINDOW_WIDTH - 5)
+	newInvaderProjectile(x, 75)
 end
 
 function onDeleteInvader(entity: Entity): ()
@@ -211,17 +216,80 @@ function newInvader(args: NewInvaderArgs)
 	ECS.setSprite(entity, sprite)
 end
 
+local projectileAnimationStrip = AnimationStrips.create()
+AnimationStrips.addFrame(projectileAnimationStrip, 5, 2)
+AnimationStrips.addFrame(projectileAnimationStrip, 6, 2)
+
+local projectileOnDeleteCallback = Callbacks.register("invasion", "Entities.Invaders.onDeleteProjectile")
+
+function Invaders.onDeleteProjectile(entity: Entity): ()
+	onDeleteInvader(entity)
+end
+
+function newInvaderProjectile(x: number, y: number): ()
+	local entity = ECS.create()
+
+	local animation = Components.Animation()
+	animation.ticksPerFrame = 40
+	animation.stripID = projectileAnimationStrip
+	ECS.setAnimation(entity, animation)
+
+	local collision = Components.CollisionActive()
+	collision.hitboxOffsetX = 7
+	collision.hitboxOffsetY = 7
+	collision.hitboxW = 1
+	collision.hitboxH = 3
+	ECS.setCollisionActive(entity, collision)
+
+	local damage = Components.Damage()
+	damage.type = DamageType.ALIEN_PROJECTILE
+	damage.amount = 1
+	ECS.setDamage(entity, damage)
+
+	local deletionCallback = Components.DeletionCallback()
+	deletionCallback.callback = projectileOnDeleteCallback
+	ECS.setDeletionCallback(entity, deletionCallback)
+
+	local hitpoints = Components.Hitpoints()
+	hitpoints.susceptibleTo = bit32.bor(DamageType.PLAYER, DamageType.PLAYER_PROJECTILE, DamageType.FORTRESS)
+	hitpoints.curHitpoints = 1
+	ECS.setHitpoints(entity, hitpoints)
+
+	local position = Components.Position()
+	position.x = x
+	position.y = y
+	position.w = 16
+	position.h = 16
+	position.z = 80
+	ECS.setPosition(entity, position)
+
+	local sprite = Components.Sprite()
+	sprite.srcID = "space_invaders.png"
+	sprite.srcX = 80
+	sprite.srcY = 32
+	sprite.srcW = 16
+	sprite.srcH = 16
+	sprite.dstW = 16
+	sprite.dstH = 16
+	ECS.setSprite(entity, sprite)
+
+	local velocity = Components.Velocity()
+	velocity.y = 1
+	ECS.setVelocity(entity, velocity)
+end
+
+local explosionAnimationStrip = AnimationStrips.create()
+AnimationStrips.addFrame(explosionAnimationStrip, 3, 1)
+AnimationStrips.addFrame(explosionAnimationStrip, 4, 1)
+AnimationStrips.addFrame(explosionAnimationStrip, 5, 1)
+AnimationStrips.addFrame(explosionAnimationStrip, 6, 1)
+
 function newExplosion(x: number, y: number)
 	local entity = ECS.create()
 
-	local strip = AnimationStrips.create()
-	AnimationStrips.addFrame(strip, 3, 1)
-	AnimationStrips.addFrame(strip, 4, 1)
-	AnimationStrips.addFrame(strip, 5, 1)
-	AnimationStrips.addFrame(strip, 6, 1)
 	local animation = Components.Animation()
 	animation.ticksPerFrame = 5
-	animation.stripID = strip
+	animation.stripID = explosionAnimationStrip
 	ECS.setAnimation(entity, animation)
 
 	local position = Components.Position()
