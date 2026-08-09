@@ -71,8 +71,9 @@ inline luabridge::LuaRef ScriptEnvironment::luau_require(lua_State *local_L) {
   return result;
 }
 
-inline std::string
-ScriptEnvironment::get_require_path(const std::string &require_target, const std::string &current_script) {
+inline std::string ScriptEnvironment::get_require_path(
+    const std::string &require_target, const std::string &current_script
+) {
   std::string file_name_str = require_target;
   std::filesystem::path base_dir(current_script);
 
@@ -102,8 +103,9 @@ ScriptEnvironment::get_require_path(const std::string &require_target, const std
   return result;
 }
 
-inline bool
-ScriptEnvironment::open_and_run_file(lua_State *local_L, int num_results, const std::string &path) {
+inline bool ScriptEnvironment::open_and_run_file(
+    lua_State *local_L, int num_results, const std::string &path
+) {
   std::ifstream script_file(path);
   if (!script_file.is_open()) {
     std::cerr << "ScriptEnvironment: Failed to open script file: " << path << "\n";
@@ -249,6 +251,30 @@ void ScriptEnvironment::register_component(
   clazz.endClass().endNamespace();
 }
 
+template <typename T, typename F>
+void ScriptEnvironment::register_singleton_component(
+    entt::registry &ecs, const std::string &name, F &&fields_register_func
+) {
+  luabridge::getGlobalNamespace(L.get())
+      .beginNamespace("ECS")
+      .addFunction(("set" + name).c_str(), [&ecs](T component) { ecs.ctx().insert_or_assign<T>(component); })
+      .addFunction(("has" + name).c_str(), [&ecs]() { return ecs.ctx().contains<T>(); })
+      .addFunction(("get" + name).c_str(), [&ecs]() { return ecs.ctx().get<T>(); })
+      .addFunction(("remove" + name).c_str(), [&ecs]() { ecs.ctx().erase<T>(); })
+      .endNamespace();
+
+  auto clazz = std::move(
+      luabridge::getGlobalNamespace(L.get())
+          .beginNamespace("Components")
+          .beginClass<T>(name.c_str())
+          .template addConstructor<void()>()
+  );
+
+  std::forward<F>(fields_register_func)(clazz);
+
+  clazz.endClass().endNamespace();
+}
+
 template <typename F>
 void ScriptEnvironment::register_function(const std::string &name_space, const std::string &name, F &&func) {
   luabridge::getGlobalNamespace(L.get())
@@ -295,8 +321,9 @@ Result ScriptEnvironment::call_function(const std::string &package, const std::s
   return result.value();
 }
 
-inline std::optional<luabridge::LuaRef>
-get_function_from_table(const luabridge::LuaRef &table, const std::string &name) {
+inline std::optional<luabridge::LuaRef> get_function_from_table(
+    const luabridge::LuaRef &table, const std::string &name
+) {
   if (!table.isTable()) {
     std::cerr << "ScriptEnvironment: tried to get'" << name << "' with a non table.\n";
     return std::nullopt;
@@ -332,8 +359,9 @@ get_function_from_table(const luabridge::LuaRef &table, const std::string &name)
   return func;
 }
 
-inline std::optional<luabridge::LuaRef>
-ScriptEnvironment::get_function(const std::string &package, const std::string &function) {
+inline std::optional<luabridge::LuaRef> ScriptEnvironment::get_function(
+    const std::string &package, const std::string &function
+) {
   const std::string cache_key = package + "::" + function;
 
   if (function_cache.contains(cache_key)) {

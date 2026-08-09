@@ -9,6 +9,7 @@
 #include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/hitpoints.hpp"
 #include "game/scenes/invasion/components/hud.hpp"
+#include "game/scenes/invasion/components/invader_orchestration_state.hpp"
 #include "game/scenes/invasion/components/orchestrated_invader.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
@@ -59,6 +60,17 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   ctx.scripts.register_component<components::Hitpoints>(ctx.ecs, "Hitpoints", [](auto &clazz) {
     clazz.addProperty("susceptibleTo", &components::Hitpoints::susceptible_to, &components::Hitpoints::susceptible_to)
       .addProperty("curHitpoints", &components::Hitpoints::cur_hitpoints, &components::Hitpoints::cur_hitpoints);
+  });
+  ctx.scripts.register_component<components::InvaderOrchestrationState>(ctx.ecs, "InvaderOrchestrationState", [](auto &clazz) {
+    clazz.addProperty("noInvadersCallback", &components::InvaderOrchestrationState::no_invaders_callback, &components::InvaderOrchestrationState::no_invaders_callback)
+      .addProperty("ticksPerMove", &components::InvaderOrchestrationState::ticks_per_move, &components::InvaderOrchestrationState::ticks_per_move)
+      .addProperty("tickCounter", &components::InvaderOrchestrationState::tick_counter, &components::InvaderOrchestrationState::tick_counter)
+      .addProperty("baseInvadersTickOffset", &components::InvaderOrchestrationState::base_invaders_tick_offset, &components::InvaderOrchestrationState::base_invaders_tick_offset)
+      .addProperty("xSpeed", &components::InvaderOrchestrationState::x_speed, &components::InvaderOrchestrationState::x_speed)
+      .addProperty("ySpeed", &components::InvaderOrchestrationState::y_speed, &components::InvaderOrchestrationState::y_speed)
+      .addProperty("lastInvaderXSpeed", &components::InvaderOrchestrationState::last_invader_x_speed, &components::InvaderOrchestrationState::last_invader_x_speed)
+      .addProperty("lastInvaderYSpeed", &components::InvaderOrchestrationState::last_invader_y_speed, &components::InvaderOrchestrationState::last_invader_y_speed)
+      .addProperty("movingLeft", &components::InvaderOrchestrationState::moving_left, &components::InvaderOrchestrationState::moving_left);
   });
   ctx.scripts.register_component<components::OrchestratedInvader>(ctx.ecs, "OrchestratedInvader", []([[maybe_unused]] auto &clazz) {
   });

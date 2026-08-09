@@ -1,4 +1,3 @@
-local boolean = require("../../out/build/debug-clang/_deps/luau-src/tests/require/without_config/types/boolean")
 export type AnimationStrip = number
 
 declare AnimationStrips: {
@@ -70,6 +69,18 @@ export type DeletionCallback = {
 export type Hitpoints = {
     susceptibleTo: number,
     curHitpoints: number,
+}
+
+export type InvaderOrchestrationState = {
+    noInvadersCallback: number,
+    ticksPerMove: number,
+    tickCounter: number,
+    baseInvadersTickOffset: number,
+    xSpeed: number,
+    ySpeed: number,
+    lastInvaderXSpeed: number,
+    lastInvaderYSpeed: number,
+    movingLeft: boolean,
 }
 
 export type OrchestratedInvader = {}

@@ -110,6 +110,11 @@ class ScriptEnvironment {
     template <typename T, typename F>
     void register_component(entt::registry &ecs, const std::string &name, F &&fields_register_func);
 
+    // Register a singleton component to the Luau environment so that Luau may perform CRUD operations on this
+    // component in the EnTT ECS.
+    template <typename T, typename F>
+    void register_singleton_component(entt::registry &ecs, const std::string &name, F &&fields_register_func);
+
     // Register a C++ function so that it may be called from Luau.
     template <typename F>
     void register_function(const std::string &name_space, const std::string &name, F &&func);
