@@ -35,13 +35,15 @@ function Invaders.shoot(): ()
 		return
 	end
 
-	local x = math.random(5, Game.WINDOW_WIDTH - 5)
-	newInvaderProjectile(x, 75)
-end
+	local invader, ok = getRandomInvader()
+	if not ok then
+		return
+	end
 
-function onDeleteInvader(entity: Entity): ()
-	local position = ECS.getPosition(entity)
-	newExplosion(position.x, position.y)
+	local position = ECS.getPosition(invader)
+	local xMidpoint = position.x + (position.w / 2)
+	local xJitter = math.random(7) - 4
+	newInvaderProjectile(xMidpoint + xJitter, position.y)
 end
 
 local octopusStrip = AnimationStrips.create()
@@ -167,8 +169,39 @@ type Frame = {
 	y: number,
 }
 
+local activeInvaders: { [Entity]: boolean } = {}
+local activeInvaderCount = 0
+
+function getRandomInvader(): (Entity, boolean)
+	if activeInvaderCount < 1 then
+		return 0, false
+	end
+
+	local selected = math.random(activeInvaderCount)
+	local counter = 1
+	for entity, _ in activeInvaders do
+		if counter == selected then
+			return entity, true
+		end
+		counter += 1
+	end
+
+	return 0, false
+end
+
+function onDeleteInvader(entity: Entity): ()
+	local position = ECS.getPosition(entity)
+	newExplosion(position.x, position.y)
+
+	activeInvaders[entity] = nil
+	activeInvaderCount -= 1
+end
+
 function newInvader(args: NewInvaderArgs)
 	local entity = ECS.create()
+
+	activeInvaders[entity] = true
+	activeInvaderCount += 1
 
 	local collision = Components.CollisionPassive()
 	collision.hitboxOffsetX = args.hitboxOffsetX
@@ -223,7 +256,8 @@ AnimationStrips.addFrame(projectileAnimationStrip, 6, 2)
 local projectileOnDeleteCallback = Callbacks.register("invasion", "Entities.Invaders.onDeleteProjectile")
 
 function Invaders.onDeleteProjectile(entity: Entity): ()
-	onDeleteInvader(entity)
+	local position = ECS.getPosition(entity)
+	newExplosion(position.x, position.y)
 end
 
 function newInvaderProjectile(x: number, y: number): ()

@@ -93,8 +93,8 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   ctx.scripts.register_component<components::Position>(ctx.ecs, "Position", [](auto &clazz) {
     clazz.addProperty("x", &components::Position::x, &components::Position::x)
       .addProperty("y", &components::Position::y, &components::Position::y)
-      .addProperty("w", &components::Position::y, &components::Position::w)
-      .addProperty("h", &components::Position::y, &components::Position::h)
+      .addProperty("w", &components::Position::w, &components::Position::w)
+      .addProperty("h", &components::Position::h, &components::Position::h)
       .addProperty("z", &components::Position::z, &components::Position::z);
   });
   ctx.scripts.register_component<components::PositionFollowing>(ctx.ecs, "PositionFollowing", [](auto &clazz) {
