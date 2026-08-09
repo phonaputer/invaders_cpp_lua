@@ -2,9 +2,37 @@
 
 local Invaders = {}
 
+function Invaders.rerack(): ()
+	local STARTING_X = 2
+	local curX = STARTING_X
+	local curY = 32
+	local ALIEN_WIDTH = 14
+	local ALIEN_HEIGHT = 14
+	local COL_SPACING = 2
+	local ROW_SPACING = -1.2
+
+	local rowInvaderCreationFuncs = {
+		newOctopus,
+		newJellyfish,
+		newCrab,
+		newTadpole,
+		newTadpole,
+	}
+
+	for _, createInvader in rowInvaderCreationFuncs do
+		for i = 1, 11 do
+			createInvader(curX, curY)
+			curX += ALIEN_WIDTH + COL_SPACING
+		end
+
+		curX = STARTING_X
+		curY += ALIEN_HEIGHT + ROW_SPACING
+	end
+end
+
 function onDeleteInvader(entity: Entity): ()
 	local position = ECS.getPosition(entity)
-	Invaders.newExplosion(position.x, position.y)
+	newExplosion(position.x, position.y)
 end
 
 local octopusStrip = AnimationStrips.create()
@@ -18,8 +46,8 @@ function Invaders.onDeleteOctopus(entity: Entity): ()
 	HUD.incrementScore(40)
 end
 
-function Invaders.newOctopus(x: number, y: number)
-	Invaders.newInvader({
+function newOctopus(x: number, y: number)
+	newInvader({
 		x = x,
 		y = y,
 		animationStrip = octopusStrip,
@@ -45,8 +73,8 @@ function Invaders.onDeleteJellyfish(entity: Entity): ()
 	HUD.incrementScore(30)
 end
 
-function Invaders.newJellyfish(x: number, y: number)
-	Invaders.newInvader({
+function newJellyfish(x: number, y: number)
+	newInvader({
 		x = x,
 		y = y,
 		animationStrip = jellyfishStrip,
@@ -72,8 +100,8 @@ function Invaders.onDeleteCrab(entity: Entity): ()
 	HUD.incrementScore(20)
 end
 
-function Invaders.newCrab(x: number, y: number)
-	Invaders.newInvader({
+function newCrab(x: number, y: number)
+	newInvader({
 		x = x,
 		y = y,
 		animationStrip = crabStrip,
@@ -99,8 +127,8 @@ function Invaders.onDeleteTadpole(entity: Entity): ()
 	HUD.incrementScore(10)
 end
 
-function Invaders.newTadpole(x: number, y: number)
-	Invaders.newInvader({
+function newTadpole(x: number, y: number)
+	newInvader({
 		x = x,
 		y = y,
 		animationStrip = tadpoleStrip,
@@ -130,13 +158,12 @@ type Frame = {
 	y: number,
 }
 
-function Invaders.newInvader(args: NewInvaderArgs)
+function newInvader(args: NewInvaderArgs)
 	local entity = ECS.create()
 
-	local animation = Components.Animation()
-	animation.ticksPerFrame = 25
+	local animation = Components.AnimationStepped()
 	animation.stripID = args.animationStrip
-	ECS.setAnimation(entity, animation)
+	ECS.setAnimationStepped(entity, animation)
 
 	local collision = Components.CollisionPassive()
 	collision.hitboxOffsetX = args.hitboxOffsetX
@@ -159,6 +186,8 @@ function Invaders.newInvader(args: NewInvaderArgs)
 	hitpoints.curHitpoints = 1
 	ECS.setHitpoints(entity, hitpoints)
 
+	ECS.setOrchestratedInvader(entity, Components.OrchestratedInvader())
+
 	local position = Components.Position()
 	position.x = args.x
 	position.y = args.y
@@ -178,7 +207,7 @@ function Invaders.newInvader(args: NewInvaderArgs)
 	ECS.setSprite(entity, sprite)
 end
 
-function Invaders.newExplosion(x: number, y: number)
+function newExplosion(x: number, y: number)
 	local entity = ECS.create()
 
 	local strip = AnimationStrips.create()

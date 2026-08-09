@@ -39,6 +39,11 @@ export type Animation = {
     playReversed: boolean,
 }
 
+export type AnimationStepped = {
+    curFrame: number,
+    stripID: AnimationStrip,
+}
+
 export type CollisionActive = {
     hitboxOffsetX: number,
     hitboxOffsetY: number,
@@ -73,9 +78,8 @@ export type Hitpoints = {
 
 export type InvaderOrchestrationState = {
     noInvadersCallback: number,
-    ticksPerMove: number,
+    baseTicksPerMove: number,
     tickCounter: number,
-    baseInvadersTickOffset: number,
     xSpeed: number,
     ySpeed: number,
     lastInvaderXSpeed: number,
@@ -133,12 +137,14 @@ export type Velocity = {
 
 declare Components: {
     Animation: (() -> Animation),
+    AnimationStepped: (() -> AnimationStepped),
     CollisionActive: (() -> CollisionActive),
     CollisionCallback: (() -> CollisionCallback),
     CollisionPassive: (() -> CollisionPassive),
     Damage: (() -> Damage),
     DeletionCallback: (() -> DeletionCallback),
     Hitpoints: (() -> Hitpoints),
+    InvaderOrchestrationState: (() -> InvaderOrchestrationState),
     OrchestratedInvader: (() -> OrchestratedInvader),
     PlayerAttack: (() -> PlayerAttack),
     PlayerMovement: (() -> PlayerMovement),
@@ -157,6 +163,11 @@ declare ECS: {
     getAnimation: (Entity) -> Animation,
     setAnimation: (Entity, Animation) -> (),
     removeAnimation: (Entity) -> (),
+
+    hasAnimationStepped: (Entity) -> (boolean),
+    getAnimationStepped: (Entity) -> AnimationStepped,
+    setAnimationStepped: (Entity, AnimationStepped) -> (),
+    removeAnimationStepped: (Entity) -> (),
 
     hasCollisionActive: (Entity) -> (boolean),
     getCollisionActive: (Entity) -> CollisionActive,
@@ -187,6 +198,11 @@ declare ECS: {
     getHitpoints: (Entity) -> Hitpoints,
     setHitpoints: (Entity, Hitpoints) -> (),
     removeHitpoints: (Entity) -> (),
+
+    hasInvaderOrchestrationState: () -> (boolean),
+    getInvaderOrchestrationState: () -> InvaderOrchestrationState,
+    setInvaderOrchestrationState: (InvaderOrchestrationState) -> (),
+    removeInvaderOrchestrationState: () -> (),
 
     hasOrchestratedInvader: (Entity) -> (boolean),
     getOrchestratedInvader: (Entity) -> OrchestratedInvader,

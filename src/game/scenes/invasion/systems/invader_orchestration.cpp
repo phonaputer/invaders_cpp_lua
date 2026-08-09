@@ -7,6 +7,7 @@
 #include "game/scenes/invasion/components/invader_orchestration_state.hpp"
 #include "game/scenes/invasion/components/orchestrated_invader.hpp"
 #include "game/scenes/invasion/components/position.hpp"
+#include "game/scenes/invasion/components/sprite.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
 #include <cstddef>
 
@@ -54,7 +55,7 @@ void InvaderOrchestration::invoke_no_invaders_callback(components::InvaderOrches
 bool InvaderOrchestration::should_move_this_tick(
     components::InvaderOrchestrationState &state, const size_t invader_count
 ) {
-  if (state.tick_counter >= state.ticks_per_move - (state.base_invaders_tick_offset - invader_count)) {
+  if (state.tick_counter >= state.base_ticks_per_move + invader_count) {
     state.tick_counter = 0;
     return true;
   }
@@ -133,10 +134,17 @@ bool InvaderOrchestration::handle_wall_hit_if_any(
 }
 
 void InvaderOrchestration::animate_invaders(framework::ExecuteCtx &ctx) {
-  auto view = ctx.ecs.view<components::AnimationStepped, components::OrchestratedInvader>();
+  auto view
+      = ctx.ecs.view<components::AnimationStepped, components::OrchestratedInvader, components::Sprite>();
 
-  for (auto [entity, animation] : view.each()) {
-    animation.cur_frame = (animation.cur_frame + 1) % animation_strips.get().get(animation.strip_id).size();
+  for (auto [entity, animation, sprite] : view.each()) {
+    auto strip = animation_strips.get().get(animation.strip_id);
+
+    animation.cur_frame = (animation.cur_frame + 1) % strip.size();
+
+    auto frame = strip.at(animation.cur_frame);
+    sprite.src_x = static_cast<float>(frame.x) * sprite.src_w;
+    sprite.src_y = static_cast<float>(frame.y) * sprite.src_h;
   }
 }
 

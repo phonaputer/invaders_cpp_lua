@@ -1,6 +1,7 @@
 #include "game/scenes/invasion/script_api.hpp"
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
+#include "game/scenes/invasion/components/animation_stepped.hpp"
 #include "game/scenes/invasion/components/collision_active.hpp"
 #include "game/scenes/invasion/components/collision_callback.hpp"
 #include "game/scenes/invasion/components/collision_passive.hpp"
@@ -19,6 +20,7 @@
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/components/ttl.hpp"
 #include "game/scenes/invasion/components/velocity.hpp"
+#include <algorithm>
 #include <entt.hpp>
 
 #include <LuaBridge/LuaBridge.h>
@@ -34,6 +36,10 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("stripID", &components::Animation::strip_id, &components::Animation::strip_id)
       .addProperty("playing", &components::Animation::playing, &components::Animation::playing)
       .addProperty("playReversed", &components::Animation::play_reversed, &components::Animation::play_reversed);
+  });
+  ctx.scripts.register_component<components::AnimationStepped>(ctx.ecs, "AnimationStepped", [](auto &clazz) {
+    clazz.addProperty("curFrame", &components::AnimationStepped::cur_frame, &components::AnimationStepped::cur_frame)
+      .addProperty("stripID", &components::AnimationStepped::strip_id, &components::AnimationStepped::strip_id);
   });
   ctx.scripts.register_component<components::CollisionActive>(ctx.ecs, "CollisionActive", [](auto &clazz) {
     clazz.addProperty("hitboxOffsetX", &components::CollisionActive::hitbox_offset_x, &components::CollisionActive::hitbox_offset_x)
@@ -61,11 +67,10 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
     clazz.addProperty("susceptibleTo", &components::Hitpoints::susceptible_to, &components::Hitpoints::susceptible_to)
       .addProperty("curHitpoints", &components::Hitpoints::cur_hitpoints, &components::Hitpoints::cur_hitpoints);
   });
-  ctx.scripts.register_component<components::InvaderOrchestrationState>(ctx.ecs, "InvaderOrchestrationState", [](auto &clazz) {
+  ctx.scripts.register_singleton_component<components::InvaderOrchestrationState>(ctx.ecs, "InvaderOrchestrationState", [](auto &clazz) {
     clazz.addProperty("noInvadersCallback", &components::InvaderOrchestrationState::no_invaders_callback, &components::InvaderOrchestrationState::no_invaders_callback)
-      .addProperty("ticksPerMove", &components::InvaderOrchestrationState::ticks_per_move, &components::InvaderOrchestrationState::ticks_per_move)
+      .addProperty("baseTicksPerMove", &components::InvaderOrchestrationState::base_ticks_per_move, &components::InvaderOrchestrationState::base_ticks_per_move)
       .addProperty("tickCounter", &components::InvaderOrchestrationState::tick_counter, &components::InvaderOrchestrationState::tick_counter)
-      .addProperty("baseInvadersTickOffset", &components::InvaderOrchestrationState::base_invaders_tick_offset, &components::InvaderOrchestrationState::base_invaders_tick_offset)
       .addProperty("xSpeed", &components::InvaderOrchestrationState::x_speed, &components::InvaderOrchestrationState::x_speed)
       .addProperty("ySpeed", &components::InvaderOrchestrationState::y_speed, &components::InvaderOrchestrationState::y_speed)
       .addProperty("lastInvaderXSpeed", &components::InvaderOrchestrationState::last_invader_x_speed, &components::InvaderOrchestrationState::last_invader_x_speed)
@@ -119,10 +124,7 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
 void increment_score(entt::registry &ecs, int amount) {
   auto &hud = ecs.ctx().get<components::HUD>();
   hud.score += amount;
-
-  if (hud.high_score < hud.score) {
-    hud.high_score = hud.score;
-  }
+  hud.high_score = std::max(hud.high_score, hud.score);
 }
 
 void register_cpp_api_to_script_env(framework::SceneInitializationContext &ctx) {

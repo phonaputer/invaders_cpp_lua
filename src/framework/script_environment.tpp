@@ -257,7 +257,9 @@ void ScriptEnvironment::register_singleton_component(
 ) {
   luabridge::getGlobalNamespace(L.get())
       .beginNamespace("ECS")
-      .addFunction(("set" + name).c_str(), [&ecs](T component) { ecs.ctx().insert_or_assign<T>(component); })
+      .addFunction(
+          ("set" + name).c_str(), [&ecs](T component) { ecs.ctx().insert_or_assign<T>(std::move(component)); }
+      )
       .addFunction(("has" + name).c_str(), [&ecs]() { return ecs.ctx().contains<T>(); })
       .addFunction(("get" + name).c_str(), [&ecs]() { return ecs.ctx().get<T>(); })
       .addFunction(("remove" + name).c_str(), [&ecs]() { ecs.ctx().erase<T>(); })
