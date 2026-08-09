@@ -1,6 +1,7 @@
 #include "game/scenes/invasion/script_api.hpp"
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
+#include "game/scenes/invasion/components/callback_on_timeout.hpp"
 #include "game/scenes/invasion/components/collision_active.hpp"
 #include "game/scenes/invasion/components/collision_callback.hpp"
 #include "game/scenes/invasion/components/collision_passive.hpp"
@@ -36,6 +37,11 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("stripID", &components::Animation::strip_id, &components::Animation::strip_id)
       .addProperty("playing", &components::Animation::playing, &components::Animation::playing)
       .addProperty("playReversed", &components::Animation::play_reversed, &components::Animation::play_reversed);
+  });
+  ctx.scripts.register_component<components::CallbackOnTimeout>(ctx.ecs, "CallbackOnTimeout", [](auto &clazz) {
+    clazz.addProperty("callback", &components::CallbackOnTimeout::callback, &components::CallbackOnTimeout::callback)
+      .addProperty("timeoutTicks", &components::CallbackOnTimeout::timeout_ticks, &components::CallbackOnTimeout::timeout_ticks)
+      .addProperty("tickCounter", &components::CallbackOnTimeout::tick_counter, &components::CallbackOnTimeout::tick_counter);
   });
   ctx.scripts.register_component<components::CollisionActive>(ctx.ecs, "CollisionActive", [](auto &clazz) {
     clazz.addProperty("hitboxOffsetX", &components::CollisionActive::hitbox_offset_x, &components::CollisionActive::hitbox_offset_x)

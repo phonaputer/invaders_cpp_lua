@@ -349,6 +349,22 @@ function newExplosion(x: number, y: number)
 	ECS.setTTL(entity, ttl)
 end
 
+local spawnEelCalback = Callbacks.register("invasion", "Entities.Invaders.spawnEel")
+
+function Invaders.scheduleEelSpawn(): ()
+	local entity = ECS.create()
+
+	local callback = Components.CallbackOnTimeout()
+	callback.callback = spawnEelCalback
+	callback.timeoutTicks = math.random(600, 1200)
+	ECS.setCallbackOnTimeout(entity, callback)
+end
+
+function Invaders.spawnEel(): ()
+	newEel()
+	Invaders.scheduleEelSpawn()
+end
+
 local eelLeftStrip = AnimationStrips.create()
 AnimationStrips.addFrame(eelLeftStrip, 0, 4)
 AnimationStrips.addFrame(eelLeftStrip, 1, 4)
@@ -369,7 +385,7 @@ function Invaders.onDeleteEel(entity: Entity): ()
 	HUD.incrementScore(math.random(100, 300))
 end
 
-function Invaders.newEel(): ()
+function newEel(): ()
 	local entity = ECS.create()
 
 	local xVelocity = 0.5

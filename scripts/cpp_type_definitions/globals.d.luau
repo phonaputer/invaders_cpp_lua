@@ -39,6 +39,12 @@ export type Animation = {
     playReversed: boolean,
 }
 
+export type CallbackOnTimeout = {
+    callback: number,
+    timeoutTicks: number,
+    tickCounter: number,
+}
+
 export type CollisionActive = {
     hitboxOffsetX: number,
     hitboxOffsetY: number,
@@ -140,6 +146,7 @@ export type Velocity = {
 
 declare Components: {
     Animation: (() -> Animation),
+    CallbackOnTimeout: (() -> CallbackOnTimeout),
     CollisionActive: (() -> CollisionActive),
     CollisionCallback: (() -> CollisionCallback),
     CollisionPassive: (() -> CollisionPassive),
@@ -166,6 +173,11 @@ declare ECS: {
     getAnimation: (Entity) -> Animation,
     setAnimation: (Entity, Animation) -> (),
     removeAnimation: (Entity) -> (),
+
+    hasCallbackOnTimeout: (Entity) -> (boolean),
+    getCallbackOnTimeout: (Entity) -> CallbackOnTimeout,
+    setCallbackOnTimeout: (Entity, CallbackOnTimeout) -> (),
+    removeCallbackOnTimeout: (Entity) -> (),
 
     hasCollisionActive: (Entity) -> (boolean),
     getCollisionActive: (Entity) -> CollisionActive,

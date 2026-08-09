@@ -16,7 +16,7 @@ function Invasion.setScene(): ()
 	invaderOrchestrationState.ticksPerShot = 20
 	ECS.setInvaderOrchestrationState(invaderOrchestrationState)
 
-	Invasion.Entities.Invaders.newEel()
+	Invasion.Entities.Invaders.scheduleEelSpawn()
 
 	Invasion.Entities.Player.new()
 end

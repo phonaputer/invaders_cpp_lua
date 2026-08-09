@@ -6,6 +6,7 @@
 #include "game/scenes/invasion/infra/callback_registry.hpp"
 #include "game/scenes/invasion/script_api.hpp"
 #include "game/scenes/invasion/systems/animation.hpp"
+#include "game/scenes/invasion/systems/callback_on_timeout.hpp"
 #include "game/scenes/invasion/systems/collision_callback.hpp"
 #include "game/scenes/invasion/systems/collision_detection.hpp"
 #include "game/scenes/invasion/systems/damage.hpp"
@@ -36,6 +37,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_update_system(
       std::make_unique<systems::InvaderOrchestration>(ctx.scripts, callback_registry, ctx.animation_strips)
   );
+  ctx.systems.add_update_system(std::make_unique<systems::CallbackOnTimeout>(ctx.scripts, callback_registry));
 
   ctx.systems.add_draw_system(std::make_unique<systems::HUDRendering>(ctx.renderer));
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
