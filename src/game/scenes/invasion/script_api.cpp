@@ -1,7 +1,6 @@
 #include "game/scenes/invasion/script_api.hpp"
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
-#include "game/scenes/invasion/components/animation_stepped.hpp"
 #include "game/scenes/invasion/components/collision_active.hpp"
 #include "game/scenes/invasion/components/collision_callback.hpp"
 #include "game/scenes/invasion/components/collision_passive.hpp"
@@ -10,6 +9,7 @@
 #include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/hitpoints.hpp"
 #include "game/scenes/invasion/components/hud.hpp"
+#include "game/scenes/invasion/components/invader_animation.hpp"
 #include "game/scenes/invasion/components/invader_orchestration_state.hpp"
 #include "game/scenes/invasion/components/orchestrated_invader.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
@@ -37,10 +37,6 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("playing", &components::Animation::playing, &components::Animation::playing)
       .addProperty("playReversed", &components::Animation::play_reversed, &components::Animation::play_reversed);
   });
-  ctx.scripts.register_component<components::AnimationStepped>(ctx.ecs, "AnimationStepped", [](auto &clazz) {
-    clazz.addProperty("curFrame", &components::AnimationStepped::cur_frame, &components::AnimationStepped::cur_frame)
-      .addProperty("stripID", &components::AnimationStepped::strip_id, &components::AnimationStepped::strip_id);
-  });
   ctx.scripts.register_component<components::CollisionActive>(ctx.ecs, "CollisionActive", [](auto &clazz) {
     clazz.addProperty("hitboxOffsetX", &components::CollisionActive::hitbox_offset_x, &components::CollisionActive::hitbox_offset_x)
       .addProperty("hitboxOffsetY", &components::CollisionActive::hitbox_offset_y, &components::CollisionActive::hitbox_offset_y)
@@ -66,6 +62,10 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   ctx.scripts.register_component<components::Hitpoints>(ctx.ecs, "Hitpoints", [](auto &clazz) {
     clazz.addProperty("susceptibleTo", &components::Hitpoints::susceptible_to, &components::Hitpoints::susceptible_to)
       .addProperty("curHitpoints", &components::Hitpoints::cur_hitpoints, &components::Hitpoints::cur_hitpoints);
+  });
+  ctx.scripts.register_component<components::InvaderAnimation>(ctx.ecs, "InvaderAnimation", [](auto &clazz) {
+    clazz.addProperty("curFrame", &components::InvaderAnimation::cur_frame, &components::InvaderAnimation::cur_frame)
+      .addProperty("stripID", &components::InvaderAnimation::strip_id, &components::InvaderAnimation::strip_id);
   });
   ctx.scripts.register_singleton_component<components::InvaderOrchestrationState>(ctx.ecs, "InvaderOrchestrationState", [](auto &clazz) {
     clazz.addProperty("noInvadersCallback", &components::InvaderOrchestrationState::no_invaders_callback, &components::InvaderOrchestrationState::no_invaders_callback)

@@ -161,10 +161,6 @@ type Frame = {
 function newInvader(args: NewInvaderArgs)
 	local entity = ECS.create()
 
-	local animation = Components.AnimationStepped()
-	animation.stripID = args.animationStrip
-	ECS.setAnimationStepped(entity, animation)
-
 	local collision = Components.CollisionPassive()
 	collision.hitboxOffsetX = args.hitboxOffsetX
 	collision.hitboxOffsetY = args.hitboxOffsetY
@@ -185,6 +181,10 @@ function newInvader(args: NewInvaderArgs)
 	hitpoints.susceptibleTo = DamageType.PLAYER_PROJECTILE
 	hitpoints.curHitpoints = 1
 	ECS.setHitpoints(entity, hitpoints)
+
+	local animation = Components.InvaderAnimation()
+	animation.stripID = args.animationStrip
+	ECS.setInvaderAnimation(entity, animation)
 
 	ECS.setOrchestratedInvader(entity, Components.OrchestratedInvader())
 

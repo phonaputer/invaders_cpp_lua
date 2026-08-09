@@ -5,11 +5,11 @@
 
 namespace components {
 
-struct AnimationStepped {
+struct InvaderAnimation {
     uint8_t cur_frame = 0;
     framework::AnimationStripID strip_id = 0;
 
-    bool operator==(const AnimationStepped &) const = default;
+    bool operator==(const InvaderAnimation &) const = default;
 };
 
 } // namespace components

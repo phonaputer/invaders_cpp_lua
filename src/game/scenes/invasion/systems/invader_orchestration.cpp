@@ -3,7 +3,7 @@
 #include "framework/constants.hpp"
 #include "framework/script_environment.hpp"
 #include "framework/system.hpp"
-#include "game/scenes/invasion/components/animation_stepped.hpp"
+#include "game/scenes/invasion/components/invader_animation.hpp"
 #include "game/scenes/invasion/components/invader_orchestration_state.hpp"
 #include "game/scenes/invasion/components/orchestrated_invader.hpp"
 #include "game/scenes/invasion/components/position.hpp"
@@ -135,7 +135,7 @@ bool InvaderOrchestration::handle_wall_hit_if_any(
 
 void InvaderOrchestration::animate_invaders(framework::ExecuteCtx &ctx) {
   auto view
-      = ctx.ecs.view<components::AnimationStepped, components::OrchestratedInvader, components::Sprite>();
+      = ctx.ecs.view<components::InvaderAnimation, components::OrchestratedInvader, components::Sprite>();
 
   for (auto [entity, animation, sprite] : view.each()) {
     auto strip = animation_strips.get().get(animation.strip_id);
