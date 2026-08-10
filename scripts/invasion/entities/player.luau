@@ -8,9 +8,25 @@ local PlayerMuzzleFlash = require("./player_muzzle_flash")
 
 local PLAYER_DEATH_PAUSE_TICKS = 100
 
+local respawnCallback = Callbacks.register("invasion", "Entities.Player.respawn")
+
 function Player.onDelete(entity: Entity): ()
+	Game.decrementLives()
+	Game.pause()
+
 	local position = ECS.getPosition(entity)
 	PlayerExplosion.new(position.x, position.y, PLAYER_DEATH_PAUSE_TICKS)
+
+	local respawn_timeout_entity = ECS.create()
+	local cb_on_timeout = Components.CallbackOnTimeoutUnpausable()
+	cb_on_timeout.callback = respawnCallback
+	cb_on_timeout.timeoutTicks = PLAYER_DEATH_PAUSE_TICKS
+	ECS.setCallbackOnTimeoutUnpausable(respawn_timeout_entity, cb_on_timeout)
+end
+
+function Player.respawn(): ()
+	Game.unpause()
+	Player.new()
 end
 
 function Player.attack(player_entity: number, x: number, y: number): ()

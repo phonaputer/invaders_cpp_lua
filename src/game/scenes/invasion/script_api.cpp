@@ -146,7 +146,10 @@ void increment_score(entt::registry &ecs, int amount) {
 
 int decrement_lives(entt::registry &ecs) {
   auto &hud = ecs.ctx().get<components::HUD>();
-  hud.remaining_lives--;
+
+  if (hud.remaining_lives > 0) {
+    hud.remaining_lives--;
+  }
 
   return hud.remaining_lives;
 }
