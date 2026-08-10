@@ -36,9 +36,7 @@ void HUDRendering::execute(framework::ExecuteCtx &ctx) {
 
   text_renderer.render_text(framework::WINDOW_WIDTH - 48, 6, std::format("lives:{}", hud.remaining_lives));
 
-  auto game_over = ctx.ecs.ctx().get<components::GameOver>();
-
-  if (game_over.game_is_over) {
+  if (ctx.ecs.ctx().contains<components::GameOver>()) {
     const int game_over_x_position = (framework::WINDOW_WIDTH / 2) - 28;
     const int game_over_y_position = framework::WINDOW_HEIGHT / 2;
     text_renderer.render_text(game_over_x_position, game_over_y_position, "game over");

@@ -21,13 +21,13 @@ declare DamageType: {
 
 export type Entity = number
 
-declare HUD: {
-    incrementScore: (number) -> (),
-}
-
 declare Game: {
     WINDOW_WIDTH: number,
     WINDOW_HEIGHT: number,
+    decrementLives: () -> (number),
+    incrementScore: (number) -> (),
+    pause: () -> (),
+    unpause: () -> (),
 }
 
 export type Animation = {
@@ -40,6 +40,12 @@ export type Animation = {
 }
 
 export type CallbackOnTimeout = {
+    callback: number,
+    timeoutTicks: number,
+    tickCounter: number,
+}
+
+export type CallbackOnTimeoutUnpausable = {
     callback: number,
     timeoutTicks: number,
     tickCounter: number,
@@ -147,6 +153,7 @@ export type Velocity = {
 declare Components: {
     Animation: (() -> Animation),
     CallbackOnTimeout: (() -> CallbackOnTimeout),
+    CallbackOnTimeoutUnpausable: (() -> CallbackOnTimeoutUnpausable),
     CollisionActive: (() -> CollisionActive),
     CollisionCallback: (() -> CollisionCallback),
     CollisionPassive: (() -> CollisionPassive),
@@ -178,6 +185,11 @@ declare ECS: {
     getCallbackOnTimeout: (Entity) -> CallbackOnTimeout,
     setCallbackOnTimeout: (Entity, CallbackOnTimeout) -> (),
     removeCallbackOnTimeout: (Entity) -> (),
+
+    hasCallbackOnTimeoutUnpausable: (Entity) -> (boolean),
+    getCallbackOnTimeoutUnpausable: (Entity) -> CallbackOnTimeoutUnpausable,
+    setCallbackOnTimeoutUnpausable: (Entity, CallbackOnTimeoutUnpausable) -> (),
+    removeCallbackOnTimeoutUnpausable: (Entity) -> (),
 
     hasCollisionActive: (Entity) -> (boolean),
     getCollisionActive: (Entity) -> CollisionActive,

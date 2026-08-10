@@ -2,6 +2,7 @@
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
 #include "game/scenes/invasion/components/callback_on_timeout.hpp"
+#include "game/scenes/invasion/components/callback_on_timeout_unpausable.hpp"
 #include "game/scenes/invasion/components/collision_active.hpp"
 #include "game/scenes/invasion/components/collision_callback.hpp"
 #include "game/scenes/invasion/components/collision_passive.hpp"
@@ -13,6 +14,7 @@
 #include "game/scenes/invasion/components/invader_animation.hpp"
 #include "game/scenes/invasion/components/invader_orchestration_state.hpp"
 #include "game/scenes/invasion/components/orchestrated_invader.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
@@ -23,6 +25,7 @@
 #include "game/scenes/invasion/components/velocity.hpp"
 #include <algorithm>
 #include <entt.hpp>
+#include <lua.h>
 
 #include <LuaBridge/LuaBridge.h>
 
@@ -42,6 +45,11 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
     clazz.addProperty("callback", &components::CallbackOnTimeout::callback, &components::CallbackOnTimeout::callback)
       .addProperty("timeoutTicks", &components::CallbackOnTimeout::timeout_ticks, &components::CallbackOnTimeout::timeout_ticks)
       .addProperty("tickCounter", &components::CallbackOnTimeout::tick_counter, &components::CallbackOnTimeout::tick_counter);
+  });
+  ctx.scripts.register_component<components::CallbackOnTimeoutUnpausable>(ctx.ecs, "CallbackOnTimeoutUnpausable", [](auto &clazz) {
+    clazz.addProperty("callback", &components::CallbackOnTimeoutUnpausable::callback, &components::CallbackOnTimeoutUnpausable::callback)
+      .addProperty("timeoutTicks", &components::CallbackOnTimeoutUnpausable::timeout_ticks, &components::CallbackOnTimeoutUnpausable::timeout_ticks)
+      .addProperty("tickCounter", &components::CallbackOnTimeoutUnpausable::tick_counter, &components::CallbackOnTimeoutUnpausable::tick_counter);
   });
   ctx.scripts.register_component<components::CollisionActive>(ctx.ecs, "CollisionActive", [](auto &clazz) {
     clazz.addProperty("hitboxOffsetX", &components::CollisionActive::hitbox_offset_x, &components::CollisionActive::hitbox_offset_x)
@@ -136,13 +144,37 @@ void increment_score(entt::registry &ecs, int amount) {
   hud.high_score = std::max(hud.high_score, hud.score);
 }
 
+int decrement_lives(entt::registry &ecs) {
+  auto &hud = ecs.ctx().get<components::HUD>();
+  hud.remaining_lives--;
+
+  return hud.remaining_lives;
+}
+
+void pause(entt::registry &ecs) {
+  if (!ecs.ctx().contains<components::Pause>()) {
+    ecs.ctx().emplace<components::Pause>();
+  }
+}
+
+void unpause(entt::registry &ecs) {
+  if (ecs.ctx().contains<components::Pause>()) {
+    ecs.ctx().erase<components::Pause>();
+  }
+}
+
 void register_cpp_api_to_script_env(framework::SceneInitializationContext &ctx) {
   register_all_components_to_script_env(ctx);
   components::register_damage_type_enum_to_script_env(ctx.scripts);
 
-  ctx.scripts.register_function("HUD", "incrementScore", [&ecs = ctx.ecs](double amount) {
+  ctx.scripts.register_function("Game", "incrementScore", [&ecs = ctx.ecs](lua_Number amount) {
     increment_score(ecs, static_cast<int>(amount));
   });
+  ctx.scripts.register_function("Game", "decrementLives", [&ecs = ctx.ecs]() {
+    return decrement_lives(ecs);
+  });
+  ctx.scripts.register_function("Game", "pause", [&ecs = ctx.ecs]() { pause(ecs); });
+  ctx.scripts.register_function("Game", "unpause", [&ecs = ctx.ecs]() { unpause(ecs); });
 }
 
 } // namespace invasion

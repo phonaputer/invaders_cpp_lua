@@ -2,6 +2,7 @@
 #include "framework/event_broker.hpp"
 #include "framework/player_input_manager.hpp"
 #include "framework/system.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/components/velocity.hpp"
@@ -33,6 +34,24 @@ TestSetup setupTest() {
       .player_input = framework::PlayerInputManager(),
       .system = systems::Velocity(),
   };
+}
+
+TEST(SystemVelocity, ExecuteWhenGameIsPausedShouldDoNothing) {
+  TestSetup setup = setupTest();
+  auto ctx = setup.ctx();
+  auto entity = ctx.ecs.create();
+  ctx.ecs.emplace<components::Position>(
+      entity, components::Position{.x = 11, .y = 12, .w = 13, .h = 14, .z = 100}
+  );
+  ctx.ecs.emplace<components::Velocity>(entity, components::Velocity{.x = 5, .y = 10});
+  ctx.ecs.ctx().emplace<components::Pause>();
+
+  setup.system.execute(ctx);
+
+  auto result = ctx.ecs.get<components::Position>(entity);
+  const auto expected = components::Position{.x = 11, .y = 12, .w = 13, .h = 14, .z = 100};
+  EXPECT_EQ(expected, result);
+  EXPECT_FALSE(ctx.ecs.all_of<components::ToBeDeleted>(entity));
 }
 
 TEST(SystemVelocity, ExecuteEntityHasXAndYVelocityShouldMoveByThatAmount) {

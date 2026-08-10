@@ -3,6 +3,7 @@
 #include "game/scenes/invasion/components/game_over.hpp"
 #include "game/scenes/invasion/components/hud.hpp"
 #include "game/scenes/invasion/components/invader_orchestration_state.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
 #include "game/scenes/invasion/script_api.hpp"
 #include "game/scenes/invasion/systems/animation.hpp"
@@ -43,7 +44,6 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
 
   ctx.ecs.ctx().emplace<components::HUD>();
-  ctx.ecs.ctx().emplace<components::GameOver>();
   ctx.ecs.ctx().emplace<components::InvaderOrchestrationState>();
 
   register_cpp_api_to_script_env(ctx);

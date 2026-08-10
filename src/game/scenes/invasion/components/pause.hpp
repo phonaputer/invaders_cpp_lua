@@ -2,6 +2,6 @@
 
 namespace components {
 
-struct GameOver {};
+struct Pause {};
 
 } // namespace components

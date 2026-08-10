@@ -6,6 +6,7 @@
 #include "game/scenes/invasion/components/invader_animation.hpp"
 #include "game/scenes/invasion/components/invader_orchestration_state.hpp"
 #include "game/scenes/invasion/components/orchestrated_invader.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
@@ -24,6 +25,10 @@ InvaderOrchestration::InvaderOrchestration(
 }
 
 void InvaderOrchestration::execute(framework::ExecuteCtx &ctx) {
+  if (ctx.ecs.ctx().contains<components::Pause>()) {
+    return;
+  }
+
   auto &state = ctx.ecs.ctx().get<components::InvaderOrchestrationState>();
 
   const auto invader_count = count_invaders(ctx);

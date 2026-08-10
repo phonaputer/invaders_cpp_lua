@@ -1,6 +1,7 @@
 #include "game/scenes/invasion/systems/velocity.hpp"
 #include "framework/constants.hpp"
 #include "framework/system.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/components/velocity.hpp"
@@ -10,6 +11,10 @@ namespace systems {
 constexpr float OFFSCREEN_BOUNDARY = 5.0F;
 
 void Velocity::execute(framework::ExecuteCtx &ctx) {
+  if (ctx.ecs.ctx().contains<components::Pause>()) {
+    return;
+  }
+
   auto view = ctx.ecs.view<components::Position, components::Velocity>();
   view.use<components::Position>();
 
