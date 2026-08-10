@@ -1,6 +1,23 @@
+--!strict
+local InvaderEel = {}
+
 local InvaderExplosion = require("./invader_explosion")
 
-local InvaderEel = {}
+local spawnEelCallback = Callbacks.register("invasion", "Entities.Invaders.Eel.spawn")
+
+function InvaderEel.scheduleSpawn(): ()
+	local entity = ECS.create()
+
+	local callback = Components.CallbackOnTimeout()
+	callback.callback = spawnEelCallback
+	callback.timeoutTicks = math.random(600, 1200)
+	ECS.setCallbackOnTimeout(entity, callback)
+end
+
+function InvaderEel.spawn(): ()
+	InvaderEel.new()
+	InvaderEel.scheduleSpawn()
+end
 
 local eelLeftStrip = AnimationStrips.create()
 AnimationStrips.addFrame(eelLeftStrip, 0, 4)

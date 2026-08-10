@@ -1,6 +1,7 @@
-local InvaderExplosion = require("./invader_explosion")
-
+--!strict
 local BaseInvader = {}
+
+local InvaderExplosion = require("./invader_explosion")
 
 export type NewInvaderArgs = {
 	x: number,

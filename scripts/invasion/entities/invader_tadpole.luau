@@ -1,6 +1,7 @@
-local BaseInvader = require("./invader_base")
-
+--!strict
 local InvaderTadpole = {}
+
+local BaseInvader = require("./invader_base")
 
 local tadpoleStrip = AnimationStrips.create()
 AnimationStrips.addFrame(tadpoleStrip, 4, 0)

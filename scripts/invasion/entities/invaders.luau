@@ -1,14 +1,14 @@
 --!strict
 local Invaders = {}
 
-local BaseInvader = require("./invader_base")
-
 Invaders.Eel = require("./invader_eel")
 Invaders.Octopus = require("./invader_octopus")
 Invaders.Jellyfish = require("./invader_jellyfish")
 Invaders.Crab = require("./invader_crab")
 Invaders.Tadpole = require("./invader_tadpole")
 Invaders.Projectile = require("./invader_projectile")
+
+local BaseInvader = require("./invader_base")
 
 function Invaders.rerack(): ()
 	local STARTING_X = 2
@@ -52,22 +52,6 @@ function Invaders.shoot(): ()
 	local xMidpoint = position.x + (position.w / 2)
 	local xJitter = math.random(7) - 4
 	Invaders.Projectile.new(xMidpoint + xJitter, position.y)
-end
-
-local spawnEelCallback = Callbacks.register("invasion", "Entities.Invaders.spawnEel")
-
-function Invaders.scheduleEelSpawn(): ()
-	local entity = ECS.create()
-
-	local callback = Components.CallbackOnTimeout()
-	callback.callback = spawnEelCallback
-	callback.timeoutTicks = math.random(600, 1200)
-	ECS.setCallbackOnTimeout(entity, callback)
-end
-
-function Invaders.spawnEel(): ()
-	Invaders.Eel.new()
-	Invaders.scheduleEelSpawn()
 end
 
 return Invaders

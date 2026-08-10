@@ -1,6 +1,7 @@
-local BaseInvader = require("./invader_base")
-
+--!strict
 local InvaderJellyfish = {}
+
+local BaseInvader = require("./invader_base")
 
 local jellyfishStrip = AnimationStrips.create()
 AnimationStrips.addFrame(jellyfishStrip, 1, 0)

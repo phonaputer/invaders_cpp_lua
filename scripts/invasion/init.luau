@@ -1,5 +1,4 @@
 --!strict
-
 local Invasion = {}
 
 Invasion.Entities = require("@self/entities")
@@ -16,7 +15,7 @@ function Invasion.setScene(): ()
 	invaderOrchestrationState.ticksPerShot = 20
 	ECS.setInvaderOrchestrationState(invaderOrchestrationState)
 
-	Invasion.Entities.Invaders.scheduleEelSpawn()
+	Invasion.Entities.Invaders.Eel.scheduleSpawn()
 
 	Invasion.Entities.Player.new()
 end

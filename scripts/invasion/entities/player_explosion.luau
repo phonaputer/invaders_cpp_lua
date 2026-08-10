@@ -1,13 +1,13 @@
 --!strict
-local InvaderExplosion = {}
+local PlayerExplosion = {}
 
 local explosionAnimationStrip = AnimationStrips.create()
-AnimationStrips.addFrame(explosionAnimationStrip, 3, 1)
-AnimationStrips.addFrame(explosionAnimationStrip, 4, 1)
-AnimationStrips.addFrame(explosionAnimationStrip, 5, 1)
-AnimationStrips.addFrame(explosionAnimationStrip, 6, 1)
+AnimationStrips.addFrame(explosionAnimationStrip, 1, 3)
+AnimationStrips.addFrame(explosionAnimationStrip, 0, 3)
+AnimationStrips.addFrame(explosionAnimationStrip, 1, 3)
+AnimationStrips.addFrame(explosionAnimationStrip, 2, 3)
 
-function InvaderExplosion.new(x: number, y: number)
+function PlayerExplosion.new(x: number, y: number, ticksToLive: number)
 	local entity = ECS.create()
 
 	local animation = Components.Animation()
@@ -20,7 +20,7 @@ function InvaderExplosion.new(x: number, y: number)
 	position.y = y
 	position.w = 16
 	position.h = 16
-	position.z = 200
+	position.z = 100
 	ECS.setPosition(entity, position)
 
 	local sprite = Components.Sprite()
@@ -34,8 +34,8 @@ function InvaderExplosion.new(x: number, y: number)
 	ECS.setSprite(entity, sprite)
 
 	local ttl = Components.TTL()
-	ttl.ticksToLive = 20
+	ttl.ticksToLive = ticksToLive
 	ECS.setTTL(entity, ttl)
 end
 
-return InvaderExplosion
+return PlayerExplosion

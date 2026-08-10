@@ -1,6 +1,7 @@
-local InvaderExplosion = require("./invader_explosion")
-
+--!strict
 local InvaderProjectile = {}
+
+local InvaderExplosion = require("./invader_explosion")
 
 local projectileAnimationStrip = AnimationStrips.create()
 AnimationStrips.addFrame(projectileAnimationStrip, 5, 2)

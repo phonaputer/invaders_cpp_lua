@@ -1,5 +1,4 @@
 --!strict
-
 local Entities = {}
 
 Entities.Invaders = require("@self/invaders")

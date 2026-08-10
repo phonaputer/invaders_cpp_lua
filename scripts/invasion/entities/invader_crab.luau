@@ -1,6 +1,7 @@
-local BaseInvader = require("./invader_base")
-
+--!strict
 local InvaderCrab = {}
+
+local BaseInvader = require("./invader_base")
 
 local crabStrip = AnimationStrips.create()
 AnimationStrips.addFrame(crabStrip, 1, 1)
