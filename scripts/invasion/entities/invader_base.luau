@@ -2,6 +2,7 @@
 local BaseInvader = {}
 
 local InvaderExplosion = require("./invader_explosion")
+local InvadersCurrentlyAlive = require("./invaders_currently_alive")
 
 export type NewInvaderArgs = {
 	x: number,
@@ -20,39 +21,16 @@ export type Frame = {
 	y: number,
 }
 
-local activeInvaders: { [Entity]: boolean } = {}
-local activeInvaderCount = 0
-
-function BaseInvader.getRandomInvader(): (Entity, boolean)
-	if activeInvaderCount < 1 then
-		return 0, false
-	end
-
-	local selected = math.random(activeInvaderCount)
-	local counter = 1
-	for entity, _ in activeInvaders do
-		if counter == selected then
-			return entity, true
-		end
-		counter += 1
-	end
-
-	return 0, false
-end
-
 function BaseInvader.onDelete(entity: Entity): ()
 	local position = ECS.getPosition(entity)
 	InvaderExplosion.new(position.x, position.y)
-
-	activeInvaders[entity] = nil
-	activeInvaderCount -= 1
+	InvadersCurrentlyAlive.remove(entity)
 end
 
 function BaseInvader.new(args: NewInvaderArgs)
 	local entity = ECS.create()
 
-	activeInvaders[entity] = true
-	activeInvaderCount += 1
+	InvadersCurrentlyAlive.add(entity)
 
 	local collision = Components.CollisionPassive()
 	collision.hitboxOffsetX = args.hitboxOffsetX

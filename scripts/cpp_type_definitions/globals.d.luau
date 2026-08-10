@@ -24,10 +24,13 @@ export type Entity = number
 declare Game: {
     WINDOW_WIDTH: number,
     WINDOW_HEIGHT: number,
-    decrementLives: () -> (number),
+    decrementLives: () -> (boolean),
+    setLives: (number) -> (),
+    resetScore: () -> (),
     incrementScore: (number) -> (),
     pause: () -> (),
     unpause: () -> (),
+    displayGameOver: () -> ();
 }
 
 export type Animation = {
@@ -81,6 +84,12 @@ export type DeletionCallback = {
 export type Hitpoints = {
     susceptibleTo: number,
     curHitpoints: number,
+}
+
+export type HUD = {
+    score: number,
+    highScore: number,
+    remainingLives: number,
 }
 
 export type InvaderAnimation = {
@@ -160,6 +169,7 @@ declare Components: {
     Damage: (() -> Damage),
     DeletionCallback: (() -> DeletionCallback),
     Hitpoints: (() -> Hitpoints),
+    HUD: (() -> HUD),
     InvaderAnimation: (() -> InvaderAnimation),
     InvaderOrchestrationState: (() -> InvaderOrchestrationState),
     OrchestratedInvader: (() -> OrchestratedInvader),
@@ -175,6 +185,7 @@ declare Components: {
 
 declare ECS: {
     create: () -> (Entity),
+    clearAll: () -> (),
 
     hasAnimation: (Entity) -> (boolean),
     getAnimation: (Entity) -> Animation,
@@ -220,6 +231,11 @@ declare ECS: {
     getHitpoints: (Entity) -> Hitpoints,
     setHitpoints: (Entity, Hitpoints) -> (),
     removeHitpoints: (Entity) -> (),
+
+    hasHUD: () -> (boolean),
+    getHUD: () -> HUD,
+    setHUD: (HUD) -> (),
+    removeHUD: () -> (),
 
     hasInvaderAnimation: (Entity) -> (boolean),
     getInvaderAnimation: (Entity) -> InvaderAnimation,

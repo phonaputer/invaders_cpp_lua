@@ -9,6 +9,7 @@
 #include "game/scenes/invasion/components/damage.hpp"
 #include "game/scenes/invasion/components/damage_type_enum.hpp"
 #include "game/scenes/invasion/components/deletion_callback.hpp"
+#include "game/scenes/invasion/components/game_over.hpp"
 #include "game/scenes/invasion/components/hitpoints.hpp"
 #include "game/scenes/invasion/components/hud.hpp"
 #include "game/scenes/invasion/components/invader_animation.hpp"
@@ -77,6 +78,11 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
     clazz.addProperty("susceptibleTo", &components::Hitpoints::susceptible_to, &components::Hitpoints::susceptible_to)
       .addProperty("curHitpoints", &components::Hitpoints::cur_hitpoints, &components::Hitpoints::cur_hitpoints);
   });
+  ctx.scripts.register_singleton_component<components::HUD>(ctx.ecs, "HUD", [](auto &clazz) {
+    clazz.addProperty("score", &components::HUD::score, &components::HUD::score)
+      .addProperty("highScore", &components::HUD::high_score, &components::HUD::high_score)
+      .addProperty("remainingLives", &components::HUD::remaining_lives, &components::HUD::remaining_lives);
+  });
   ctx.scripts.register_component<components::InvaderAnimation>(ctx.ecs, "InvaderAnimation", [](auto &clazz) {
     clazz.addProperty("curFrame", &components::InvaderAnimation::cur_frame, &components::InvaderAnimation::cur_frame)
       .addProperty("stripID", &components::InvaderAnimation::strip_id, &components::InvaderAnimation::strip_id);
@@ -138,20 +144,32 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   // clang-format on
 }
 
+void reset_score(entt::registry &ecs) {
+  auto &hud = ecs.ctx().get<components::HUD>();
+  hud.score = 0;
+}
+
 void increment_score(entt::registry &ecs, int amount) {
   auto &hud = ecs.ctx().get<components::HUD>();
   hud.score += amount;
   hud.high_score = std::max(hud.high_score, hud.score);
 }
 
-int decrement_lives(entt::registry &ecs) {
+bool decrement_lives(entt::registry &ecs) {
   auto &hud = ecs.ctx().get<components::HUD>();
 
-  if (hud.remaining_lives > 0) {
-    hud.remaining_lives--;
+  if (hud.remaining_lives < 1) {
+    return true;
   }
 
-  return hud.remaining_lives;
+  hud.remaining_lives--;
+
+  return false;
+}
+
+void set_lives(entt::registry &ecs, uint8_t lives) {
+  auto &hud = ecs.ctx().get<components::HUD>();
+  hud.remaining_lives = lives;
 }
 
 void pause(entt::registry &ecs) {
@@ -166,6 +184,12 @@ void unpause(entt::registry &ecs) {
   }
 }
 
+void display_game_over(entt::registry &ecs) {
+  if (!ecs.ctx().contains<components::GameOver>()) {
+    ecs.ctx().emplace<components::GameOver>();
+  }
+}
+
 void register_cpp_api_to_script_env(framework::SceneInitializationContext &ctx) {
   register_all_components_to_script_env(ctx);
   components::register_damage_type_enum_to_script_env(ctx.scripts);
@@ -173,11 +197,16 @@ void register_cpp_api_to_script_env(framework::SceneInitializationContext &ctx) 
   ctx.scripts.register_function("Game", "incrementScore", [&ecs = ctx.ecs](lua_Number amount) {
     increment_score(ecs, static_cast<int>(amount));
   });
+  ctx.scripts.register_function("Game", "resetScore", [&ecs = ctx.ecs]() { reset_score(ecs); });
   ctx.scripts.register_function("Game", "decrementLives", [&ecs = ctx.ecs]() {
     return decrement_lives(ecs);
   });
+  ctx.scripts.register_function("Game", "setLives", [&ecs = ctx.ecs](lua_Number amount) {
+    set_lives(ecs, static_cast<uint8_t>(amount));
+  });
   ctx.scripts.register_function("Game", "pause", [&ecs = ctx.ecs]() { pause(ecs); });
   ctx.scripts.register_function("Game", "unpause", [&ecs = ctx.ecs]() { unpause(ecs); });
+  ctx.scripts.register_function("Game", "displayGameOver", [&ecs = ctx.ecs]() { display_game_over(ecs); });
 }
 
 } // namespace invasion

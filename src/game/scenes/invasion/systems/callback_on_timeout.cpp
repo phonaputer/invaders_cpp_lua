@@ -33,7 +33,9 @@ void CallbackOnTimeout::execute(framework::ExecuteCtx &ctx) {
   }
 
   for (const auto &entity : to_delete) {
-    ctx.ecs.destroy(entity);
+    if (ctx.ecs.valid(entity)) {
+      ctx.ecs.destroy(entity);
+    }
   }
 
   if (ctx.ecs.ctx().contains<components::Pause>()) {
@@ -57,7 +59,9 @@ void CallbackOnTimeout::execute(framework::ExecuteCtx &ctx) {
   }
 
   for (const auto &entity : to_delete) {
-    ctx.ecs.destroy(entity);
+    if (ctx.ecs.valid(entity)) {
+      ctx.ecs.destroy(entity);
+    }
   }
 }
 

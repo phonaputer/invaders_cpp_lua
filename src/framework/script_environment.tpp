@@ -422,6 +422,13 @@ inline void register_scene_components_to_script_env(SceneComponents args) {
       .endNamespace()
       .beginNamespace("ECS")
       .addFunction("create", [&ecs = args.ecs]() -> uint32_t { return entt::to_integral(ecs.create()); })
+      .addFunction(
+          "clearAll",
+          [&ecs = args.ecs]() {
+            ecs.clear();
+            ecs.ctx().clear();
+          }
+      )
       .endNamespace()
       .beginNamespace("AnimationStrips")
       .addFunction(

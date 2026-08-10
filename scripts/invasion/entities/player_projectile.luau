@@ -3,15 +3,19 @@ local PlayerProjectile = {}
 
 local projectileCount = 0
 
-function PlayerProjectile.decrementCount()
+function PlayerProjectile.resetActiveCount(): ()
+	projectileCount = 0
+end
+
+function PlayerProjectile.decrementActiveCount(): ()
 	projectileCount -= 1
 end
 
-function PlayerProjectile.getCount(): number
+function PlayerProjectile.getActiveCount(): number
 	return projectileCount
 end
 
-local projectileOnDeleteCallback = Callbacks.register("invasion", "Entities.Player.Projectile.decrementCount")
+local projectileOnDeleteCallback = Callbacks.register("invasion", "Entities.Player.Projectile.decrementActiveCount")
 
 function PlayerProjectile.new(x: number, y: number): ()
 	projectileCount += 1

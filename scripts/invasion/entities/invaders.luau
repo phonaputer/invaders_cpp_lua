@@ -7,8 +7,7 @@ Invaders.Jellyfish = require("./invader_jellyfish")
 Invaders.Crab = require("./invader_crab")
 Invaders.Tadpole = require("./invader_tadpole")
 Invaders.Projectile = require("./invader_projectile")
-
-local BaseInvader = require("./invader_base")
+Invaders.CurrentlyAlive = require("./invaders_currently_alive")
 
 function Invaders.rerack(): ()
 	local STARTING_X = 2
@@ -43,7 +42,7 @@ function Invaders.shoot(): ()
 		return
 	end
 
-	local invader, ok = BaseInvader.getRandomInvader()
+	local invader, ok = Invaders.CurrentlyAlive.getRandom()
 	if not ok then
 		return
 	end
