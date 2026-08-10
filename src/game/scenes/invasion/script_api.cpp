@@ -7,6 +7,7 @@
 #include "game/scenes/invasion/components/collision_callback.hpp"
 #include "game/scenes/invasion/components/collision_passive.hpp"
 #include "game/scenes/invasion/components/damage.hpp"
+#include "game/scenes/invasion/components/damage_callback.hpp"
 #include "game/scenes/invasion/components/damage_type_enum.hpp"
 #include "game/scenes/invasion/components/deletion_callback.hpp"
 #include "game/scenes/invasion/components/game_over.hpp"
@@ -70,6 +71,9 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   ctx.scripts.register_component<components::Damage>(ctx.ecs, "Damage", [](auto &clazz) {
     clazz.addProperty("type", &components::Damage::type, &components::Damage::type)
       .addProperty("amount", &components::Damage::amount, &components::Damage::amount);
+  });
+  ctx.scripts.register_component<components::DamageCallback>(ctx.ecs, "DamageCallback", [](auto &clazz) {
+    clazz.addProperty("callback", &components::DamageCallback::callback, &components::DamageCallback::callback);
   });
   ctx.scripts.register_component<components::DeletionCallback>(ctx.ecs, "DeletionCallback", [](auto &clazz) {
     clazz.addProperty("callback", &components::DeletionCallback::callback, &components::DeletionCallback::callback);

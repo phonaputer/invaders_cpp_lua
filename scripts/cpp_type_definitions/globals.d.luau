@@ -77,6 +77,10 @@ export type Damage = {
     amount: number,
 }
 
+export type DamageCallback = {
+    callback: Callback,
+}
+
 export type DeletionCallback = {
     callback: Callback,
 }
@@ -167,6 +171,7 @@ declare Components: {
     CollisionCallback: (() -> CollisionCallback),
     CollisionPassive: (() -> CollisionPassive),
     Damage: (() -> Damage),
+    DamageCallback: (() -> DamageCallback), 
     DeletionCallback: (() -> DeletionCallback),
     Hitpoints: (() -> Hitpoints),
     HUD: (() -> HUD),
@@ -221,6 +226,11 @@ declare ECS: {
     getDamage: (Entity) -> Damage,
     setDamage: (Entity, Damage) -> (),
     removeDamage: (Entity) -> (),
+
+    hasDamageCallback: (Entity) -> (boolean),
+    getDamageCallback: (Entity) -> DamageCallback,
+    setDamageCallback: (Entity, DamageCallback) -> (),
+    removeDamageCallback: (Entity) -> (),
 
     hasDeletionCallback: (Entity) -> (boolean),
     getDeletionCallback: (Entity) -> DeletionCallback,
