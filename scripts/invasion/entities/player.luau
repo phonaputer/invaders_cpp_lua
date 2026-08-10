@@ -9,7 +9,7 @@ local PlayerMuzzleFlash = require("./player_muzzle_flash")
 local PLAYER_DEATH_PAUSE_TICKS = 100
 
 local respawnCallback = Callbacks.register("invasion", "Entities.Player.respawn")
-local resetSceneCallback = Callbacks.register("invasion", "resetScene")
+local resetSceneCallback = Callbacks.register("invasion", "Game.resetScene")
 
 function Player.onDelete(entity: Entity): ()
 	Game.pause()

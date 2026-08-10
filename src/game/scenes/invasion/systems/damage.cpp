@@ -1,10 +1,12 @@
 #include "game/scenes/invasion/systems/damage.hpp"
+#include "framework/script_environment.hpp"
 #include "framework/system.hpp"
 #include "game/scenes/invasion/components/damage.hpp"
 #include "game/scenes/invasion/components/damage_callback.hpp"
 #include "game/scenes/invasion/components/hitpoints.hpp"
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/events/collision_occurred.hpp"
+#include "game/scenes/invasion/infra/callback_registry.hpp"
 #include <entt.hpp>
 #include <vector>
 

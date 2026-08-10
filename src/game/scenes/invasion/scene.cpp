@@ -47,7 +47,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   register_cpp_api_to_script_env(ctx);
   infra::add_callback_registry_to_script_env(ctx.scripts, callback_registry);
 
-  ctx.scripts.call_function("invasion", "setScene");
+  ctx.scripts.call_function("invasion", "main");
 }
 
 } // namespace invasion
