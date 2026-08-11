@@ -9,6 +9,7 @@
 #include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
+#include "game/scenes/invasion/constants.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
 #include <cstddef>
 
@@ -137,7 +138,27 @@ bool InvaderOrchestration::handle_wall_hit_if_any(
     position.y += dy;
   }
 
+  bool touched_down = false;
+  for (auto [entity, position] : view.each()) {
+    if (position.y + position.h >= invasion::GROUND_HEIGHT) {
+      touched_down = true;
+      break;
+    }
+  }
+
+  if (touched_down) {
+    invoke_touchdown_callback(state);
+  }
+
   return true;
+}
+
+void InvaderOrchestration::invoke_touchdown_callback(components::InvaderOrchestrationState &state) {
+  const auto maybe_callback = callbacks.get().get_callback(state.touchdown_callback);
+  if (maybe_callback.has_value()) {
+    const auto &callback = maybe_callback.value();
+    scripts.get().call_function(callback.package, callback.function);
+  }
 }
 
 void InvaderOrchestration::animate_invaders(framework::ExecuteCtx &ctx) {

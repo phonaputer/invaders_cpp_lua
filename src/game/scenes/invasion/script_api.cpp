@@ -94,6 +94,7 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
   ctx.scripts.register_singleton_component<components::InvaderOrchestrationState>(ctx.ecs, "InvaderOrchestrationState", [](auto &clazz) {
     clazz.addProperty("noInvadersCallback", &components::InvaderOrchestrationState::no_invaders_callback, &components::InvaderOrchestrationState::no_invaders_callback)
       .addProperty("shootCallback", &components::InvaderOrchestrationState::shoot_callback, &components::InvaderOrchestrationState::shoot_callback)
+      .addProperty("touchdownCallback", &components::InvaderOrchestrationState::touchdown_callback, &components::InvaderOrchestrationState::touchdown_callback)
       .addProperty("baseTicksPerMove", &components::InvaderOrchestrationState::base_ticks_per_move, &components::InvaderOrchestrationState::base_ticks_per_move)
       .addProperty("tickCounter", &components::InvaderOrchestrationState::tick_counter, &components::InvaderOrchestrationState::tick_counter)
       .addProperty("xSpeed", &components::InvaderOrchestrationState::x_speed, &components::InvaderOrchestrationState::x_speed)

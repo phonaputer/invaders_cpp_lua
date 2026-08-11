@@ -3,14 +3,23 @@ local Game = {}
 
 local Entities = require("./entities")
 
+function Game.onTouchdown(): ()
+	print("TOUUUUUCCCHHHHHDDOOOOOWWWNN!!!!!")
+end
+
+local invaderRerackCallback = Callbacks.register("invasion", "Entities.Invaders.rerack")
+local invaderShootCallback = Callbacks.register("invasion", "Entities.Invaders.shoot")
+local invaderTouchdownCallback = Callbacks.register("invasion", "Game.onTouchdown")
+
 function Game.setScene(): ()
 	local hud = Components.HUD()
 	hud.remainingLives = 2
 	ECS.setHUD(hud)
 
 	local invaderOrchestrationState = Components.InvaderOrchestrationState()
-	invaderOrchestrationState.noInvadersCallback = Callbacks.register("invasion", "Entities.Invaders.rerack")
-	invaderOrchestrationState.shootCallback = Callbacks.register("invasion", "Entities.Invaders.shoot")
+	invaderOrchestrationState.noInvadersCallback = invaderRerackCallback
+	invaderOrchestrationState.shootCallback = invaderShootCallback
+	invaderOrchestrationState.touchdownCallback = invaderTouchdownCallback
 	invaderOrchestrationState.baseTicksPerMove = 4
 	invaderOrchestrationState.xSpeed = 8
 	invaderOrchestrationState.ySpeed = 12

@@ -104,6 +104,7 @@ export type InvaderAnimation = {
 export type InvaderOrchestrationState = {
     noInvadersCallback: Callback,
     shootCallback: Callback,
+    touchdownCallback: Callback,
     baseTicksPerMove: number,
     tickCounter: number,
     xSpeed: number,

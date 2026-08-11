@@ -21,12 +21,13 @@ class InvaderOrchestration : public framework::System {
     static bool should_move_this_tick(
         components::InvaderOrchestrationState &state, const size_t invader_count
     );
-    static void move_invaders(
+    void move_invaders(
         framework::ExecuteCtx &ctx, components::InvaderOrchestrationState &state, const size_t invader_count
     );
-    static bool handle_wall_hit_if_any(
+    bool handle_wall_hit_if_any(
         framework::ExecuteCtx &ctx, components::InvaderOrchestrationState &state, const size_t invader_count
     );
+    void invoke_touchdown_callback(components::InvaderOrchestrationState &state);
     void animate_invaders(framework::ExecuteCtx &ctx);
     void shoot(components::InvaderOrchestrationState &state);
 
