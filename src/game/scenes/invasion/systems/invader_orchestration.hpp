@@ -30,6 +30,7 @@ class InvaderOrchestration : public framework::System {
     void invoke_touchdown_callback(components::InvaderOrchestrationState &state);
     void animate_invaders(framework::ExecuteCtx &ctx);
     void shoot(components::InvaderOrchestrationState &state);
+    static void play_arp(framework::ExecuteCtx &ctx, components::InvaderOrchestrationState &state);
 
   public:
     InvaderOrchestration(

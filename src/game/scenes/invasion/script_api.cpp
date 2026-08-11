@@ -1,4 +1,5 @@
 #include "game/scenes/invasion/script_api.hpp"
+#include "framework/event_broker.hpp"
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
 #include "game/scenes/invasion/components/animation_unpausable.hpp"
@@ -26,6 +27,8 @@
 #include "game/scenes/invasion/components/to_be_deleted.hpp"
 #include "game/scenes/invasion/components/ttl.hpp"
 #include "game/scenes/invasion/components/velocity.hpp"
+#include "game/scenes/invasion/events/play_sound.hpp"
+#include "game/scenes/invasion/events/stop_sound.hpp"
 #include <algorithm>
 #include <entt.hpp>
 #include <lua.h>
@@ -110,6 +113,7 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("lastInvaderYSpeed", &components::InvaderOrchestrationState::last_invader_y_speed, &components::InvaderOrchestrationState::last_invader_y_speed)
       .addProperty("ticksPerShot", &components::InvaderOrchestrationState::ticks_per_shot, &components::InvaderOrchestrationState::ticks_per_shot)
       .addProperty("shootTickCounter", &components::InvaderOrchestrationState::shoot_tick_counter, &components::InvaderOrchestrationState::shoot_tick_counter)
+      .addProperty("curArp", &components::InvaderOrchestrationState::cur_arp, &components::InvaderOrchestrationState::cur_arp)
       .addProperty("movingLeft", &components::InvaderOrchestrationState::moving_left, &components::InvaderOrchestrationState::moving_left);
   });
   ctx.scripts.register_component<components::OrchestratedInvader>(ctx.ecs, "OrchestratedInvader", []([[maybe_unused]] auto &clazz) {
@@ -202,6 +206,14 @@ void display_game_over(entt::registry &ecs) {
   }
 }
 
+void play_sound(framework::EventBroker &events, const std::string &audio_src) {
+  events.push_back_draw<events::PlaySound>(events::PlaySound{.audio_src = audio_src});
+}
+
+void stop_sound(framework::EventBroker &events, const std::string &audio_src) {
+  events.push_back_draw<events::StopSound>(events::StopSound{.audio_src = audio_src});
+}
+
 void register_cpp_api_to_script_env(framework::SceneInitializationContext &ctx) {
   register_all_components_to_script_env(ctx);
   components::register_damage_type_enum_to_script_env(ctx.scripts);
@@ -219,6 +231,12 @@ void register_cpp_api_to_script_env(framework::SceneInitializationContext &ctx) 
   ctx.scripts.register_function("Game", "pause", [&ecs = ctx.ecs]() { pause(ecs); });
   ctx.scripts.register_function("Game", "unpause", [&ecs = ctx.ecs]() { unpause(ecs); });
   ctx.scripts.register_function("Game", "displayGameOver", [&ecs = ctx.ecs]() { display_game_over(ecs); });
+  ctx.scripts.register_function("Game", "playSound", [&events = ctx.events](const std::string &audio_src) {
+    play_sound(events, audio_src);
+  });
+  ctx.scripts.register_function("Game", "stopSound", [&events = ctx.events](const std::string &audio_src) {
+    stop_sound(events, audio_src);
+  });
 }
 
 } // namespace invasion

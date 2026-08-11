@@ -24,6 +24,7 @@ namespace invasion {
 
 void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.assets.load_images_in_dir_png("invasion");
+  ctx.assets.load_audio_in_dir_wav("invasion");
 
   ctx.systems.add_update_system(std::make_unique<systems::CollisionDetection>());
   ctx.systems.add_update_system(std::make_unique<systems::CollisionCallback>(ctx.scripts, callback_registry));

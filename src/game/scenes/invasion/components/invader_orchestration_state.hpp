@@ -17,6 +17,7 @@ struct InvaderOrchestrationState {
     uint8_t last_invader_y_speed = 0;
     uint8_t ticks_per_shot = 0;
     uint8_t shoot_tick_counter = 0;
+    uint8_t cur_arp = 0;
     bool moving_left = false;
 };
 

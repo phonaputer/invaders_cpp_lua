@@ -10,8 +10,11 @@
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
 #include "game/scenes/invasion/constants.hpp"
+#include "game/scenes/invasion/events/play_sound.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
 #include <cstddef>
+#include <string>
+#include <vector>
 
 namespace systems {
 
@@ -44,6 +47,7 @@ void InvaderOrchestration::execute(framework::ExecuteCtx &ctx) {
     return;
   }
 
+  play_arp(ctx, state);
   move_invaders(ctx, state, invader_count);
   animate_invaders(ctx);
 }
@@ -187,6 +191,25 @@ void InvaderOrchestration::shoot(components::InvaderOrchestrationState &state) {
   if (maybe_callback.has_value()) {
     const auto &callback = maybe_callback.value();
     scripts.get().call_function(callback.package, callback.function);
+  }
+}
+
+// Would be nice to add this from Luau, but I'm lazy so I'm hardcoding it
+std::vector<std::string> arp_sounds() {
+  const std::vector<std::string> arp = {"arp1.wav", "arp2.wav", "arp3.wav", "arp4.wav"};
+  return arp;
+}
+
+void InvaderOrchestration::play_arp(
+    framework::ExecuteCtx &ctx, components::InvaderOrchestrationState &state
+) {
+  const auto arp = arp_sounds();
+
+  ctx.events.push_back_draw<events::PlaySound>(events::PlaySound{.audio_src = arp.at(state.cur_arp)});
+
+  state.cur_arp++;
+  if (state.cur_arp >= arp.size()) {
+    state.cur_arp = 0;
   }
 }
 

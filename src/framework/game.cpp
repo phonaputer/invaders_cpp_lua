@@ -173,6 +173,7 @@ void Game::apply_new_scene_if_any() {
           .scene_setter = *this,
           .scripts = *scripts,
           .animation_strips = animation_strips,
+          .events = event_broker,
       }
   );
 

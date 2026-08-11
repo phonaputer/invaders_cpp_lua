@@ -10,6 +10,7 @@ function Player.attack(player_entity: number, x: number, y: number): ()
 	if Player.Projectile.getActiveCount() < 3 then
 		Player.Projectile.new(x, y)
 		PlayerMuzzleFlash.new(player_entity)
+		Game.playSound("player_shot.wav")
 	end
 end
 

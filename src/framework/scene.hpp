@@ -3,6 +3,7 @@
 #include "framework/animation_strip_registry.hpp"
 #include "framework/asset_loader.hpp"
 #include "framework/audio_player.hpp"
+#include "framework/event_broker.hpp"
 #include "framework/renderer.hpp"
 #include "framework/script_environment.hpp"
 #include "framework/system_registry.hpp"
@@ -26,6 +27,7 @@ struct SceneInitializationContext {
     SceneSetter &scene_setter;
     ScriptEnvironment &scripts;
     AnimationStripRegistry &animation_strips;
+    framework::EventBroker &events;
 };
 // NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
 

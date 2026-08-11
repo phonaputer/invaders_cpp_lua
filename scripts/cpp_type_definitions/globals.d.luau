@@ -30,7 +30,9 @@ declare Game: {
     incrementScore: (number) -> (),
     pause: () -> (),
     unpause: () -> (),
-    displayGameOver: () -> ();
+    displayGameOver: () -> (),
+    playSound: (string) -> (),
+    stopSound: (string) -> (),
 }
 
 export type Animation = {
@@ -120,6 +122,7 @@ export type InvaderOrchestrationState = {
     lastInvaderYSpeed: number,
     ticksPerShot: number,
     shootTickCounter: number,
+    curArp: number,
     movingLeft: boolean,
 }
 
