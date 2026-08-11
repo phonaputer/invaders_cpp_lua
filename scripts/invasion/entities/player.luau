@@ -3,38 +3,8 @@ local Player = {}
 
 Player.Projectile = require("./player_projectile")
 
-local PlayerExplosion = require("./player_explosion")
+Player.Explosion = require("./player_explosion")
 local PlayerMuzzleFlash = require("./player_muzzle_flash")
-
-local PLAYER_DEATH_PAUSE_TICKS = 100
-
-local respawnCallback = Callbacks.register("invasion", "Entities.Player.respawn")
-local resetSceneCallback = Callbacks.register("invasion", "Game.resetScene")
-
-function Player.onDelete(entity: Entity): ()
-	Game.pause()
-	local position = ECS.getPosition(entity)
-	PlayerExplosion.new(position.x, position.y, PLAYER_DEATH_PAUSE_TICKS)
-
-	local respawn_timeout_entity = ECS.create()
-	local cb_on_timeout = Components.CallbackOnTimeoutUnpausable()
-	cb_on_timeout.timeoutTicks = PLAYER_DEATH_PAUSE_TICKS
-
-	local lostAllLives = Game.decrementLives()
-	if lostAllLives then
-		Game.displayGameOver()
-		cb_on_timeout.callback = resetSceneCallback
-	else
-		cb_on_timeout.callback = respawnCallback
-	end
-
-	ECS.setCallbackOnTimeoutUnpausable(respawn_timeout_entity, cb_on_timeout)
-end
-
-function Player.respawn(): ()
-	Game.unpause()
-	Player.new()
-end
 
 function Player.attack(player_entity: number, x: number, y: number): ()
 	if Player.Projectile.getActiveCount() < 3 then
@@ -43,7 +13,7 @@ function Player.attack(player_entity: number, x: number, y: number): ()
 	end
 end
 
-local onDeleteCallback = Callbacks.register("invasion", "Entities.Player.onDelete")
+local onDeleteCallback = Callbacks.register("invasion", "GameLogic.onPlayerDefeat")
 local onAttackCallback = Callbacks.register("invasion", "Entities.Player.attack")
 
 local playerStrip = AnimationStrips.create()

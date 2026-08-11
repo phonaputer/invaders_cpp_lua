@@ -2,10 +2,10 @@
 local Invasion = {}
 
 Invasion.Entities = require("@self/entities")
-Invasion.Game = require("@self/game")
+Invasion.GameLogic = require("@self/game_logic")
 
 function Invasion.main(): ()
-	Invasion.Game.setScene()
+	Invasion.GameLogic.setScene()
 end
 
 return Invasion
