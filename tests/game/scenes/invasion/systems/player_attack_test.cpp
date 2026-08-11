@@ -2,6 +2,7 @@
 #include "framework/player_input_manager.hpp"
 #include "framework/script_environment.hpp"
 #include "framework/system.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
@@ -151,6 +152,26 @@ TEST_F(SystemPlayerAttack, ExecuteCounterHasNotReachedTicksAndPlayerIsFiringShou
   );
   setup.player_input.engage(framework::PlayerInput::FIRE);
   scripts->call_function("pack", "reset");
+
+  setup.system.execute(ctx);
+
+  EXPECT_EQ(0, scripts->call_function<double>("pack", "getCallCount"));
+  const auto expected_player_attack
+      = components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 10, .callback = 1};
+  EXPECT_EQ(expected_player_attack, setup.ecs.get<components::PlayerAttack>(entity));
+}
+
+TEST_F(SystemPlayerAttack, ExecuteGameIsPausedShouldDoNothing) {
+  TestSetup setup = setupTest();
+  auto ctx = setup.ctx();
+  auto entity = ctx.ecs.create();
+  ctx.ecs.emplace<components::Position>(entity, components::Position{.x = 1, .y = 2});
+  ctx.ecs.emplace<components::PlayerAttack>(
+      entity, components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 10, .callback = 1}
+  );
+  setup.player_input.engage(framework::PlayerInput::FIRE);
+  scripts->call_function("pack", "reset");
+  ctx.ecs.ctx().emplace<components::Pause>();
 
   setup.system.execute(ctx);
 

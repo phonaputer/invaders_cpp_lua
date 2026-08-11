@@ -3,6 +3,7 @@
 #include "framework/player_input_manager.hpp"
 #include "framework/script_environment.hpp"
 #include "framework/system.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
@@ -16,6 +17,10 @@ PlayerAttack::PlayerAttack(framework::ScriptEnvironment &scripts, infra::Callbac
 }
 
 void PlayerAttack::execute(framework::ExecuteCtx &ctx) {
+  if (ctx.ecs.ctx().contains<components::Pause>()) {
+    return;
+  }
+
   auto view = ctx.ecs.view<components::PlayerAttack, components::Position>();
 
   for (auto [entity, attack, position] : view.each()) {

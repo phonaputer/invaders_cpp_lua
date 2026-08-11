@@ -3,6 +3,7 @@
 #include "framework/player_input_manager.hpp"
 #include "framework/system.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/systems/player_movement.hpp"
@@ -159,6 +160,18 @@ TEST(SystemPlayerMovement, ExecuteRightEngagedButAlreadyAtWallShouldDoNothing) {
   setup.system.execute(ctx);
 
   assert_dummy_player(setup.ecs, entity, framework::WINDOW_WIDTH - PLAYER_WIDTH, 11, false, true);
+}
+
+TEST(SystemPlayerMovement, ExecuteGameIsPausedShouldDoNothing) {
+  TestSetup setup = setupTest();
+  auto ctx = setup.ctx();
+  auto entity = dummy_player(setup.ecs, 10, 11, false, false);
+  setup.player_input.engage(framework::PlayerInput::LEFT);
+  ctx.ecs.ctx().emplace<components::Pause>();
+
+  setup.system.execute(ctx);
+
+  assert_dummy_player(setup.ecs, entity, 10, 11, false, false);
 }
 
 } // namespace testing::player_movement_system

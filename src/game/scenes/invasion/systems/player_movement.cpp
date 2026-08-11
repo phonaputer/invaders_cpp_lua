@@ -3,6 +3,7 @@
 #include "framework/player_input_manager.hpp"
 #include "framework/system.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/player_movement.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include <algorithm>
@@ -10,6 +11,10 @@
 namespace systems {
 
 void PlayerMovement::execute(framework::ExecuteCtx &ctx) {
+  if (ctx.ecs.ctx().contains<components::Pause>()) {
+    return;
+  }
+
   auto view = ctx.ecs.view<components::PlayerMovement, components::Position, components::Animation>();
 
   for (auto [entity, movement, position, animation] : view.each()) {
