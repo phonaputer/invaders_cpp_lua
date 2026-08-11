@@ -22,24 +22,26 @@ std::unique_ptr<framework::ScriptEnvironment> scripts;
 const std::string TEST_LUAU = R"(
   local Pack = {}
 
-  Pack.CallCount = 0
-  Pack.CalledEntity = -1
+  local callCount = 0
+  local calledEntity = -1
+  local calledAmount = -1
 
-  function Pack.callback(entity: number): ()
-    Pack.CallCount += 1
-    Pack.CalledEntity = entity
+  function Pack.callback(entity: number, amount: number): ()
+    callCount += 1
+    calledEntity = entity
+    calledAmount = amount
   end
 
   function Pack.resetCallCount(): ()
-    Pack.CallCount = 0
+    callCount = 0
   end
 
   function Pack.getCallCount(): number
-    return Pack.CallCount
+    return callCount
   end
 
-  function Pack.assertCalledWith(entity: number): number
-    if entity == Pack.CalledEntity then
+  function Pack.assertCalledWith(entity: number, amount: number): number
+    if entity == calledEntity and amount == calledAmount then
       return 1
     else 
       return 0
@@ -298,7 +300,7 @@ TEST_F(SystemDamage, ExecuteDamagedEntityHasCallbackShouldInvokeCallback) {
   setup.system.execute(ctx);
 
   EXPECT_EQ(1, scripts->call_function<double>("pack", "getCallCount"));
-  EXPECT_EQ(1, scripts->call_function<double>("pack", "assertCalledWith", entt::to_integral(who_i_hit)));
+  EXPECT_EQ(1, scripts->call_function<double>("pack", "assertCalledWith", entt::to_integral(who_i_hit), 6));
   EXPECT_EQ(0, ctx.ecs.get<components::Hitpoints>(who_i_hit).cur_hitpoints);
   EXPECT_TRUE(ctx.ecs.all_of<components::ToBeDeleted>(who_i_hit));
 }

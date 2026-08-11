@@ -21,16 +21,18 @@ function Game.setScene(): ()
 
 	Entities.Invaders.Eel.scheduleSpawn()
 
+	Entities.Fortress.createAll()
+
 	Entities.Player.new()
 end
 
 function Game.resetScene(): ()
-	local old_hud = ECS.getHUD()
-	local highScore = old_hud.highScore
+	local highScore = ECS.getHUD().highScore
 
 	ECS.clearAll()
 	Entities.Invaders.CurrentlyAlive.clearAll()
 	Entities.Player.Projectile.resetActiveCount()
+
 	Game.setScene()
 
 	local new_hud = ECS.getHUD()

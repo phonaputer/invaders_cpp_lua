@@ -12,13 +12,18 @@
 
 namespace systems {
 
+struct DamagedEntity {
+    entt::entity entity;
+    uint8_t amount;
+};
+
 Damage::Damage(framework::ScriptEnvironment &scripts, infra::CallbackGetter &callbacks)
     : scripts{scripts},
       callbacks{callbacks} {
 }
 
 void Damage::execute(framework::ExecuteCtx &ctx) {
-  std::vector<entt::entity> damaged_entities;
+  std::vector<DamagedEntity> damaged_entities;
 
   for (const auto &collision : ctx.events.get_all<events::CollisionOccurred>()) {
     auto *hitpoints = ctx.ecs.try_get<components::Hitpoints>(collision.who_i_hit);
@@ -36,7 +41,7 @@ void Damage::execute(framework::ExecuteCtx &ctx) {
       continue;
     }
 
-    damaged_entities.push_back(collision.who_i_hit);
+    damaged_entities.emplace_back(collision.who_i_hit, damage->amount);
 
     hitpoints->cur_hitpoints -= damage->amount;
 
@@ -46,13 +51,15 @@ void Damage::execute(framework::ExecuteCtx &ctx) {
   }
 
   for (const auto &entity : damaged_entities) {
-    if (ctx.ecs.all_of<components::DamageCallback>(entity)) {
-      auto component = ctx.ecs.get<components::DamageCallback>(entity);
+    if (ctx.ecs.all_of<components::DamageCallback>(entity.entity)) {
+      auto component = ctx.ecs.get<components::DamageCallback>(entity.entity);
 
       auto maybe_callback = callbacks.get().get_callback(component.callback);
       if (maybe_callback.has_value()) {
         const auto &callback = maybe_callback.value();
-        scripts.get().call_function(callback.package, callback.function, entt::to_integral(entity));
+        scripts.get().call_function(
+            callback.package, callback.function, entt::to_integral(entity.entity), entity.amount
+        );
       }
     }
   }
