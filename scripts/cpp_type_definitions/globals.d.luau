@@ -42,6 +42,13 @@ export type Animation = {
     playReversed: boolean,
 }
 
+export type AnimationUnpausable = {
+    curFrame: number,
+    tickCounter: number,
+    ticksPerFrame: number,
+    stripID: AnimationStrip,
+}
+
 export type CallbackOnTimeout = {
     callback: number,
     timeoutTicks: number,
@@ -166,6 +173,7 @@ export type Velocity = {
 
 declare Components: {
     Animation: (() -> Animation),
+    AnimationUnpausable: (() -> AnimationUnpausable),
     CallbackOnTimeout: (() -> CallbackOnTimeout),
     CallbackOnTimeoutUnpausable: (() -> CallbackOnTimeoutUnpausable),
     CollisionActive: (() -> CollisionActive),
@@ -197,6 +205,11 @@ declare ECS: {
     getAnimation: (Entity) -> Animation,
     setAnimation: (Entity, Animation) -> (),
     removeAnimation: (Entity) -> (),
+
+    hasAnimationUnpausable: (Entity) -> (boolean),
+    getAnimationUnpausable: (Entity) -> AnimationUnpausable,
+    setAnimationUnpausable: (Entity, AnimationUnpausable) -> (),
+    removeAnimationUnpausable: (Entity) -> (),
 
     hasCallbackOnTimeout: (Entity) -> (boolean),
     getCallbackOnTimeout: (Entity) -> CallbackOnTimeout,

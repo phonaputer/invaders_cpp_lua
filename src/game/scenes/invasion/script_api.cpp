@@ -1,6 +1,7 @@
 #include "game/scenes/invasion/script_api.hpp"
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
+#include "game/scenes/invasion/components/animation_unpausable.hpp"
 #include "game/scenes/invasion/components/callback_on_timeout.hpp"
 #include "game/scenes/invasion/components/callback_on_timeout_unpausable.hpp"
 #include "game/scenes/invasion/components/collision_active.hpp"
@@ -42,6 +43,12 @@ void register_all_components_to_script_env(framework::SceneInitializationContext
       .addProperty("stripID", &components::Animation::strip_id, &components::Animation::strip_id)
       .addProperty("playing", &components::Animation::playing, &components::Animation::playing)
       .addProperty("playReversed", &components::Animation::play_reversed, &components::Animation::play_reversed);
+  });
+  ctx.scripts.register_component<components::AnimationUnpausable>(ctx.ecs, "AnimationUnpausable", [](auto &clazz) {
+    clazz.addProperty("curFrame", &components::AnimationUnpausable::cur_frame, &components::AnimationUnpausable::cur_frame)
+      .addProperty("tickCounter", &components::AnimationUnpausable::tick_counter, &components::AnimationUnpausable::tick_counter)
+      .addProperty("ticksPerFrame", &components::AnimationUnpausable::ticks_per_frame, &components::AnimationUnpausable::ticks_per_frame)
+      .addProperty("stripID", &components::AnimationUnpausable::strip_id, &components::AnimationUnpausable::strip_id);
   });
   ctx.scripts.register_component<components::CallbackOnTimeout>(ctx.ecs, "CallbackOnTimeout", [](auto &clazz) {
     clazz.addProperty("callback", &components::CallbackOnTimeout::callback, &components::CallbackOnTimeout::callback)
