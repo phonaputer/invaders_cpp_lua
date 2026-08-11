@@ -31,10 +31,7 @@ struct GetFunctionArgs {
     std::string function;
 };
 
-// TODO
-// . Add hot reloading.
-// . Add registry of callbacks so that entites don't need to contain strings.
-// . Think about the lifetime of this type relative to a scene.
+// Potential improvement - add hot reloading
 class ScriptEnvironment {
   private:
     std::unique_ptr<lua_State, LuaStateDeleter> L;

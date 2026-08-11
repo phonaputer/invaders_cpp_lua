@@ -19,8 +19,6 @@
 
 namespace framework {
 
-// TODO - Maybe SDL stuff could get moved out to another class to make this smaller?
-// It also would be nice to review the interface this provides to scenes to see if it could be cleaner.
 class Game : public SystemRegistry, public SceneSetter {
   private:
     // Window and Renderer are owned and cleaned up by SDL.

@@ -12,10 +12,6 @@ Animation::Animation(const framework::AnimationStripRegistry &animation_strips)
     : animation_strips{animation_strips} {
 }
 
-// This could be refactored to be more "data-oriented"
-// But since really only the player is animated I'll leave this for now
-//
-// TODO add benchmarks?
 void Animation::execute(framework::ExecuteCtx &ctx) {
   execute_unpausable_animations(ctx);
 
@@ -54,6 +50,11 @@ void Animation::execute_unpausable_animations(framework::ExecuteCtx &ctx) {
   }
 }
 
+// This could be refactored to be more "data-oriented"
+// But since not many entities are actually animated I'll leave this for now
+//
+// Potential improvement - add benchmarks to test this function & monkey about to really see what improves
+// performance
 void Animation::execute_regular_animations(framework::ExecuteCtx &ctx) {
   auto view = ctx.ecs.view<components::Animation, components::Sprite>();
 

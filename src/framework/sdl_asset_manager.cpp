@@ -42,7 +42,8 @@ void SDLAssetManager::load_image_png(const std::string &path) {
 
 void SDLAssetManager::load_images_in_dir_png(const std::string &path) {
   try {
-    for (const auto &entry : std::filesystem::directory_iterator(std::string(IMAGES_DIRECTORY_PREFIX) + path)) {
+    for (const auto &entry :
+         std::filesystem::directory_iterator(std::string(IMAGES_DIRECTORY_PREFIX) + path)) {
       create_texture_from_file_png(entry.path().string());
     }
   } catch (const std::filesystem::filesystem_error &e) {
@@ -52,7 +53,7 @@ void SDLAssetManager::load_images_in_dir_png(const std::string &path) {
 }
 
 std::shared_ptr<SDL_Texture> SDLAssetManager::get_texture(const std::string &filename) const {
-  // TODO check if texture exists and return a fallback texture if not
+  // Potential improvement - check if texture exists and return a fallback texture if not
   return textures.at(filename);
 }
 
@@ -62,7 +63,8 @@ void SDLAssetManager::load_audio_wav(const std::string &path) {
 
 void SDLAssetManager::load_audio_in_dir_wav(const std::string &path) {
   try {
-    for (const auto &entry : std::filesystem::directory_iterator(std::string(AUDIO_DIRECTORY_PREFIX) + path)) {
+    for (const auto &entry :
+         std::filesystem::directory_iterator(std::string(AUDIO_DIRECTORY_PREFIX) + path)) {
       create_audio_track_from_file_wav(entry.path().string());
     }
   } catch (const std::filesystem::filesystem_error &e) {
@@ -99,8 +101,8 @@ void SDLAssetManager::create_texture_from_file_png(const std::string &path) {
   auto png_texture
       = std::shared_ptr<SDL_Texture>(SDL_CreateTextureFromSurface(renderer, png_surface.get()), SDLDeleter());
   if (png_texture == nullptr) {
-    std::cerr << "SDLAssetManager: Failed to create PNG texture from surface'" << path << "': " << SDL_GetError()
-              << "\n";
+    std::cerr << "SDLAssetManager: Failed to create PNG texture from surface'" << path
+              << "': " << SDL_GetError() << "\n";
     assert(false && "Failed to create PNG texture from surface");
     return;
   }
