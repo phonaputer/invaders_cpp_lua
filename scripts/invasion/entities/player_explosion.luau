@@ -10,10 +10,10 @@ AnimationStrips.addFrame(explosionAnimationStrip, 2, 3)
 function PlayerExplosion.new(x: number, y: number, ticksToLive: number)
 	local entity = ECS.create()
 
-	local animation = Components.Animation()
+	local animation = Components.AnimationUnpausable()
 	animation.ticksPerFrame = 5
 	animation.stripID = explosionAnimationStrip
-	ECS.setAnimation(entity, animation)
+	ECS.setAnimationUnpausable(entity, animation)
 
 	local position = Components.Position()
 	position.x = x

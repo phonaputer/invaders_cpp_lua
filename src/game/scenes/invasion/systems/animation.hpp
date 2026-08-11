@@ -10,6 +10,9 @@ class Animation : public framework::System {
   private:
     std::reference_wrapper<const framework::AnimationStripRegistry> animation_strips;
 
+    void execute_unpausable_animations(framework::ExecuteCtx &ctx);
+    void execute_regular_animations(framework::ExecuteCtx &ctx);
+
   public:
     explicit Animation(const framework::AnimationStripRegistry &animation_strips);
     void execute(framework::ExecuteCtx &ctx) override;

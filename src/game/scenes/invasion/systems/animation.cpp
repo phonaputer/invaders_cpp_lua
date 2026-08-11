@@ -2,6 +2,8 @@
 #include "framework/animation_strip_registry.hpp"
 #include "framework/system.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
+#include "game/scenes/invasion/components/animation_unpausable.hpp"
+#include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
 
 namespace systems {
@@ -13,8 +15,46 @@ Animation::Animation(const framework::AnimationStripRegistry &animation_strips)
 // This could be refactored to be more "data-oriented"
 // But since really only the player is animated I'll leave this for now
 //
-// TODO add benchmarks
+// TODO add benchmarks?
 void Animation::execute(framework::ExecuteCtx &ctx) {
+  execute_unpausable_animations(ctx);
+
+  if (ctx.ecs.ctx().contains<components::Pause>()) {
+    return;
+  }
+
+  execute_regular_animations(ctx);
+}
+
+void Animation::execute_unpausable_animations(framework::ExecuteCtx &ctx) {
+  auto view = ctx.ecs.view<components::AnimationUnpausable, components::Sprite>();
+
+  for (auto [entity, animation, sprite] : view.each()) {
+    animation.tick_counter++;
+    if (animation.tick_counter < animation.ticks_per_frame) {
+      continue;
+    }
+
+    animation.tick_counter = 0;
+
+    auto strip = animation_strips.get().get(animation.strip_id);
+    if (strip.empty()) {
+      continue;
+    }
+
+    animation.cur_frame++;
+    if (animation.cur_frame >= strip.size()) {
+      animation.cur_frame = 0;
+    }
+
+    auto frame = strip.at(animation.cur_frame);
+
+    sprite.src_x = static_cast<float>(frame.x) * sprite.src_w;
+    sprite.src_y = static_cast<float>(frame.y) * sprite.src_h;
+  }
+}
+
+void Animation::execute_regular_animations(framework::ExecuteCtx &ctx) {
   auto view = ctx.ecs.view<components::Animation, components::Sprite>();
 
   for (auto [entity, animation, sprite] : view.each()) {
