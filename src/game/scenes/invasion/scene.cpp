@@ -5,6 +5,7 @@
 #include "game/scenes/invasion/infra/callback_registry.hpp"
 #include "game/scenes/invasion/script_api.hpp"
 #include "game/scenes/invasion/systems/animation.hpp"
+#include "game/scenes/invasion/systems/audio_playing.hpp"
 #include "game/scenes/invasion/systems/callback_on_timeout.hpp"
 #include "game/scenes/invasion/systems/collision_callback.hpp"
 #include "game/scenes/invasion/systems/collision_detection.hpp"
@@ -40,6 +41,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
 
   ctx.systems.add_draw_system(std::make_unique<systems::HUDRendering>(ctx.renderer));
   ctx.systems.add_draw_system(std::make_unique<systems::SpriteRendering>(ctx.renderer));
+  ctx.systems.add_draw_system(std::make_unique<systems::AudioPlaying>(ctx.audio_player));
 
   ctx.ecs.ctx().emplace<components::HUD>();
   ctx.ecs.ctx().emplace<components::InvaderOrchestrationState>();

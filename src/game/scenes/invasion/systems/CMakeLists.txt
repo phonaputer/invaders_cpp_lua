@@ -2,6 +2,7 @@ target_sources(
   ${PROJECT_NAME}_lib
   PRIVATE
   animation.cpp
+  audio_playing.cpp
   callback_on_timeout.cpp
   collision_callback.cpp
   collision_detection.cpp
