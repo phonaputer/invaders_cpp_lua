@@ -7,11 +7,12 @@ local projectileAnimationStrip = AnimationStrips.create()
 AnimationStrips.addFrame(projectileAnimationStrip, 5, 2)
 AnimationStrips.addFrame(projectileAnimationStrip, 6, 2)
 
-local projectileOnDeleteCallback = Callbacks.register("invasion", "Entities.Invaders.Projectile.onDelete")
+local projectileOnDamageCallback = Callbacks.register("invasion", "Entities.Invaders.Projectile.onDamage")
 
-function InvaderProjectile.onDelete(entity: Entity): ()
+function InvaderProjectile.onDamage(entity: Entity): ()
 	local position = ECS.getPosition(entity)
 	InvaderExplosion.new(position.x, position.y)
+	Game.playSound("alien_shot.wav")
 end
 
 function InvaderProjectile.new(x: number, y: number): ()
@@ -34,9 +35,9 @@ function InvaderProjectile.new(x: number, y: number): ()
 	damage.amount = 1
 	ECS.setDamage(entity, damage)
 
-	local deletionCallback = Components.DeletionCallback()
-	deletionCallback.callback = projectileOnDeleteCallback
-	ECS.setDeletionCallback(entity, deletionCallback)
+	local damageCallback = Components.DamageCallback()
+	damageCallback.callback = projectileOnDamageCallback
+	ECS.setDamageCallback(entity, damageCallback)
 
 	local hitpoints = Components.Hitpoints()
 	hitpoints.susceptibleTo = bit32.bor(DamageType.PLAYER, DamageType.PLAYER_PROJECTILE, DamageType.FORTRESS)

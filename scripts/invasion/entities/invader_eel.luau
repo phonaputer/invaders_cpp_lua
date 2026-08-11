@@ -37,6 +37,7 @@ function InvaderEel.onDelete(entity: Entity): ()
 	local position = ECS.getPosition(entity)
 	InvaderExplosion.new(position.x, position.y)
 	Game.incrementScore(math.random(100, 300))
+	Game.playSound("alien_explosion.wav")
 end
 
 type FirstFrame = {

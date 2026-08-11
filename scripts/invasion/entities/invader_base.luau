@@ -25,6 +25,7 @@ function BaseInvader.onDelete(entity: Entity): ()
 	local position = ECS.getPosition(entity)
 	InvaderExplosion.new(position.x, position.y)
 	InvadersCurrentlyAlive.remove(entity)
+	Game.playSound("alien_explosion.wav")
 end
 
 function BaseInvader.new(args: NewInvaderArgs)

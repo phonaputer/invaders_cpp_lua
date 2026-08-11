@@ -3,7 +3,7 @@ local GameLogic = {}
 
 local Entities = require("./entities")
 
-local PLAYER_LOSS_PAUSE_TICKS = 100
+local PLAYER_LOSS_PAUSE_TICKS = 150
 
 local invaderRerackCallback = Callbacks.register("invasion", "Entities.Invaders.rerack")
 local invaderShootCallback = Callbacks.register("invasion", "Entities.Invaders.shoot")
@@ -41,6 +41,7 @@ function GameLogic.resetScene(): ()
 	ECS.clearAll()
 	Entities.Invaders.CurrentlyAlive.clearAll()
 	Entities.Player.Projectile.resetActiveCount()
+	Game.stopSound("player_explosion.wav")
 
 	GameLogic.setScene()
 
@@ -64,6 +65,7 @@ function GameLogic.onPlayerDefeat(entity: Entity): ()
 	Game.pause()
 	local position = ECS.getPosition(entity)
 	Entities.Player.Explosion.new(position.x, position.y, PLAYER_LOSS_PAUSE_TICKS)
+	Game.playSound("player_explosion.wav")
 
 	local timeout_entity = ECS.create()
 	local cb = Components.CallbackOnTimeoutUnpausable()
@@ -81,6 +83,7 @@ function GameLogic.onPlayerDefeat(entity: Entity): ()
 end
 
 function GameLogic.respawnPlayer(): ()
+	Game.stopSound("player_explosion.wav")
 	Game.unpause()
 	Entities.Player.new()
 end
