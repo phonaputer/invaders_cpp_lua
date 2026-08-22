@@ -1,0 +1,211 @@
+## Invasion Scene ##
+
+luauOutputDir: ./scripts/invasion
+cppOutputDir: ./src/game/scenes/invasion/components
+cppNamespace: components
+hppIncludePrefix: game/scenes/invasion/components
+cmakeTarget: ${PROJECT_NAME}_lib
+
+fieldTypes:
+  - id: animation_strip_id
+    cppType: framework::AnimationStripID
+    cppInclude: '"framework/animation_strip_registry.hpp"'
+    cppDefaultValue: 0
+
+  - id: callback_id
+    cppType: infra::CallbackID
+    cppInclude: '"game/scenes/invasion/infra/callback_registry.hpp"'
+    cppDefaultValue: 0
+
+  - id: damage_type_set
+    cppType: DamageTypeSet
+    cppInclude: '"game/scenes/invasion/components/damage_type_enum.hpp"'
+    cppDefaultValue: 0
+    luauType: number
+
+  - id: entity
+    cppType: uint32_t
+    cppInclude: <cstdint>
+    cppDefaultValue: 0
+    luauType: number
+
+  - id: bool
+    cppType: bool
+    cppDefaultValue: true
+    luauType: boolean
+
+  - id: float
+    cppType: float
+    cppDefaultValue: 0.0F
+    luauType: number
+
+  - id: string
+    cppType: std::string
+    cppInclude: <string>
+    luauType: string
+
+  - id: uint8
+    cppType: uint8_t
+    cppDefaultValue: 0
+    cppInclude: <cstdint>
+    luauType: number
+
+  - id: uint16
+    cppType: uint16_t
+    cppDefaultValue: 0
+    cppInclude: <cstdint>
+    luauType: number
+
+  - id: uint32
+    cppType: uint32_t
+    cppDefaultValue: 0
+    cppInclude: <cstdint>
+    luauType: number
+
+components:
+  - name: Animation
+    fields:
+      - { name: Tick Counter, type: uint16 }
+      - { name: Ticks Per Frame, type: uint16 }
+      - { name: Cur Frame, type: uint8 }
+      - { name: Strip ID, type: animation_strip_id }
+      - { name: Playing, type: bool, cppDefaultValue: true }
+      - { name: Play Reversed, type: bool }
+
+  - name: Animation Unpausable
+    fields:
+      - { name: Tick Counter, type: uint16 }
+      - { name: Ticks Per Frame, type: uint16 }
+      - { name: Cur Frame, type: uint8 }
+      - { name: Strip ID, type: animation_strip_id }
+
+  - name: Callback On Timeout
+    fields:
+      - { name: Callback, type: callback_id }
+      - { name: Timeout Ticks, type: uint16 }
+      - { name: Tick Counter, type: uint16 }
+
+  - name: Callback On Timeout Unpausable
+    fields:
+      - { name: Callback, type: callback_id }
+      - { name: Timeout Ticks, type: uint16 }
+      - { name: Tick Counter, type: uint16 }
+
+  - name: Collision Active
+    fields:
+      - { name: Hitbox Offset X, type: float }
+      - { name: Hitbox Offset Y, type: float }
+      - { name: Hitbox W, type: float }
+      - { name: Hitbox H, type: float }
+
+  - name: Collision Callback
+    fields:
+      - { name: Callback, type: callback_id }
+
+  - name: Collision Passive
+    fields:
+      - { name: Hitbox Offset X, type: float }
+      - { name: Hitbox Offset Y, type: float }
+      - { name: Hitbox W, type: float }
+      - { name: Hitbox H, type: float }
+
+  - name: Damage
+    fields:
+      - { name: Type, type: damage_type_set }
+      - { name: Amount, type: uint8 }
+
+  - name: Damage Callback
+    fields:
+      - { name: Callback, type: callback_id }
+
+  - name: Deletion Callback
+    fields:
+      - { name: Callback, type: callback_id }
+
+  - name: Game Over
+    singleton: true
+
+  - name: Hitpoints
+    fields:
+      - { name: Susceptible To, type: damage_type_set }
+      - { name: Cur Hitpoints, type: uint8 }
+
+  - name: HUD
+    singleton: true
+    fields:
+      - { name: Score, type: uint32 }
+      - { name: High Score, type: uint32 }
+      - { name: Remaining Lives, type: uint8 }
+
+  - name: Invader Animation
+    fields:
+      - { name: Cur Frame, type: uint8 }
+      - { name: Strip ID, type: animation_strip_id }
+
+  - name: Invader Orchestration State
+    singleton: true
+    fields:
+      - { name: No Invaders Callback, type: callback_id }
+      - { name: Shoot Callback, type: callback_id }
+      - { name: Touchdown Callback, type: callback_id }
+      - { name: Base Ticks Per Move, type: uint8 }
+      - { name: Tick Counter, type: uint8 }
+      - { name: X Speed, type: uint8 }
+      - { name: Y Speed, type: uint8 }
+      - { name: Last Invader X Speed, type: uint8 }
+      - { name: Last Invader Y Speed, type: uint8 }
+      - { name: Ticks Per Shot, type: uint8 }
+      - { name: Shoot Tick Counter, type: uint8 }
+      - { name: Cur Arp, type: uint8 }
+      - { name: Moving Left, type: bool }
+
+  - name: Orchestrated Invader
+
+  - name: Pause
+    singleton: true
+
+  - name: Player Attack
+    fields:
+      - { name: Ticks Per Attack, type: uint32 }
+      - { name: Tick Counter, type: uint32 }
+      - { name: Callback, type: callback_id }
+
+  - name: Player Movement
+    fields:
+      - { name: X Speed, type: uint8 }
+
+  - name: Position
+    fields:
+      - { name: X, type: float }
+      - { name: Y, type: float }
+      - { name: W, type: float }
+      - { name: H, type: float }
+      - { name: Z, type: uint8 }
+
+  - name: Position Following
+    fields:
+      - { name: Leader, type: entity }
+      - { name: X Offset, type: float }
+      - { name: Y Offset, type: float }
+
+  - name: Sprite
+    fields:
+      - { name: Src ID, type: string }
+      - { name: Src X, type: float }
+      - { name: Src Y, type: float }
+      - { name: Src W, type: float }
+      - { name: Src H, type: float }
+      - { name: Dst W, type: float }
+      - { name: Dst H, type: float }
+
+  - name: To Be Deleted
+
+  - name: TTL
+    fields:
+      - { name: Ticks To Live, type: uint16 }
+      - { name: Tick Counter, type: uint16 }
+
+  - name: Velocity
+    fields:
+      - { name: X, type: float }
+      - { name: Y, type: float }
