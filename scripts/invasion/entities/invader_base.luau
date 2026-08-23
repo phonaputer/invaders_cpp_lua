@@ -58,7 +58,7 @@ function BaseInvader.new(args: NewInvaderArgs)
 	animation.stripID = args.animationStrip
 	ECS.setInvaderAnimation(entity, animation)
 
-	ECS.setOrchestratedInvader(entity, Components.OrchestratedInvader())
+	ECS.setOrchestratedInvader(entity)
 
 	local position = Components.Position()
 	position.x = args.x

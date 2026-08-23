@@ -11,11 +11,13 @@ fieldTypes:
     cppType: framework::AnimationStripID
     cppInclude: '"framework/animation_strip_registry.hpp"'
     cppDefaultValue: 0
+    luauType: number
 
   - id: callback_id
     cppType: infra::CallbackID
     cppInclude: '"game/scenes/invasion/infra/callback_registry.hpp"'
     cppDefaultValue: 0
+    luauType: number
 
   - id: damage_type_set
     cppType: DamageTypeSet
@@ -31,7 +33,7 @@ fieldTypes:
 
   - id: bool
     cppType: bool
-    cppDefaultValue: true
+    cppDefaultValue: false
     luauType: boolean
 
   - id: float

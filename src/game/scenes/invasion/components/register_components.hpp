@@ -2,8 +2,11 @@
 // clang-format off
 #pragma once
 
+#include <entt.hpp>
+#include <lua.h>
+
 namespace components {
 
-struct GameOver {};
+void register_components(entt::registry &ecs, lua_State *L);
 
 }

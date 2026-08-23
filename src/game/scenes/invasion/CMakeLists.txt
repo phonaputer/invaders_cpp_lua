@@ -5,5 +5,6 @@ target_sources(
   script_api.cpp
 )
 
+add_subdirectory(components)
 add_subdirectory(infra)
 add_subdirectory(systems)

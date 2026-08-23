@@ -1,6 +1,7 @@
 {
   "luau-lsp.types.definitionFiles": {
-    "cpp_types": "scripts/cpp_type_definitions/globals.d.luau"
+    "invasion-misc": "scripts/invasion/misc.d.luau",
+    "invasion-components": "scripts/invasion/components.d.luau"
   },
   "luau-lsp.sourcemap.autogenerate": false,
   "luau-lsp.sourcemap.enabled": false,
