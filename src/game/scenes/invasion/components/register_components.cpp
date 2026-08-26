@@ -28,792 +28,2601 @@
 #include "game/scenes/invasion/components/velocity.hpp"
 
 #include <entt.hpp>
-#include <lua.h>
-#include <LuaBridge/LuaBridge.h>
+#include <lualib.h>
 
 namespace components {
 
+int create_entity(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    auto entity = ecs_ptr->create();
+
+    lua_pushnumber(L, static_cast<lua_Number>(entt::to_integral(entity)));
+
+    return 1;
+}
+
+int clear_all_entities(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    ecs_ptr->clear();
+    ecs_ptr->ctx().clear();
+
+    return 0;
+}
+      
+int set_animation(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "tickCounter");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
+    }
+    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "ticksPerFrame");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'ticksPerFrame' field to be a number");
+    }
+    const auto ticks_per_frame = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "curFrame");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'curFrame' field to be a number");
+    }
+    const auto cur_frame = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "stripID");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'stripID' field to be a number");
+    }
+    const auto strip_id = static_cast<framework::AnimationStripID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "playing");
+    if (!lua_isboolean(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'playing' field to be a boolean");
+    }
+    const bool playing = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "playReversed");
+    if (!lua_isboolean(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'playReversed' field to be a boolean");
+    }
+    const bool play_reversed = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<Animation>(
+        entity,
+        Animation{
+            .tick_counter = tick_counter,
+            .ticks_per_frame = ticks_per_frame,
+            .cur_frame = cur_frame,
+            .strip_id = strip_id,
+            .playing = playing,
+            .play_reversed = play_reversed,
+        }
+    );
+
+    return 0;
+}
+
+int get_animation(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<Animation>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
+    lua_setfield(L, -2, "tickCounter");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.ticks_per_frame));
+    lua_setfield(L, -2, "ticksPerFrame");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.cur_frame));
+    lua_setfield(L, -2, "curFrame");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.strip_id));
+    lua_setfield(L, -2, "stripID");
+
+    lua_pushboolean(L, component.playing);
+    lua_setfield(L, -2, "playing");
+
+    lua_pushboolean(L, component.play_reversed);
+    lua_setfield(L, -2, "playReversed");
+
+    return 1;
+}
+
+int has_animation(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<Animation>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_animation(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<Animation>(entity);
+
+    return 0;
+}
+      
+int set_animation_unpausable(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "tickCounter");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
+    }
+    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "ticksPerFrame");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'ticksPerFrame' field to be a number");
+    }
+    const auto ticks_per_frame = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "curFrame");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'curFrame' field to be a number");
+    }
+    const auto cur_frame = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "stripID");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'stripID' field to be a number");
+    }
+    const auto strip_id = static_cast<framework::AnimationStripID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<AnimationUnpausable>(
+        entity,
+        AnimationUnpausable{
+            .tick_counter = tick_counter,
+            .ticks_per_frame = ticks_per_frame,
+            .cur_frame = cur_frame,
+            .strip_id = strip_id,
+        }
+    );
+
+    return 0;
+}
+
+int get_animation_unpausable(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<AnimationUnpausable>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
+    lua_setfield(L, -2, "tickCounter");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.ticks_per_frame));
+    lua_setfield(L, -2, "ticksPerFrame");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.cur_frame));
+    lua_setfield(L, -2, "curFrame");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.strip_id));
+    lua_setfield(L, -2, "stripID");
+
+    return 1;
+}
+
+int has_animation_unpausable(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<AnimationUnpausable>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_animation_unpausable(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<AnimationUnpausable>(entity);
+
+    return 0;
+}
+      
+int set_callback_on_timeout(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "callback");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'callback' field to be a number");
+    }
+    const auto callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "timeoutTicks");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'timeoutTicks' field to be a number");
+    }
+    const auto timeout_ticks = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "tickCounter");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
+    }
+    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<CallbackOnTimeout>(
+        entity,
+        CallbackOnTimeout{
+            .callback = callback,
+            .timeout_ticks = timeout_ticks,
+            .tick_counter = tick_counter,
+        }
+    );
+
+    return 0;
+}
+
+int get_callback_on_timeout(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<CallbackOnTimeout>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.callback));
+    lua_setfield(L, -2, "callback");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.timeout_ticks));
+    lua_setfield(L, -2, "timeoutTicks");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
+    lua_setfield(L, -2, "tickCounter");
+
+    return 1;
+}
+
+int has_callback_on_timeout(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<CallbackOnTimeout>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_callback_on_timeout(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<CallbackOnTimeout>(entity);
+
+    return 0;
+}
+      
+int set_callback_on_timeout_unpausable(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "callback");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'callback' field to be a number");
+    }
+    const auto callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "timeoutTicks");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'timeoutTicks' field to be a number");
+    }
+    const auto timeout_ticks = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "tickCounter");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
+    }
+    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<CallbackOnTimeoutUnpausable>(
+        entity,
+        CallbackOnTimeoutUnpausable{
+            .callback = callback,
+            .timeout_ticks = timeout_ticks,
+            .tick_counter = tick_counter,
+        }
+    );
+
+    return 0;
+}
+
+int get_callback_on_timeout_unpausable(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<CallbackOnTimeoutUnpausable>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.callback));
+    lua_setfield(L, -2, "callback");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.timeout_ticks));
+    lua_setfield(L, -2, "timeoutTicks");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
+    lua_setfield(L, -2, "tickCounter");
+
+    return 1;
+}
+
+int has_callback_on_timeout_unpausable(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<CallbackOnTimeoutUnpausable>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_callback_on_timeout_unpausable(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<CallbackOnTimeoutUnpausable>(entity);
+
+    return 0;
+}
+      
+int set_collision_active(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "hitboxOffsetX");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'hitboxOffsetX' field to be a number");
+    }
+    const auto hitbox_offset_x = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "hitboxOffsetY");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'hitboxOffsetY' field to be a number");
+    }
+    const auto hitbox_offset_y = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "hitboxW");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'hitboxW' field to be a number");
+    }
+    const auto hitbox_w = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "hitboxH");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'hitboxH' field to be a number");
+    }
+    const auto hitbox_h = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<CollisionActive>(
+        entity,
+        CollisionActive{
+            .hitbox_offset_x = hitbox_offset_x,
+            .hitbox_offset_y = hitbox_offset_y,
+            .hitbox_w = hitbox_w,
+            .hitbox_h = hitbox_h,
+        }
+    );
+
+    return 0;
+}
+
+int get_collision_active(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<CollisionActive>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.hitbox_offset_x));
+    lua_setfield(L, -2, "hitboxOffsetX");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.hitbox_offset_y));
+    lua_setfield(L, -2, "hitboxOffsetY");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.hitbox_w));
+    lua_setfield(L, -2, "hitboxW");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.hitbox_h));
+    lua_setfield(L, -2, "hitboxH");
+
+    return 1;
+}
+
+int has_collision_active(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<CollisionActive>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_collision_active(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<CollisionActive>(entity);
+
+    return 0;
+}
+      
+int set_collision_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "callback");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'callback' field to be a number");
+    }
+    const auto callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<CollisionCallback>(
+        entity,
+        CollisionCallback{
+            .callback = callback,
+        }
+    );
+
+    return 0;
+}
+
+int get_collision_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<CollisionCallback>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.callback));
+    lua_setfield(L, -2, "callback");
+
+    return 1;
+}
+
+int has_collision_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<CollisionCallback>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_collision_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<CollisionCallback>(entity);
+
+    return 0;
+}
+      
+int set_collision_passive(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "hitboxOffsetX");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'hitboxOffsetX' field to be a number");
+    }
+    const auto hitbox_offset_x = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "hitboxOffsetY");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'hitboxOffsetY' field to be a number");
+    }
+    const auto hitbox_offset_y = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "hitboxW");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'hitboxW' field to be a number");
+    }
+    const auto hitbox_w = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "hitboxH");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'hitboxH' field to be a number");
+    }
+    const auto hitbox_h = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<CollisionPassive>(
+        entity,
+        CollisionPassive{
+            .hitbox_offset_x = hitbox_offset_x,
+            .hitbox_offset_y = hitbox_offset_y,
+            .hitbox_w = hitbox_w,
+            .hitbox_h = hitbox_h,
+        }
+    );
+
+    return 0;
+}
+
+int get_collision_passive(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<CollisionPassive>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.hitbox_offset_x));
+    lua_setfield(L, -2, "hitboxOffsetX");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.hitbox_offset_y));
+    lua_setfield(L, -2, "hitboxOffsetY");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.hitbox_w));
+    lua_setfield(L, -2, "hitboxW");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.hitbox_h));
+    lua_setfield(L, -2, "hitboxH");
+
+    return 1;
+}
+
+int has_collision_passive(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<CollisionPassive>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_collision_passive(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<CollisionPassive>(entity);
+
+    return 0;
+}
+      
+int set_damage(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "type");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'type' field to be a number");
+    }
+    const auto type = static_cast<DamageTypeSet>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "amount");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'amount' field to be a number");
+    }
+    const auto amount = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<Damage>(
+        entity,
+        Damage{
+            .type = type,
+            .amount = amount,
+        }
+    );
+
+    return 0;
+}
+
+int get_damage(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<Damage>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.type));
+    lua_setfield(L, -2, "type");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.amount));
+    lua_setfield(L, -2, "amount");
+
+    return 1;
+}
+
+int has_damage(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<Damage>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_damage(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<Damage>(entity);
+
+    return 0;
+}
+      
+int set_damage_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "callback");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'callback' field to be a number");
+    }
+    const auto callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<DamageCallback>(
+        entity,
+        DamageCallback{
+            .callback = callback,
+        }
+    );
+
+    return 0;
+}
+
+int get_damage_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<DamageCallback>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.callback));
+    lua_setfield(L, -2, "callback");
+
+    return 1;
+}
+
+int has_damage_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<DamageCallback>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_damage_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<DamageCallback>(entity);
+
+    return 0;
+}
+      
+int set_deletion_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "callback");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'callback' field to be a number");
+    }
+    const auto callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<DeletionCallback>(
+        entity,
+        DeletionCallback{
+            .callback = callback,
+        }
+    );
+
+    return 0;
+}
+
+int get_deletion_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<DeletionCallback>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.callback));
+    lua_setfield(L, -2, "callback");
+
+    return 1;
+}
+
+int has_deletion_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<DeletionCallback>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_deletion_callback(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<DeletionCallback>(entity);
+
+    return 0;
+}
+      
+int set_game_over(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    if (!ecs_ptr->ctx().contains<GameOver>()) {
+        ecs_ptr->ctx().emplace<GameOver>();
+    }
+
+    return 0;
+}
+
+int has_game_over(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    auto result = ecs_ptr->ctx().contains<GameOver>();
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_game_over(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    ecs_ptr->ctx().erase<GameOver>();
+
+    return 0;
+}
+      
+int set_hitpoints(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "susceptibleTo");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'susceptibleTo' field to be a number");
+    }
+    const auto susceptible_to = static_cast<DamageTypeSet>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "curHitpoints");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'curHitpoints' field to be a number");
+    }
+    const auto cur_hitpoints = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<Hitpoints>(
+        entity,
+        Hitpoints{
+            .susceptible_to = susceptible_to,
+            .cur_hitpoints = cur_hitpoints,
+        }
+    );
+
+    return 0;
+}
+
+int get_hitpoints(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<Hitpoints>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.susceptible_to));
+    lua_setfield(L, -2, "susceptibleTo");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.cur_hitpoints));
+    lua_setfield(L, -2, "curHitpoints");
+
+    return 1;
+}
+
+int has_hitpoints(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<Hitpoints>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_hitpoints(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<Hitpoints>(entity);
+
+    return 0;
+}
+      
+int set_hud(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    luaL_checktype(L, 1, LUA_TTABLE);
+
+    lua_getfield(L, 1, "score");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'score' field to be a number");
+    }
+    const auto score = static_cast<uint32_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "highScore");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'highScore' field to be a number");
+    }
+    const auto high_score = static_cast<uint32_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "remainingLives");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'remainingLives' field to be a number");
+    }
+    const auto remaining_lives = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->ctx().insert_or_assign<HUD>(
+        HUD{
+            .score = score,
+            .high_score = high_score,
+            .remaining_lives = remaining_lives,
+        }
+    );
+
+    return 0;
+}
+
+int get_hud(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    auto component = ecs_ptr->ctx().get<HUD>();
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.score));
+    lua_setfield(L, -2, "score");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.high_score));
+    lua_setfield(L, -2, "highScore");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.remaining_lives));
+    lua_setfield(L, -2, "remainingLives");
+
+    return 1;
+}
+
+int has_hud(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    auto result = ecs_ptr->ctx().contains<HUD>();
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_hud(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    ecs_ptr->ctx().erase<HUD>();
+
+    return 0;
+}
+      
+int set_invader_animation(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "curFrame");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'curFrame' field to be a number");
+    }
+    const auto cur_frame = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "stripID");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'stripID' field to be a number");
+    }
+    const auto strip_id = static_cast<framework::AnimationStripID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<InvaderAnimation>(
+        entity,
+        InvaderAnimation{
+            .cur_frame = cur_frame,
+            .strip_id = strip_id,
+        }
+    );
+
+    return 0;
+}
+
+int get_invader_animation(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<InvaderAnimation>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.cur_frame));
+    lua_setfield(L, -2, "curFrame");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.strip_id));
+    lua_setfield(L, -2, "stripID");
+
+    return 1;
+}
+
+int has_invader_animation(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<InvaderAnimation>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_invader_animation(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<InvaderAnimation>(entity);
+
+    return 0;
+}
+      
+int set_invader_orchestration_state(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    luaL_checktype(L, 1, LUA_TTABLE);
+
+    lua_getfield(L, 1, "noInvadersCallback");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'noInvadersCallback' field to be a number");
+    }
+    const auto no_invaders_callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "shootCallback");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'shootCallback' field to be a number");
+    }
+    const auto shoot_callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "touchdownCallback");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'touchdownCallback' field to be a number");
+    }
+    const auto touchdown_callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "baseTicksPerMove");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'baseTicksPerMove' field to be a number");
+    }
+    const auto base_ticks_per_move = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "tickCounter");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'tickCounter' field to be a number");
+    }
+    const auto tick_counter = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "xSpeed");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'xSpeed' field to be a number");
+    }
+    const auto x_speed = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "ySpeed");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'ySpeed' field to be a number");
+    }
+    const auto y_speed = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "lastInvaderXSpeed");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'lastInvaderXSpeed' field to be a number");
+    }
+    const auto last_invader_x_speed = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "lastInvaderYSpeed");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'lastInvaderYSpeed' field to be a number");
+    }
+    const auto last_invader_y_speed = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "ticksPerShot");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'ticksPerShot' field to be a number");
+    }
+    const auto ticks_per_shot = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "shootTickCounter");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'shootTickCounter' field to be a number");
+    }
+    const auto shoot_tick_counter = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "curArp");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'curArp' field to be a number");
+    }
+    const auto cur_arp = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "movingLeft");
+    if (!lua_isboolean(L, -1)) {
+        luaL_argerror(L, 1, "Expected 'movingLeft' field to be a boolean");
+    }
+    const bool moving_left = lua_toboolean(L, -1);
+    lua_pop(L, 1);
+
+    ecs_ptr->ctx().insert_or_assign<InvaderOrchestrationState>(
+        InvaderOrchestrationState{
+            .no_invaders_callback = no_invaders_callback,
+            .shoot_callback = shoot_callback,
+            .touchdown_callback = touchdown_callback,
+            .base_ticks_per_move = base_ticks_per_move,
+            .tick_counter = tick_counter,
+            .x_speed = x_speed,
+            .y_speed = y_speed,
+            .last_invader_x_speed = last_invader_x_speed,
+            .last_invader_y_speed = last_invader_y_speed,
+            .ticks_per_shot = ticks_per_shot,
+            .shoot_tick_counter = shoot_tick_counter,
+            .cur_arp = cur_arp,
+            .moving_left = moving_left,
+        }
+    );
+
+    return 0;
+}
+
+int get_invader_orchestration_state(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    auto component = ecs_ptr->ctx().get<InvaderOrchestrationState>();
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.no_invaders_callback));
+    lua_setfield(L, -2, "noInvadersCallback");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.shoot_callback));
+    lua_setfield(L, -2, "shootCallback");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.touchdown_callback));
+    lua_setfield(L, -2, "touchdownCallback");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.base_ticks_per_move));
+    lua_setfield(L, -2, "baseTicksPerMove");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
+    lua_setfield(L, -2, "tickCounter");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.x_speed));
+    lua_setfield(L, -2, "xSpeed");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.y_speed));
+    lua_setfield(L, -2, "ySpeed");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.last_invader_x_speed));
+    lua_setfield(L, -2, "lastInvaderXSpeed");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.last_invader_y_speed));
+    lua_setfield(L, -2, "lastInvaderYSpeed");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.ticks_per_shot));
+    lua_setfield(L, -2, "ticksPerShot");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.shoot_tick_counter));
+    lua_setfield(L, -2, "shootTickCounter");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.cur_arp));
+    lua_setfield(L, -2, "curArp");
+
+    lua_pushboolean(L, component.moving_left);
+    lua_setfield(L, -2, "movingLeft");
+
+    return 1;
+}
+
+int has_invader_orchestration_state(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    auto result = ecs_ptr->ctx().contains<InvaderOrchestrationState>();
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_invader_orchestration_state(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    ecs_ptr->ctx().erase<InvaderOrchestrationState>();
+
+    return 0;
+}
+      
+int set_orchestrated_invader(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->emplace_or_replace<OrchestratedInvader>(entity);
+
+    return 0;
+}
+
+int has_orchestrated_invader(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<OrchestratedInvader>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_orchestrated_invader(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<OrchestratedInvader>(entity);
+
+    return 0;
+}
+      
+int set_pause(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    if (!ecs_ptr->ctx().contains<Pause>()) {
+        ecs_ptr->ctx().emplace<Pause>();
+    }
+
+    return 0;
+}
+
+int has_pause(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    auto result = ecs_ptr->ctx().contains<Pause>();
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_pause(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    ecs_ptr->ctx().erase<Pause>();
+
+    return 0;
+}
+      
+int set_player_attack(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "ticksPerAttack");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'ticksPerAttack' field to be a number");
+    }
+    const auto ticks_per_attack = static_cast<uint32_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "tickCounter");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
+    }
+    const auto tick_counter = static_cast<uint32_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "callback");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'callback' field to be a number");
+    }
+    const auto callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<PlayerAttack>(
+        entity,
+        PlayerAttack{
+            .ticks_per_attack = ticks_per_attack,
+            .tick_counter = tick_counter,
+            .callback = callback,
+        }
+    );
+
+    return 0;
+}
+
+int get_player_attack(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<PlayerAttack>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.ticks_per_attack));
+    lua_setfield(L, -2, "ticksPerAttack");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
+    lua_setfield(L, -2, "tickCounter");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.callback));
+    lua_setfield(L, -2, "callback");
+
+    return 1;
+}
+
+int has_player_attack(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<PlayerAttack>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_player_attack(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<PlayerAttack>(entity);
+
+    return 0;
+}
+      
+int set_player_movement(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "xSpeed");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'xSpeed' field to be a number");
+    }
+    const auto x_speed = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<PlayerMovement>(
+        entity,
+        PlayerMovement{
+            .x_speed = x_speed,
+        }
+    );
+
+    return 0;
+}
+
+int get_player_movement(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<PlayerMovement>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.x_speed));
+    lua_setfield(L, -2, "xSpeed");
+
+    return 1;
+}
+
+int has_player_movement(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<PlayerMovement>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_player_movement(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<PlayerMovement>(entity);
+
+    return 0;
+}
+      
+int set_position(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "x");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'x' field to be a number");
+    }
+    const auto x = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "y");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'y' field to be a number");
+    }
+    const auto y = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "w");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'w' field to be a number");
+    }
+    const auto w = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "h");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'h' field to be a number");
+    }
+    const auto h = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "z");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'z' field to be a number");
+    }
+    const auto z = static_cast<uint8_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<Position>(
+        entity,
+        Position{
+            .x = x,
+            .y = y,
+            .w = w,
+            .h = h,
+            .z = z,
+        }
+    );
+
+    return 0;
+}
+
+int get_position(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<Position>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.x));
+    lua_setfield(L, -2, "x");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.y));
+    lua_setfield(L, -2, "y");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.w));
+    lua_setfield(L, -2, "w");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.h));
+    lua_setfield(L, -2, "h");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.z));
+    lua_setfield(L, -2, "z");
+
+    return 1;
+}
+
+int has_position(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<Position>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_position(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<Position>(entity);
+
+    return 0;
+}
+      
+int set_position_following(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "leader");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'leader' field to be a number");
+    }
+    const auto leader = static_cast<uint32_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "xOffset");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'xOffset' field to be a number");
+    }
+    const auto x_offset = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "yOffset");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'yOffset' field to be a number");
+    }
+    const auto y_offset = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<PositionFollowing>(
+        entity,
+        PositionFollowing{
+            .leader = leader,
+            .x_offset = x_offset,
+            .y_offset = y_offset,
+        }
+    );
+
+    return 0;
+}
+
+int get_position_following(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<PositionFollowing>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.leader));
+    lua_setfield(L, -2, "leader");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.x_offset));
+    lua_setfield(L, -2, "xOffset");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.y_offset));
+    lua_setfield(L, -2, "yOffset");
+
+    return 1;
+}
+
+int has_position_following(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<PositionFollowing>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_position_following(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<PositionFollowing>(entity);
+
+    return 0;
+}
+      
+int set_sprite(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "srcID");
+    if (!lua_isstring(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'srcID' field to be a string");
+    }
+    const std::string src_id = lua_tostring(L, -1);
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "srcX");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'srcX' field to be a number");
+    }
+    const auto src_x = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "srcY");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'srcY' field to be a number");
+    }
+    const auto src_y = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "srcW");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'srcW' field to be a number");
+    }
+    const auto src_w = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "srcH");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'srcH' field to be a number");
+    }
+    const auto src_h = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "dstW");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'dstW' field to be a number");
+    }
+    const auto dst_w = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "dstH");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'dstH' field to be a number");
+    }
+    const auto dst_h = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<Sprite>(
+        entity,
+        Sprite{
+            .src_id = src_id,
+            .src_x = src_x,
+            .src_y = src_y,
+            .src_w = src_w,
+            .src_h = src_h,
+            .dst_w = dst_w,
+            .dst_h = dst_h,
+        }
+    );
+
+    return 0;
+}
+
+int get_sprite(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<Sprite>(entity);
+
+    lua_newtable(L);
+
+    lua_pushstring(L, component.src_id.c_str());
+    lua_setfield(L, -2, "srcID");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.src_x));
+    lua_setfield(L, -2, "srcX");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.src_y));
+    lua_setfield(L, -2, "srcY");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.src_w));
+    lua_setfield(L, -2, "srcW");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.src_h));
+    lua_setfield(L, -2, "srcH");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.dst_w));
+    lua_setfield(L, -2, "dstW");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.dst_h));
+    lua_setfield(L, -2, "dstH");
+
+    return 1;
+}
+
+int has_sprite(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<Sprite>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_sprite(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<Sprite>(entity);
+
+    return 0;
+}
+      
+int set_to_be_deleted(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->emplace_or_replace<ToBeDeleted>(entity);
+
+    return 0;
+}
+
+int has_to_be_deleted(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<ToBeDeleted>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_to_be_deleted(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<ToBeDeleted>(entity);
+
+    return 0;
+}
+      
+int set_ttl(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "ticksToLive");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'ticksToLive' field to be a number");
+    }
+    const auto ticks_to_live = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "tickCounter");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
+    }
+    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<TTL>(
+        entity,
+        TTL{
+            .ticks_to_live = ticks_to_live,
+            .tick_counter = tick_counter,
+        }
+    );
+
+    return 0;
+}
+
+int get_ttl(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<TTL>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.ticks_to_live));
+    lua_setfield(L, -2, "ticksToLive");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
+    lua_setfield(L, -2, "tickCounter");
+
+    return 1;
+}
+
+int has_ttl(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<TTL>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_ttl(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<TTL>(entity);
+
+    return 0;
+}
+      
+int set_velocity(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    luaL_checktype(L, 2, LUA_TTABLE);
+
+    lua_getfield(L, 2, "x");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'x' field to be a number");
+    }
+    const auto x = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    lua_getfield(L, 2, "y");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'y' field to be a number");
+    }
+    const auto y = static_cast<float>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
+    ecs_ptr->emplace_or_replace<Velocity>(
+        entity,
+        Velocity{
+            .x = x,
+            .y = y,
+        }
+    );
+
+    return 0;
+}
+
+int get_velocity(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto component = ecs_ptr->get<Velocity>(entity);
+
+    lua_newtable(L);
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.x));
+    lua_setfield(L, -2, "x");
+
+    lua_pushnumber(L, static_cast<lua_Number>(component.y));
+    lua_setfield(L, -2, "y");
+
+    return 1;
+}
+
+int has_velocity(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    auto result = ecs_ptr->all_of<Velocity>(entity);
+
+    lua_pushboolean(L, result);
+
+    return 1;
+}
+
+int remove_velocity(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    ecs_ptr->remove<Velocity>(entity);
+
+    return 0;
+}
+
 void register_components(entt::registry &ecs, lua_State *L) {
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction("create", [&ecs]() -> uint32_t { return entt::to_integral(ecs.create()); })
-        .addFunction(
-            "clearAll",
-            [&ecs]() {
-                ecs.clear();
-                ecs.ctx().clear();
-            }
-        )
-        .endNamespace();
-
-  // Animation
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<Animation>("Animation")
-        .addConstructor<void()>()
-        .addProperty("tickCounter", &Animation::tick_counter, &Animation::tick_counter)
-        .addProperty("ticksPerFrame", &Animation::ticks_per_frame, &Animation::ticks_per_frame)
-        .addProperty("curFrame", &Animation::cur_frame, &Animation::cur_frame)
-        .addProperty("stripID", &Animation::strip_id, &Animation::strip_id)
-        .addProperty("playing", &Animation::playing, &Animation::playing)
-        .addProperty("playReversed", &Animation::play_reversed, &Animation::play_reversed)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setAnimation",
-            [&ecs](uint32_t entity_int, Animation component) {
-                ecs.emplace_or_replace<Animation>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasAnimation",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<Animation>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getAnimation",
-            [&ecs](uint32_t entity_int) { return ecs.get<Animation>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeAnimation",
-            [&ecs](uint32_t entity_int) { ecs.remove<Animation>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // AnimationUnpausable
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<AnimationUnpausable>("AnimationUnpausable")
-        .addConstructor<void()>()
-        .addProperty("tickCounter", &AnimationUnpausable::tick_counter, &AnimationUnpausable::tick_counter)
-        .addProperty("ticksPerFrame", &AnimationUnpausable::ticks_per_frame, &AnimationUnpausable::ticks_per_frame)
-        .addProperty("curFrame", &AnimationUnpausable::cur_frame, &AnimationUnpausable::cur_frame)
-        .addProperty("stripID", &AnimationUnpausable::strip_id, &AnimationUnpausable::strip_id)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setAnimationUnpausable",
-            [&ecs](uint32_t entity_int, AnimationUnpausable component) {
-                ecs.emplace_or_replace<AnimationUnpausable>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasAnimationUnpausable",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<AnimationUnpausable>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getAnimationUnpausable",
-            [&ecs](uint32_t entity_int) { return ecs.get<AnimationUnpausable>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeAnimationUnpausable",
-            [&ecs](uint32_t entity_int) { ecs.remove<AnimationUnpausable>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // CallbackOnTimeout
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<CallbackOnTimeout>("CallbackOnTimeout")
-        .addConstructor<void()>()
-        .addProperty("callback", &CallbackOnTimeout::callback, &CallbackOnTimeout::callback)
-        .addProperty("timeoutTicks", &CallbackOnTimeout::timeout_ticks, &CallbackOnTimeout::timeout_ticks)
-        .addProperty("tickCounter", &CallbackOnTimeout::tick_counter, &CallbackOnTimeout::tick_counter)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setCallbackOnTimeout",
-            [&ecs](uint32_t entity_int, CallbackOnTimeout component) {
-                ecs.emplace_or_replace<CallbackOnTimeout>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasCallbackOnTimeout",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<CallbackOnTimeout>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getCallbackOnTimeout",
-            [&ecs](uint32_t entity_int) { return ecs.get<CallbackOnTimeout>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeCallbackOnTimeout",
-            [&ecs](uint32_t entity_int) { ecs.remove<CallbackOnTimeout>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // CallbackOnTimeoutUnpausable
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<CallbackOnTimeoutUnpausable>("CallbackOnTimeoutUnpausable")
-        .addConstructor<void()>()
-        .addProperty("callback", &CallbackOnTimeoutUnpausable::callback, &CallbackOnTimeoutUnpausable::callback)
-        .addProperty("timeoutTicks", &CallbackOnTimeoutUnpausable::timeout_ticks, &CallbackOnTimeoutUnpausable::timeout_ticks)
-        .addProperty("tickCounter", &CallbackOnTimeoutUnpausable::tick_counter, &CallbackOnTimeoutUnpausable::tick_counter)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setCallbackOnTimeoutUnpausable",
-            [&ecs](uint32_t entity_int, CallbackOnTimeoutUnpausable component) {
-                ecs.emplace_or_replace<CallbackOnTimeoutUnpausable>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasCallbackOnTimeoutUnpausable",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<CallbackOnTimeoutUnpausable>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getCallbackOnTimeoutUnpausable",
-            [&ecs](uint32_t entity_int) { return ecs.get<CallbackOnTimeoutUnpausable>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeCallbackOnTimeoutUnpausable",
-            [&ecs](uint32_t entity_int) { ecs.remove<CallbackOnTimeoutUnpausable>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // CollisionActive
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<CollisionActive>("CollisionActive")
-        .addConstructor<void()>()
-        .addProperty("hitboxOffsetX", &CollisionActive::hitbox_offset_x, &CollisionActive::hitbox_offset_x)
-        .addProperty("hitboxOffsetY", &CollisionActive::hitbox_offset_y, &CollisionActive::hitbox_offset_y)
-        .addProperty("hitboxW", &CollisionActive::hitbox_w, &CollisionActive::hitbox_w)
-        .addProperty("hitboxH", &CollisionActive::hitbox_h, &CollisionActive::hitbox_h)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setCollisionActive",
-            [&ecs](uint32_t entity_int, CollisionActive component) {
-                ecs.emplace_or_replace<CollisionActive>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasCollisionActive",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<CollisionActive>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getCollisionActive",
-            [&ecs](uint32_t entity_int) { return ecs.get<CollisionActive>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeCollisionActive",
-            [&ecs](uint32_t entity_int) { ecs.remove<CollisionActive>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // CollisionCallback
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<CollisionCallback>("CollisionCallback")
-        .addConstructor<void()>()
-        .addProperty("callback", &CollisionCallback::callback, &CollisionCallback::callback)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setCollisionCallback",
-            [&ecs](uint32_t entity_int, CollisionCallback component) {
-                ecs.emplace_or_replace<CollisionCallback>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasCollisionCallback",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<CollisionCallback>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getCollisionCallback",
-            [&ecs](uint32_t entity_int) { return ecs.get<CollisionCallback>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeCollisionCallback",
-            [&ecs](uint32_t entity_int) { ecs.remove<CollisionCallback>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // CollisionPassive
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<CollisionPassive>("CollisionPassive")
-        .addConstructor<void()>()
-        .addProperty("hitboxOffsetX", &CollisionPassive::hitbox_offset_x, &CollisionPassive::hitbox_offset_x)
-        .addProperty("hitboxOffsetY", &CollisionPassive::hitbox_offset_y, &CollisionPassive::hitbox_offset_y)
-        .addProperty("hitboxW", &CollisionPassive::hitbox_w, &CollisionPassive::hitbox_w)
-        .addProperty("hitboxH", &CollisionPassive::hitbox_h, &CollisionPassive::hitbox_h)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setCollisionPassive",
-            [&ecs](uint32_t entity_int, CollisionPassive component) {
-                ecs.emplace_or_replace<CollisionPassive>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasCollisionPassive",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<CollisionPassive>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getCollisionPassive",
-            [&ecs](uint32_t entity_int) { return ecs.get<CollisionPassive>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeCollisionPassive",
-            [&ecs](uint32_t entity_int) { ecs.remove<CollisionPassive>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // Damage
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<Damage>("Damage")
-        .addConstructor<void()>()
-        .addProperty("type", &Damage::type, &Damage::type)
-        .addProperty("amount", &Damage::amount, &Damage::amount)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setDamage",
-            [&ecs](uint32_t entity_int, Damage component) {
-                ecs.emplace_or_replace<Damage>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasDamage",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<Damage>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getDamage",
-            [&ecs](uint32_t entity_int) { return ecs.get<Damage>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeDamage",
-            [&ecs](uint32_t entity_int) { ecs.remove<Damage>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // DamageCallback
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<DamageCallback>("DamageCallback")
-        .addConstructor<void()>()
-        .addProperty("callback", &DamageCallback::callback, &DamageCallback::callback)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setDamageCallback",
-            [&ecs](uint32_t entity_int, DamageCallback component) {
-                ecs.emplace_or_replace<DamageCallback>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasDamageCallback",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<DamageCallback>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getDamageCallback",
-            [&ecs](uint32_t entity_int) { return ecs.get<DamageCallback>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeDamageCallback",
-            [&ecs](uint32_t entity_int) { ecs.remove<DamageCallback>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // DeletionCallback
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<DeletionCallback>("DeletionCallback")
-        .addConstructor<void()>()
-        .addProperty("callback", &DeletionCallback::callback, &DeletionCallback::callback)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setDeletionCallback",
-            [&ecs](uint32_t entity_int, DeletionCallback component) {
-                ecs.emplace_or_replace<DeletionCallback>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasDeletionCallback",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<DeletionCallback>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getDeletionCallback",
-            [&ecs](uint32_t entity_int) { return ecs.get<DeletionCallback>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeDeletionCallback",
-            [&ecs](uint32_t entity_int) { ecs.remove<DeletionCallback>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // GameOver
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setGameOver", [&ecs]() {
-                if (!ecs.ctx().contains<GameOver>()) {
-                    ecs.ctx().emplace<GameOver>();
-                }
-            }
-        )
-        .addFunction("hasGameOver", [&ecs]() { return ecs.ctx().contains<GameOver>(); })
-        .addFunction("removeGameOver", [&ecs]() { ecs.ctx().erase<GameOver>(); })
-        .endNamespace();
-
-  // Hitpoints
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<Hitpoints>("Hitpoints")
-        .addConstructor<void()>()
-        .addProperty("susceptibleTo", &Hitpoints::susceptible_to, &Hitpoints::susceptible_to)
-        .addProperty("curHitpoints", &Hitpoints::cur_hitpoints, &Hitpoints::cur_hitpoints)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setHitpoints",
-            [&ecs](uint32_t entity_int, Hitpoints component) {
-                ecs.emplace_or_replace<Hitpoints>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasHitpoints",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<Hitpoints>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getHitpoints",
-            [&ecs](uint32_t entity_int) { return ecs.get<Hitpoints>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeHitpoints",
-            [&ecs](uint32_t entity_int) { ecs.remove<Hitpoints>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // HUD
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<HUD>("HUD")
-        .addConstructor<void()>()
-        .addProperty("score", &HUD::score, &HUD::score)
-        .addProperty("highScore", &HUD::high_score, &HUD::high_score)
-        .addProperty("remainingLives", &HUD::remaining_lives, &HUD::remaining_lives)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setHUD", [&ecs](HUD component) { ecs.ctx().insert_or_assign<HUD>(std::move(component)); }
-        )
-        .addFunction("hasHUD", [&ecs]() { return ecs.ctx().contains<HUD>(); })
-        .addFunction("getHUD", [&ecs]() { return ecs.ctx().get<HUD>(); })
-        .addFunction("removeHUD", [&ecs]() { ecs.ctx().erase<HUD>(); })
-        .endNamespace();
-
-  // InvaderAnimation
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<InvaderAnimation>("InvaderAnimation")
-        .addConstructor<void()>()
-        .addProperty("curFrame", &InvaderAnimation::cur_frame, &InvaderAnimation::cur_frame)
-        .addProperty("stripID", &InvaderAnimation::strip_id, &InvaderAnimation::strip_id)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setInvaderAnimation",
-            [&ecs](uint32_t entity_int, InvaderAnimation component) {
-                ecs.emplace_or_replace<InvaderAnimation>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasInvaderAnimation",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<InvaderAnimation>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getInvaderAnimation",
-            [&ecs](uint32_t entity_int) { return ecs.get<InvaderAnimation>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeInvaderAnimation",
-            [&ecs](uint32_t entity_int) { ecs.remove<InvaderAnimation>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // InvaderOrchestrationState
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<InvaderOrchestrationState>("InvaderOrchestrationState")
-        .addConstructor<void()>()
-        .addProperty("noInvadersCallback", &InvaderOrchestrationState::no_invaders_callback, &InvaderOrchestrationState::no_invaders_callback)
-        .addProperty("shootCallback", &InvaderOrchestrationState::shoot_callback, &InvaderOrchestrationState::shoot_callback)
-        .addProperty("touchdownCallback", &InvaderOrchestrationState::touchdown_callback, &InvaderOrchestrationState::touchdown_callback)
-        .addProperty("baseTicksPerMove", &InvaderOrchestrationState::base_ticks_per_move, &InvaderOrchestrationState::base_ticks_per_move)
-        .addProperty("tickCounter", &InvaderOrchestrationState::tick_counter, &InvaderOrchestrationState::tick_counter)
-        .addProperty("xSpeed", &InvaderOrchestrationState::x_speed, &InvaderOrchestrationState::x_speed)
-        .addProperty("ySpeed", &InvaderOrchestrationState::y_speed, &InvaderOrchestrationState::y_speed)
-        .addProperty("lastInvaderXSpeed", &InvaderOrchestrationState::last_invader_x_speed, &InvaderOrchestrationState::last_invader_x_speed)
-        .addProperty("lastInvaderYSpeed", &InvaderOrchestrationState::last_invader_y_speed, &InvaderOrchestrationState::last_invader_y_speed)
-        .addProperty("ticksPerShot", &InvaderOrchestrationState::ticks_per_shot, &InvaderOrchestrationState::ticks_per_shot)
-        .addProperty("shootTickCounter", &InvaderOrchestrationState::shoot_tick_counter, &InvaderOrchestrationState::shoot_tick_counter)
-        .addProperty("curArp", &InvaderOrchestrationState::cur_arp, &InvaderOrchestrationState::cur_arp)
-        .addProperty("movingLeft", &InvaderOrchestrationState::moving_left, &InvaderOrchestrationState::moving_left)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setInvaderOrchestrationState", [&ecs](InvaderOrchestrationState component) { ecs.ctx().insert_or_assign<InvaderOrchestrationState>(std::move(component)); }
-        )
-        .addFunction("hasInvaderOrchestrationState", [&ecs]() { return ecs.ctx().contains<InvaderOrchestrationState>(); })
-        .addFunction("getInvaderOrchestrationState", [&ecs]() { return ecs.ctx().get<InvaderOrchestrationState>(); })
-        .addFunction("removeInvaderOrchestrationState", [&ecs]() { ecs.ctx().erase<InvaderOrchestrationState>(); })
-        .endNamespace();
-
-  // OrchestratedInvader
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setOrchestratedInvader",
-            [&ecs](uint32_t entity_int) {
-                ecs.emplace_or_replace<OrchestratedInvader>(static_cast<entt::entity>(entity_int));
-            }
-        )
-        .addFunction(
-            "hasOrchestratedInvader",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<OrchestratedInvader>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeOrchestratedInvader",
-            [&ecs](uint32_t entity_int) { ecs.remove<OrchestratedInvader>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // Pause
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setPause", [&ecs]() {
-                if (!ecs.ctx().contains<Pause>()) {
-                    ecs.ctx().emplace<Pause>();
-                }
-            }
-        )
-        .addFunction("hasPause", [&ecs]() { return ecs.ctx().contains<Pause>(); })
-        .addFunction("removePause", [&ecs]() { ecs.ctx().erase<Pause>(); })
-        .endNamespace();
-
-  // PlayerAttack
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<PlayerAttack>("PlayerAttack")
-        .addConstructor<void()>()
-        .addProperty("ticksPerAttack", &PlayerAttack::ticks_per_attack, &PlayerAttack::ticks_per_attack)
-        .addProperty("tickCounter", &PlayerAttack::tick_counter, &PlayerAttack::tick_counter)
-        .addProperty("callback", &PlayerAttack::callback, &PlayerAttack::callback)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setPlayerAttack",
-            [&ecs](uint32_t entity_int, PlayerAttack component) {
-                ecs.emplace_or_replace<PlayerAttack>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasPlayerAttack",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<PlayerAttack>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getPlayerAttack",
-            [&ecs](uint32_t entity_int) { return ecs.get<PlayerAttack>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removePlayerAttack",
-            [&ecs](uint32_t entity_int) { ecs.remove<PlayerAttack>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // PlayerMovement
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<PlayerMovement>("PlayerMovement")
-        .addConstructor<void()>()
-        .addProperty("xSpeed", &PlayerMovement::x_speed, &PlayerMovement::x_speed)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setPlayerMovement",
-            [&ecs](uint32_t entity_int, PlayerMovement component) {
-                ecs.emplace_or_replace<PlayerMovement>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasPlayerMovement",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<PlayerMovement>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getPlayerMovement",
-            [&ecs](uint32_t entity_int) { return ecs.get<PlayerMovement>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removePlayerMovement",
-            [&ecs](uint32_t entity_int) { ecs.remove<PlayerMovement>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // Position
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<Position>("Position")
-        .addConstructor<void()>()
-        .addProperty("x", &Position::x, &Position::x)
-        .addProperty("y", &Position::y, &Position::y)
-        .addProperty("w", &Position::w, &Position::w)
-        .addProperty("h", &Position::h, &Position::h)
-        .addProperty("z", &Position::z, &Position::z)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setPosition",
-            [&ecs](uint32_t entity_int, Position component) {
-                ecs.emplace_or_replace<Position>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasPosition",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<Position>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getPosition",
-            [&ecs](uint32_t entity_int) { return ecs.get<Position>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removePosition",
-            [&ecs](uint32_t entity_int) { ecs.remove<Position>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // PositionFollowing
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<PositionFollowing>("PositionFollowing")
-        .addConstructor<void()>()
-        .addProperty("leader", &PositionFollowing::leader, &PositionFollowing::leader)
-        .addProperty("xOffset", &PositionFollowing::x_offset, &PositionFollowing::x_offset)
-        .addProperty("yOffset", &PositionFollowing::y_offset, &PositionFollowing::y_offset)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setPositionFollowing",
-            [&ecs](uint32_t entity_int, PositionFollowing component) {
-                ecs.emplace_or_replace<PositionFollowing>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasPositionFollowing",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<PositionFollowing>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getPositionFollowing",
-            [&ecs](uint32_t entity_int) { return ecs.get<PositionFollowing>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removePositionFollowing",
-            [&ecs](uint32_t entity_int) { ecs.remove<PositionFollowing>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // Sprite
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<Sprite>("Sprite")
-        .addConstructor<void()>()
-        .addProperty("srcID", &Sprite::src_id, &Sprite::src_id)
-        .addProperty("srcX", &Sprite::src_x, &Sprite::src_x)
-        .addProperty("srcY", &Sprite::src_y, &Sprite::src_y)
-        .addProperty("srcW", &Sprite::src_w, &Sprite::src_w)
-        .addProperty("srcH", &Sprite::src_h, &Sprite::src_h)
-        .addProperty("dstW", &Sprite::dst_w, &Sprite::dst_w)
-        .addProperty("dstH", &Sprite::dst_h, &Sprite::dst_h)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setSprite",
-            [&ecs](uint32_t entity_int, Sprite component) {
-                ecs.emplace_or_replace<Sprite>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasSprite",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<Sprite>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getSprite",
-            [&ecs](uint32_t entity_int) { return ecs.get<Sprite>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeSprite",
-            [&ecs](uint32_t entity_int) { ecs.remove<Sprite>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // ToBeDeleted
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setToBeDeleted",
-            [&ecs](uint32_t entity_int) {
-                ecs.emplace_or_replace<ToBeDeleted>(static_cast<entt::entity>(entity_int));
-            }
-        )
-        .addFunction(
-            "hasToBeDeleted",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<ToBeDeleted>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeToBeDeleted",
-            [&ecs](uint32_t entity_int) { ecs.remove<ToBeDeleted>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // TTL
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<TTL>("TTL")
-        .addConstructor<void()>()
-        .addProperty("ticksToLive", &TTL::ticks_to_live, &TTL::ticks_to_live)
-        .addProperty("tickCounter", &TTL::tick_counter, &TTL::tick_counter)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setTTL",
-            [&ecs](uint32_t entity_int, TTL component) {
-                ecs.emplace_or_replace<TTL>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasTTL",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<TTL>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getTTL",
-            [&ecs](uint32_t entity_int) { return ecs.get<TTL>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeTTL",
-            [&ecs](uint32_t entity_int) { ecs.remove<TTL>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
-
-  // Velocity
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("Components")
-        .beginClass<Velocity>("Velocity")
-        .addConstructor<void()>()
-        .addProperty("x", &Velocity::x, &Velocity::x)
-        .addProperty("y", &Velocity::y, &Velocity::y)
-        .endClass()
-        .endNamespace();
-
-    luabridge::getGlobalNamespace(L)
-        .beginNamespace("ECS")
-        .addFunction(
-            "setVelocity",
-            [&ecs](uint32_t entity_int, Velocity component) {
-                ecs.emplace_or_replace<Velocity>(static_cast<entt::entity>(entity_int), component);
-            }
-        )
-        .addFunction(
-            "hasVelocity",
-            [&ecs](uint32_t entity_int) { return ecs.all_of<Velocity>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "getVelocity",
-            [&ecs](uint32_t entity_int) { return ecs.get<Velocity>(static_cast<entt::entity>(entity_int)); }
-        )
-        .addFunction(
-            "removeVelocity",
-            [&ecs](uint32_t entity_int) { ecs.remove<Velocity>(static_cast<entt::entity>(entity_int)); }
-        )
-        .endNamespace();
+    entt::registry *ecs_ptr = &ecs;
+
+    lua_newtable(L);
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &create_entity, "ECS.create", 1);
+    lua_setfield(L, -2, "create");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &clear_all_entities, "ECS.clearAll", 1);
+    lua_setfield(L, -2, "clearAll");
+
+    // Animation
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_animation, "ECS.setAnimation", 1);
+    lua_setfield(L, -2, "setAnimation");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_animation, "ECS.getAnimation", 1);
+    lua_setfield(L, -2, "getAnimation");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_animation, "ECS.hasAnimation", 1);
+    lua_setfield(L, -2, "hasAnimation");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_animation, "ECS.removeAnimation", 1);
+    lua_setfield(L, -2, "removeAnimation");
+
+    // AnimationUnpausable
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_animation_unpausable, "ECS.setAnimationUnpausable", 1);
+    lua_setfield(L, -2, "setAnimationUnpausable");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_animation_unpausable, "ECS.getAnimationUnpausable", 1);
+    lua_setfield(L, -2, "getAnimationUnpausable");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_animation_unpausable, "ECS.hasAnimationUnpausable", 1);
+    lua_setfield(L, -2, "hasAnimationUnpausable");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_animation_unpausable, "ECS.removeAnimationUnpausable", 1);
+    lua_setfield(L, -2, "removeAnimationUnpausable");
+
+    // CallbackOnTimeout
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_callback_on_timeout, "ECS.setCallbackOnTimeout", 1);
+    lua_setfield(L, -2, "setCallbackOnTimeout");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_callback_on_timeout, "ECS.getCallbackOnTimeout", 1);
+    lua_setfield(L, -2, "getCallbackOnTimeout");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_callback_on_timeout, "ECS.hasCallbackOnTimeout", 1);
+    lua_setfield(L, -2, "hasCallbackOnTimeout");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_callback_on_timeout, "ECS.removeCallbackOnTimeout", 1);
+    lua_setfield(L, -2, "removeCallbackOnTimeout");
+
+    // CallbackOnTimeoutUnpausable
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_callback_on_timeout_unpausable, "ECS.setCallbackOnTimeoutUnpausable", 1);
+    lua_setfield(L, -2, "setCallbackOnTimeoutUnpausable");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_callback_on_timeout_unpausable, "ECS.getCallbackOnTimeoutUnpausable", 1);
+    lua_setfield(L, -2, "getCallbackOnTimeoutUnpausable");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_callback_on_timeout_unpausable, "ECS.hasCallbackOnTimeoutUnpausable", 1);
+    lua_setfield(L, -2, "hasCallbackOnTimeoutUnpausable");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_callback_on_timeout_unpausable, "ECS.removeCallbackOnTimeoutUnpausable", 1);
+    lua_setfield(L, -2, "removeCallbackOnTimeoutUnpausable");
+
+    // CollisionActive
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_collision_active, "ECS.setCollisionActive", 1);
+    lua_setfield(L, -2, "setCollisionActive");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_collision_active, "ECS.getCollisionActive", 1);
+    lua_setfield(L, -2, "getCollisionActive");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_collision_active, "ECS.hasCollisionActive", 1);
+    lua_setfield(L, -2, "hasCollisionActive");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_collision_active, "ECS.removeCollisionActive", 1);
+    lua_setfield(L, -2, "removeCollisionActive");
+
+    // CollisionCallback
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_collision_callback, "ECS.setCollisionCallback", 1);
+    lua_setfield(L, -2, "setCollisionCallback");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_collision_callback, "ECS.getCollisionCallback", 1);
+    lua_setfield(L, -2, "getCollisionCallback");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_collision_callback, "ECS.hasCollisionCallback", 1);
+    lua_setfield(L, -2, "hasCollisionCallback");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_collision_callback, "ECS.removeCollisionCallback", 1);
+    lua_setfield(L, -2, "removeCollisionCallback");
+
+    // CollisionPassive
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_collision_passive, "ECS.setCollisionPassive", 1);
+    lua_setfield(L, -2, "setCollisionPassive");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_collision_passive, "ECS.getCollisionPassive", 1);
+    lua_setfield(L, -2, "getCollisionPassive");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_collision_passive, "ECS.hasCollisionPassive", 1);
+    lua_setfield(L, -2, "hasCollisionPassive");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_collision_passive, "ECS.removeCollisionPassive", 1);
+    lua_setfield(L, -2, "removeCollisionPassive");
+
+    // Damage
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_damage, "ECS.setDamage", 1);
+    lua_setfield(L, -2, "setDamage");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_damage, "ECS.getDamage", 1);
+    lua_setfield(L, -2, "getDamage");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_damage, "ECS.hasDamage", 1);
+    lua_setfield(L, -2, "hasDamage");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_damage, "ECS.removeDamage", 1);
+    lua_setfield(L, -2, "removeDamage");
+
+    // DamageCallback
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_damage_callback, "ECS.setDamageCallback", 1);
+    lua_setfield(L, -2, "setDamageCallback");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_damage_callback, "ECS.getDamageCallback", 1);
+    lua_setfield(L, -2, "getDamageCallback");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_damage_callback, "ECS.hasDamageCallback", 1);
+    lua_setfield(L, -2, "hasDamageCallback");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_damage_callback, "ECS.removeDamageCallback", 1);
+    lua_setfield(L, -2, "removeDamageCallback");
+
+    // DeletionCallback
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_deletion_callback, "ECS.setDeletionCallback", 1);
+    lua_setfield(L, -2, "setDeletionCallback");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_deletion_callback, "ECS.getDeletionCallback", 1);
+    lua_setfield(L, -2, "getDeletionCallback");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_deletion_callback, "ECS.hasDeletionCallback", 1);
+    lua_setfield(L, -2, "hasDeletionCallback");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_deletion_callback, "ECS.removeDeletionCallback", 1);
+    lua_setfield(L, -2, "removeDeletionCallback");
+
+    // GameOver
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_game_over, "ECS.setGameOver", 1);
+    lua_setfield(L, -2, "setGameOver");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_game_over, "ECS.hasGameOver", 1);
+    lua_setfield(L, -2, "hasGameOver");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_game_over, "ECS.removeGameOver", 1);
+    lua_setfield(L, -2, "removeGameOver");
+
+    // Hitpoints
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_hitpoints, "ECS.setHitpoints", 1);
+    lua_setfield(L, -2, "setHitpoints");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_hitpoints, "ECS.getHitpoints", 1);
+    lua_setfield(L, -2, "getHitpoints");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_hitpoints, "ECS.hasHitpoints", 1);
+    lua_setfield(L, -2, "hasHitpoints");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_hitpoints, "ECS.removeHitpoints", 1);
+    lua_setfield(L, -2, "removeHitpoints");
+
+    // HUD
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_hud, "ECS.setHUD", 1);
+    lua_setfield(L, -2, "setHUD");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_hud, "ECS.getHUD", 1);
+    lua_setfield(L, -2, "getHUD");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_hud, "ECS.hasHUD", 1);
+    lua_setfield(L, -2, "hasHUD");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_hud, "ECS.removeHUD", 1);
+    lua_setfield(L, -2, "removeHUD");
+
+    // InvaderAnimation
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_invader_animation, "ECS.setInvaderAnimation", 1);
+    lua_setfield(L, -2, "setInvaderAnimation");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_invader_animation, "ECS.getInvaderAnimation", 1);
+    lua_setfield(L, -2, "getInvaderAnimation");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_invader_animation, "ECS.hasInvaderAnimation", 1);
+    lua_setfield(L, -2, "hasInvaderAnimation");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_invader_animation, "ECS.removeInvaderAnimation", 1);
+    lua_setfield(L, -2, "removeInvaderAnimation");
+
+    // InvaderOrchestrationState
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_invader_orchestration_state, "ECS.setInvaderOrchestrationState", 1);
+    lua_setfield(L, -2, "setInvaderOrchestrationState");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_invader_orchestration_state, "ECS.getInvaderOrchestrationState", 1);
+    lua_setfield(L, -2, "getInvaderOrchestrationState");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_invader_orchestration_state, "ECS.hasInvaderOrchestrationState", 1);
+    lua_setfield(L, -2, "hasInvaderOrchestrationState");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_invader_orchestration_state, "ECS.removeInvaderOrchestrationState", 1);
+    lua_setfield(L, -2, "removeInvaderOrchestrationState");
+
+    // OrchestratedInvader
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_orchestrated_invader, "ECS.setOrchestratedInvader", 1);
+    lua_setfield(L, -2, "setOrchestratedInvader");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_orchestrated_invader, "ECS.hasOrchestratedInvader", 1);
+    lua_setfield(L, -2, "hasOrchestratedInvader");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_orchestrated_invader, "ECS.removeOrchestratedInvader", 1);
+    lua_setfield(L, -2, "removeOrchestratedInvader");
+
+    // Pause
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_pause, "ECS.setPause", 1);
+    lua_setfield(L, -2, "setPause");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_pause, "ECS.hasPause", 1);
+    lua_setfield(L, -2, "hasPause");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_pause, "ECS.removePause", 1);
+    lua_setfield(L, -2, "removePause");
+
+    // PlayerAttack
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_player_attack, "ECS.setPlayerAttack", 1);
+    lua_setfield(L, -2, "setPlayerAttack");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_player_attack, "ECS.getPlayerAttack", 1);
+    lua_setfield(L, -2, "getPlayerAttack");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_player_attack, "ECS.hasPlayerAttack", 1);
+    lua_setfield(L, -2, "hasPlayerAttack");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_player_attack, "ECS.removePlayerAttack", 1);
+    lua_setfield(L, -2, "removePlayerAttack");
+
+    // PlayerMovement
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_player_movement, "ECS.setPlayerMovement", 1);
+    lua_setfield(L, -2, "setPlayerMovement");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_player_movement, "ECS.getPlayerMovement", 1);
+    lua_setfield(L, -2, "getPlayerMovement");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_player_movement, "ECS.hasPlayerMovement", 1);
+    lua_setfield(L, -2, "hasPlayerMovement");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_player_movement, "ECS.removePlayerMovement", 1);
+    lua_setfield(L, -2, "removePlayerMovement");
+
+    // Position
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_position, "ECS.setPosition", 1);
+    lua_setfield(L, -2, "setPosition");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_position, "ECS.getPosition", 1);
+    lua_setfield(L, -2, "getPosition");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_position, "ECS.hasPosition", 1);
+    lua_setfield(L, -2, "hasPosition");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_position, "ECS.removePosition", 1);
+    lua_setfield(L, -2, "removePosition");
+
+    // PositionFollowing
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_position_following, "ECS.setPositionFollowing", 1);
+    lua_setfield(L, -2, "setPositionFollowing");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_position_following, "ECS.getPositionFollowing", 1);
+    lua_setfield(L, -2, "getPositionFollowing");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_position_following, "ECS.hasPositionFollowing", 1);
+    lua_setfield(L, -2, "hasPositionFollowing");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_position_following, "ECS.removePositionFollowing", 1);
+    lua_setfield(L, -2, "removePositionFollowing");
+
+    // Sprite
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_sprite, "ECS.setSprite", 1);
+    lua_setfield(L, -2, "setSprite");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_sprite, "ECS.getSprite", 1);
+    lua_setfield(L, -2, "getSprite");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_sprite, "ECS.hasSprite", 1);
+    lua_setfield(L, -2, "hasSprite");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_sprite, "ECS.removeSprite", 1);
+    lua_setfield(L, -2, "removeSprite");
+
+    // ToBeDeleted
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_to_be_deleted, "ECS.setToBeDeleted", 1);
+    lua_setfield(L, -2, "setToBeDeleted");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_to_be_deleted, "ECS.hasToBeDeleted", 1);
+    lua_setfield(L, -2, "hasToBeDeleted");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_to_be_deleted, "ECS.removeToBeDeleted", 1);
+    lua_setfield(L, -2, "removeToBeDeleted");
+
+    // TTL
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_ttl, "ECS.setTTL", 1);
+    lua_setfield(L, -2, "setTTL");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_ttl, "ECS.getTTL", 1);
+    lua_setfield(L, -2, "getTTL");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_ttl, "ECS.hasTTL", 1);
+    lua_setfield(L, -2, "hasTTL");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_ttl, "ECS.removeTTL", 1);
+    lua_setfield(L, -2, "removeTTL");
+
+    // Velocity
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &set_velocity, "ECS.setVelocity", 1);
+    lua_setfield(L, -2, "setVelocity");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &get_velocity, "ECS.getVelocity", 1);
+    lua_setfield(L, -2, "getVelocity");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &has_velocity, "ECS.hasVelocity", 1);
+    lua_setfield(L, -2, "hasVelocity");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &remove_velocity, "ECS.removeVelocity", 1);
+    lua_setfield(L, -2, "removeVelocity");
+
+    lua_setglobal(L, "ECS");
 }
 
 }

@@ -135,30 +135,6 @@ export type Velocity = {
     y: number,
 }
 
-declare Components: {
-    Animation: () -> Animation,
-    AnimationUnpausable: () -> AnimationUnpausable,
-    CallbackOnTimeout: () -> CallbackOnTimeout,
-    CallbackOnTimeoutUnpausable: () -> CallbackOnTimeoutUnpausable,
-    CollisionActive: () -> CollisionActive,
-    CollisionCallback: () -> CollisionCallback,
-    CollisionPassive: () -> CollisionPassive,
-    Damage: () -> Damage,
-    DamageCallback: () -> DamageCallback,
-    DeletionCallback: () -> DeletionCallback,
-    Hitpoints: () -> Hitpoints,
-    HUD: () -> HUD,
-    InvaderAnimation: () -> InvaderAnimation,
-    InvaderOrchestrationState: () -> InvaderOrchestrationState,
-    PlayerAttack: () -> PlayerAttack,
-    PlayerMovement: () -> PlayerMovement,
-    Position: () -> Position,
-    PositionFollowing: () -> PositionFollowing,
-    Sprite: () -> Sprite,
-    TTL: () -> TTL,
-    Velocity: () -> Velocity,
-}
-
 export type Entity = number
 
 declare ECS: {

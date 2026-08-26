@@ -33,50 +33,51 @@ function BaseInvader.new(args: NewInvaderArgs)
 
 	InvadersCurrentlyAlive.add(entity)
 
-	local collision = Components.CollisionPassive()
-	collision.hitboxOffsetX = args.hitboxOffsetX
-	collision.hitboxOffsetY = args.hitboxOffsetY
-	collision.hitboxW = args.hitboxW
-	collision.hitboxH = args.hitboxH
-	ECS.setCollisionPassive(entity, collision)
+	ECS.setCollisionPassive(entity, {
+		hitboxOffsetX = args.hitboxOffsetX,
+		hitboxOffsetY = args.hitboxOffsetY,
+		hitboxW = args.hitboxW,
+		hitboxH = args.hitboxH,
+	})
 
-	local damage = Components.Damage()
-	damage.type = DamageType.ALIEN
-	damage.amount = 1
-	ECS.setDamage(entity, damage)
+	ECS.setDamage(entity, {
+		type = DamageType.ALIEN,
+		amount = 1,
+	})
 
-	local deletionCallback = Components.DeletionCallback()
-	deletionCallback.callback = args.onDeleteCallback
-	ECS.setDeletionCallback(entity, deletionCallback)
+	ECS.setDeletionCallback(entity, {
+		callback = args.onDeleteCallback,
+	})
 
-	local hitpoints = Components.Hitpoints()
-	hitpoints.susceptibleTo = DamageType.PLAYER_PROJECTILE
-	hitpoints.curHitpoints = 1
-	ECS.setHitpoints(entity, hitpoints)
+	ECS.setHitpoints(entity, {
+		susceptibleTo = DamageType.PLAYER_PROJECTILE,
+		curHitpoints = 1,
+	})
 
-	local animation = Components.InvaderAnimation()
-	animation.stripID = args.animationStrip
-	ECS.setInvaderAnimation(entity, animation)
+	ECS.setInvaderAnimation(entity, {
+		stripID = args.animationStrip,
+		curFrame = 0,
+	})
 
 	ECS.setOrchestratedInvader(entity)
 
-	local position = Components.Position()
-	position.x = args.x
-	position.y = args.y
-	position.w = 16
-	position.h = 16
-	position.z = 1
-	ECS.setPosition(entity, position)
+	ECS.setPosition(entity, {
+		x = args.x,
+		y = args.y,
+		w = 16,
+		h = 16,
+		z = 1,
+	})
 
-	local sprite = Components.Sprite()
-	sprite.srcID = "space_invaders.png"
-	sprite.srcX = 16 * args.animationFirstFrame.x
-	sprite.srcY = 16 * args.animationFirstFrame.y
-	sprite.srcW = 16
-	sprite.srcH = 16
-	sprite.dstW = 14
-	sprite.dstH = 14
-	ECS.setSprite(entity, sprite)
+	ECS.setSprite(entity, {
+		srcID = "space_invaders.png",
+		srcX = 16 * args.animationFirstFrame.x,
+		srcY = 16 * args.animationFirstFrame.y,
+		srcW = 16,
+		srcH = 16,
+		dstW = 14,
+		dstH = 14,
+	})
 end
 
 return BaseInvader

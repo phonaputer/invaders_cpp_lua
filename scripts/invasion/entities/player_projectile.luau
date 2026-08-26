@@ -22,48 +22,49 @@ function PlayerProjectile.new(x: number, y: number): ()
 
 	local entity = ECS.create()
 
-	local collision = Components.CollisionActive()
-	collision.hitboxOffsetX = 7
-	collision.hitboxOffsetY = 6
-	collision.hitboxW = 1
-	collision.hitboxH = 4
-	ECS.setCollisionActive(entity, collision)
+	ECS.setCollisionActive(entity, {
+		hitboxOffsetX = 7,
+		hitboxOffsetY = 6,
+		hitboxW = 1,
+		hitboxH = 4,
+	})
 
-	local damage = Components.Damage()
-	damage.type = DamageType.PLAYER_PROJECTILE
-	damage.amount = 1
-	ECS.setDamage(entity, damage)
+	ECS.setDamage(entity, {
+		type = DamageType.PLAYER_PROJECTILE,
+		amount = 1,
+	})
 
-	local deletionCallback = Components.DeletionCallback()
-	deletionCallback.callback = projectileOnDeleteCallback
-	ECS.setDeletionCallback(entity, deletionCallback)
+	ECS.setDeletionCallback(entity, {
+		callback = projectileOnDeleteCallback,
+	})
 
-	local hitpoints = Components.Hitpoints()
-	hitpoints.susceptibleTo = bit32.bor(DamageType.ALIEN_PROJECTILE, DamageType.ALIEN, DamageType.FORTRESS)
-	hitpoints.curHitpoints = 1
-	ECS.setHitpoints(entity, hitpoints)
+	ECS.setHitpoints(entity, {
+		susceptibleTo = bit32.bor(DamageType.ALIEN_PROJECTILE, DamageType.ALIEN, DamageType.FORTRESS),
+		curHitpoints = 1,
+	})
 
-	local position = Components.Position()
-	position.x = x - 2
-	position.y = y - 2
-	position.w = 16
-	position.h = 16
-	position.z = 100
-	ECS.setPosition(entity, position)
+	ECS.setPosition(entity, {
+		x = x - 2,
+		y = y - 2,
+		w = 16,
+		h = 16,
+		z = 100,
+	})
 
-	local sprite = Components.Sprite()
-	sprite.srcID = "space_invaders.png"
-	sprite.srcX = 112
-	sprite.srcY = 16
-	sprite.srcW = 16
-	sprite.srcH = 16
-	sprite.dstW = 16
-	sprite.dstH = 16
-	ECS.setSprite(entity, sprite)
+	ECS.setSprite(entity, {
+		srcID = "space_invaders.png",
+		srcX = 112,
+		srcY = 16,
+		srcW = 16,
+		srcH = 16,
+		dstW = 16,
+		dstH = 16,
+	})
 
-	local velocity = Components.Velocity()
-	velocity.y = -4
-	ECS.setVelocity(entity, velocity)
+	ECS.setVelocity(entity, {
+		x = 0,
+		y = -4,
+	})
 end
 
 return PlayerProjectile

@@ -8,36 +8,43 @@ AnimationStrips.addFrame(muzzleFlashStrip, 4, 2)
 function PlayerMuzzleFlash.new(player_entity: number): ()
 	local entity = ECS.create()
 
-	local animation = Components.Animation()
-	animation.ticksPerFrame = 10
-	animation.stripID = muzzleFlashStrip
-	ECS.setAnimation(entity, animation)
+	ECS.setAnimation(entity, {
+		ticksPerFrame = 10,
+		tickCounter = 0,
+		stripID = muzzleFlashStrip,
+		curFrame = 0,
+		playing = true,
+		playReversed = false,
+	})
 
-	local position = Components.Position()
-	position.w = 16
-	position.h = 16
-	position.z = 110
-	ECS.setPosition(entity, position)
+	ECS.setPosition(entity, {
+		x = 0,
+		y = 0,
+		w = 16,
+		h = 16,
+		z = 110,
+	})
 
-	local positionFollowing = Components.PositionFollowing()
-	positionFollowing.leader = player_entity
-	positionFollowing.xOffset = 0
-	positionFollowing.yOffset = 0
-	ECS.setPositionFollowing(entity, positionFollowing)
+	ECS.setPositionFollowing(entity, {
+		leader = player_entity,
+		xOffset = 0,
+		yOffset = 0,
+	})
 
-	local sprite = Components.Sprite()
-	sprite.srcID = "space_invaders.png"
-	sprite.srcX = 48
-	sprite.srcY = 32
-	sprite.srcW = 16
-	sprite.srcH = 16
-	sprite.dstW = 16
-	sprite.dstH = 16
-	ECS.setSprite(entity, sprite)
+	ECS.setSprite(entity, {
+		srcID = "space_invaders.png",
+		srcX = 48,
+		srcY = 32,
+		srcW = 16,
+		srcH = 16,
+		dstW = 16,
+		dstH = 16,
+	})
 
-	local ttl = Components.TTL()
-	ttl.ticksToLive = 20
-	ECS.setTTL(entity, ttl)
+	ECS.setTTL(entity, {
+		ticksToLive = 20,
+		tickCounter = 0,
+	})
 end
 
 return PlayerMuzzleFlash

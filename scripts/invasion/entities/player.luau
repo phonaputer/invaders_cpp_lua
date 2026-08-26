@@ -25,59 +25,63 @@ AnimationStrips.addFrame(playerStrip, 2, 2)
 function Player.new(): ()
 	local entity = ECS.create()
 
-	local animation = Components.Animation()
-	animation.ticksPerFrame = 4
-	animation.stripID = playerStrip
-	animation.playing = false
-	ECS.setAnimation(entity, animation)
+	ECS.setAnimation(entity, {
+		ticksPerFrame = 4,
+		tickCounter = 0,
+		stripID = playerStrip,
+		curFrame = 0,
+		playing = false,
+		playReversed = false,
+	})
 
-	local collision = Components.CollisionPassive()
-	collision.hitboxOffsetX = 0
-	collision.hitboxOffsetY = 7
-	collision.hitboxW = 15
-	collision.hitboxH = 5
-	ECS.setCollisionPassive(entity, collision)
+	ECS.setCollisionPassive(entity, {
+		hitboxOffsetX = 0,
+		hitboxOffsetY = 7,
+		hitboxW = 15,
+		hitboxH = 5,
+	})
 
-	local damage = Components.Damage()
-	damage.type = DamageType.PLAYER
-	damage.amount = 1
-	ECS.setDamage(entity, damage)
+	ECS.setDamage(entity, {
+		type = DamageType.PLAYER,
+		amount = 1,
+	})
 
-	local deletionCallback = Components.DeletionCallback()
-	deletionCallback.callback = onDeleteCallback
-	ECS.setDeletionCallback(entity, deletionCallback)
+	ECS.setDeletionCallback(entity, {
+		callback = onDeleteCallback,
+	})
 
-	local hitpoints = Components.Hitpoints()
-	hitpoints.susceptibleTo = DamageType.ALIEN_PROJECTILE
-	hitpoints.curHitpoints = 1
-	ECS.setHitpoints(entity, hitpoints)
+	ECS.setHitpoints(entity, {
+		susceptibleTo = DamageType.ALIEN_PROJECTILE,
+		curHitpoints = 1,
+	})
 
-	local playerAttack = Components.PlayerAttack()
-	playerAttack.ticksPerAttack = 8
-	playerAttack.callback = onAttackCallback
-	ECS.setPlayerAttack(entity, playerAttack)
+	ECS.setPlayerAttack(entity, {
+		ticksPerAttack = 8,
+		tickCounter = 0,
+		callback = onAttackCallback,
+	})
 
-	local playerMovement = Components.PlayerMovement()
-	playerMovement.xSpeed = 1
-	ECS.setPlayerMovement(entity, playerMovement)
+	ECS.setPlayerMovement(entity, {
+		xSpeed = 1,
+	})
 
-	local position = Components.Position()
-	position.x = Game.WINDOW_WIDTH / 2 - 8
-	position.y = Game.WINDOW_HEIGHT - 35
-	position.w = 16
-	position.h = 16
-	position.z = 100
-	ECS.setPosition(entity, position)
+	ECS.setPosition(entity, {
+		x = Game.WINDOW_WIDTH / 2 - 8,
+		y = Game.WINDOW_HEIGHT - 35,
+		w = 16,
+		h = 16,
+		z = 100,
+	})
 
-	local sprite = Components.Sprite()
-	sprite.srcID = "space_invaders.png"
-	sprite.srcX = 0
-	sprite.srcY = 32
-	sprite.srcW = 16
-	sprite.srcH = 16
-	sprite.dstW = 16
-	sprite.dstH = 16
-	ECS.setSprite(entity, sprite)
+	ECS.setSprite(entity, {
+		srcID = "space_invaders.png",
+		srcX = 0,
+		srcY = 32,
+		srcW = 16,
+		srcH = 16,
+		dstW = 16,
+		dstH = 16,
+	})
 end
 
 return Player

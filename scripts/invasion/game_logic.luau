@@ -12,21 +12,27 @@ local resetSceneCallback = Callbacks.register("invasion", "GameLogic.resetScene"
 local respawnCallback = Callbacks.register("invasion", "GameLogic.respawnPlayer")
 
 function GameLogic.setScene(): ()
-	local hud = Components.HUD()
-	hud.remainingLives = 2
-	ECS.setHUD(hud)
+	ECS.setHUD({
+		score = 0,
+		highScore = 0,
+		remainingLives = 2,
+	})
 
-	local invaderOrchestrationState = Components.InvaderOrchestrationState()
-	invaderOrchestrationState.noInvadersCallback = invaderRerackCallback
-	invaderOrchestrationState.shootCallback = invaderShootCallback
-	invaderOrchestrationState.touchdownCallback = invaderTouchdownCallback
-	invaderOrchestrationState.baseTicksPerMove = 4
-	invaderOrchestrationState.xSpeed = 8
-	invaderOrchestrationState.ySpeed = 12
-	invaderOrchestrationState.lastInvaderXSpeed = 16
-	invaderOrchestrationState.lastInvaderYSpeed = 12
-	invaderOrchestrationState.ticksPerShot = 20
-	ECS.setInvaderOrchestrationState(invaderOrchestrationState)
+	ECS.setInvaderOrchestrationState({
+		noInvadersCallback = invaderRerackCallback,
+		shootCallback = invaderShootCallback,
+		touchdownCallback = invaderTouchdownCallback,
+		baseTicksPerMove = 4,
+		tickCounter = 0,
+		xSpeed = 8,
+		ySpeed = 12,
+		lastInvaderXSpeed = 16,
+		lastInvaderYSpeed = 12,
+		ticksPerShot = 20,
+		shootTickCounter = 0,
+		curArp = 0,
+		movingLeft = false,
+	})
 
 	Entities.Invaders.Eel.scheduleSpawn()
 
@@ -54,11 +60,11 @@ function GameLogic.onTouchdown(): ()
 	Game.pause()
 	Game.displayGameOver()
 
-	local timeout_entity = ECS.create()
-	local cb = Components.CallbackOnTimeoutUnpausable()
-	cb.timeoutTicks = PLAYER_LOSS_PAUSE_TICKS
-	cb.callback = resetSceneCallback
-	ECS.setCallbackOnTimeoutUnpausable(timeout_entity, cb)
+	ECS.setCallbackOnTimeoutUnpausable(ECS.create(), {
+		timeoutTicks = PLAYER_LOSS_PAUSE_TICKS,
+		tickCounter = 0,
+		callback = resetSceneCallback,
+	})
 end
 
 function GameLogic.onPlayerDefeat(entity: Entity): ()
@@ -67,19 +73,19 @@ function GameLogic.onPlayerDefeat(entity: Entity): ()
 	Entities.Player.Explosion.new(position.x, position.y, PLAYER_LOSS_PAUSE_TICKS)
 	Game.playSound("player_explosion.wav")
 
-	local timeout_entity = ECS.create()
-	local cb = Components.CallbackOnTimeoutUnpausable()
-	cb.timeoutTicks = PLAYER_LOSS_PAUSE_TICKS
+	local callback = respawnCallback
 
 	local lostAllLives = Game.decrementLives()
 	if lostAllLives then
 		Game.displayGameOver()
-		cb.callback = resetSceneCallback
-	else
-		cb.callback = respawnCallback
+		callback = resetSceneCallback
 	end
 
-	ECS.setCallbackOnTimeoutUnpausable(timeout_entity, cb)
+	ECS.setCallbackOnTimeoutUnpausable(ECS.create(), {
+		timeoutTicks = PLAYER_LOSS_PAUSE_TICKS,
+		tickCounter = 0,
+		callback = callback,
+	})
 end
 
 function GameLogic.respawnPlayer(): ()

@@ -18,53 +18,58 @@ end
 function InvaderProjectile.new(x: number, y: number): ()
 	local entity = ECS.create()
 
-	local animation = Components.Animation()
-	animation.ticksPerFrame = 40
-	animation.stripID = projectileAnimationStrip
-	ECS.setAnimation(entity, animation)
+	ECS.setAnimation(entity, {
+		ticksPerFrame = 40,
+		tickCounter = 0,
+		stripID = projectileAnimationStrip,
+		curFrame = 0,
+		playing = true,
+		playReversed = false,
+	})
 
-	local collision = Components.CollisionActive()
-	collision.hitboxOffsetX = 7
-	collision.hitboxOffsetY = 7
-	collision.hitboxW = 1
-	collision.hitboxH = 3
-	ECS.setCollisionActive(entity, collision)
+	ECS.setCollisionActive(entity, {
+		hitboxOffsetX = 7,
+		hitboxOffsetY = 7,
+		hitboxW = 1,
+		hitboxH = 3,
+	})
 
-	local damage = Components.Damage()
-	damage.type = DamageType.ALIEN_PROJECTILE
-	damage.amount = 1
-	ECS.setDamage(entity, damage)
+	ECS.setDamage(entity, {
+		type = DamageType.ALIEN_PROJECTILE,
+		amount = 1,
+	})
 
-	local damageCallback = Components.DamageCallback()
-	damageCallback.callback = projectileOnDamageCallback
-	ECS.setDamageCallback(entity, damageCallback)
+	ECS.setDamageCallback(entity, {
+		callback = projectileOnDamageCallback,
+	})
 
-	local hitpoints = Components.Hitpoints()
-	hitpoints.susceptibleTo = bit32.bor(DamageType.PLAYER, DamageType.PLAYER_PROJECTILE, DamageType.FORTRESS)
-	hitpoints.curHitpoints = 1
-	ECS.setHitpoints(entity, hitpoints)
+	ECS.setHitpoints(entity, {
+		susceptibleTo = bit32.bor(DamageType.PLAYER, DamageType.PLAYER_PROJECTILE, DamageType.FORTRESS),
+		curHitpoints = 1,
+	})
 
-	local position = Components.Position()
-	position.x = x
-	position.y = y
-	position.w = 16
-	position.h = 16
-	position.z = 80
-	ECS.setPosition(entity, position)
+	ECS.setPosition(entity, {
+		x = x,
+		y = y,
+		w = 16,
+		h = 16,
+		z = 80,
+	})
 
-	local sprite = Components.Sprite()
-	sprite.srcID = "space_invaders.png"
-	sprite.srcX = 80
-	sprite.srcY = 32
-	sprite.srcW = 16
-	sprite.srcH = 16
-	sprite.dstW = 16
-	sprite.dstH = 16
-	ECS.setSprite(entity, sprite)
+	ECS.setSprite(entity, {
+		srcID = "space_invaders.png",
+		srcX = 80,
+		srcY = 32,
+		srcW = 16,
+		srcH = 16,
+		dstW = 16,
+		dstH = 16,
+	})
 
-	local velocity = Components.Velocity()
-	velocity.y = 1
-	ECS.setVelocity(entity, velocity)
+	ECS.setVelocity(entity, {
+		x = 0,
+		y = 1,
+	})
 end
 
 return InvaderProjectile

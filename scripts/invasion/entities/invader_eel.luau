@@ -8,10 +8,11 @@ local spawnEelCallback = Callbacks.register("invasion", "Entities.Invaders.Eel.s
 function InvaderEel.scheduleSpawn(): ()
 	local entity = ECS.create()
 
-	local callback = Components.CallbackOnTimeout()
-	callback.callback = spawnEelCallback
-	callback.timeoutTicks = math.random(600, 1200)
-	ECS.setCallbackOnTimeout(entity, callback)
+	ECS.setCallbackOnTimeout(entity, {
+		callback = spawnEelCallback,
+		timeoutTicks = math.random(600, 1200),
+		tickCounter = 0,
+	})
 end
 
 function InvaderEel.spawn(): ()
@@ -60,54 +61,58 @@ function InvaderEel.new(): ()
 		firstFrame = { x = 0, y = 4 }
 	end
 
-	local animation = Components.Animation()
-	animation.ticksPerFrame = 25
-	animation.stripID = strip
-	animation.playing = true
-	ECS.setAnimation(entity, animation)
+	ECS.setAnimation(entity, {
+		ticksPerFrame = 25,
+		tickCounter = 0,
+		stripID = strip,
+		curFrame = 0,
+		playing = true,
+		playReversed = false,
+	})
 
-	local collision = Components.CollisionPassive()
-	collision.hitboxOffsetX = 0
-	collision.hitboxOffsetY = 7
-	collision.hitboxW = 24
-	collision.hitboxH = 2
-	ECS.setCollisionPassive(entity, collision)
+	ECS.setCollisionPassive(entity, {
+		hitboxOffsetX = 0,
+		hitboxOffsetY = 7,
+		hitboxW = 24,
+		hitboxH = 2,
+	})
 
-	local damage = Components.Damage()
-	damage.type = DamageType.ALIEN
-	damage.amount = 1
-	ECS.setDamage(entity, damage)
+	ECS.setDamage(entity, {
+		type = DamageType.ALIEN,
+		amount = 1,
+	})
 
-	local deletionCallback = Components.DeletionCallback()
-	deletionCallback.callback = eelOnDeleteCallback
-	ECS.setDeletionCallback(entity, deletionCallback)
+	ECS.setDeletionCallback(entity, {
+		callback = eelOnDeleteCallback,
+	})
 
-	local hitpoints = Components.Hitpoints()
-	hitpoints.susceptibleTo = DamageType.PLAYER_PROJECTILE
-	hitpoints.curHitpoints = 1
-	ECS.setHitpoints(entity, hitpoints)
+	ECS.setHitpoints(entity, {
+		susceptibleTo = DamageType.PLAYER_PROJECTILE,
+		curHitpoints = 1,
+	})
 
-	local position = Components.Position()
-	position.x = startX
-	position.y = 16
-	position.w = 24
-	position.h = 15
-	position.z = 90
-	ECS.setPosition(entity, position)
+	ECS.setPosition(entity, {
+		x = startX,
+		y = 16,
+		w = 24,
+		h = 15,
+		z = 90,
+	})
 
-	local sprite = Components.Sprite()
-	sprite.srcID = "space_invaders.png"
-	sprite.srcX = 24 * firstFrame.x
-	sprite.srcY = 16 * firstFrame.y
-	sprite.srcW = 24
-	sprite.srcH = 16
-	sprite.dstW = 24
-	sprite.dstH = 16
-	ECS.setSprite(entity, sprite)
+	ECS.setSprite(entity, {
+		srcID = "space_invaders.png",
+		srcX = 24 * firstFrame.x,
+		srcY = 16 * firstFrame.y,
+		srcW = 24,
+		srcH = 16,
+		dstW = 24,
+		dstH = 16,
+	})
 
-	local velocity = Components.Velocity()
-	velocity.x = xVelocity
-	ECS.setVelocity(entity, velocity)
+	ECS.setVelocity(entity, {
+		x = xVelocity,
+		y = 0,
+	})
 end
 
 return InvaderEel

@@ -29,44 +29,44 @@ export type NewFortressTileArgs = {
 function FortressTile.new(args: NewFortressTileArgs): ()
 	local entity = ECS.create()
 
-	local collision = Components.CollisionActive()
-	collision.hitboxOffsetX = 0
-	collision.hitboxOffsetY = 0
-	collision.hitboxW = FortressTile.DRAW_WIDTH
-	collision.hitboxH = FortressTile.DRAW_HEIGHT
-	ECS.setCollisionActive(entity, collision)
+	ECS.setCollisionActive(entity, {
+		hitboxOffsetX = 0,
+		hitboxOffsetY = 0,
+		hitboxW = FortressTile.DRAW_WIDTH,
+		hitboxH = FortressTile.DRAW_HEIGHT,
+	})
 
-	local damage = Components.Damage()
-	damage.type = DamageType.FORTRESS
-	damage.amount = 1
-	ECS.setDamage(entity, damage)
+	ECS.setDamage(entity, {
+		type = DamageType.FORTRESS,
+		amount = 1,
+	})
 
-	local damageCallback = Components.DamageCallback()
-	damageCallback.callback = fortressTileOnDamageCallback
-	ECS.setDamageCallback(entity, damageCallback)
+	ECS.setDamageCallback(entity, {
+		callback = fortressTileOnDamageCallback,
+	})
 
-	local hitpoints = Components.Hitpoints()
-	hitpoints.susceptibleTo = bit32.bor(DamageType.ALIEN_PROJECTILE, DamageType.PLAYER_PROJECTILE)
-	hitpoints.curHitpoints = MAX_HITPOINTS
-	ECS.setHitpoints(entity, hitpoints)
+	ECS.setHitpoints(entity, {
+		susceptibleTo = bit32.bor(DamageType.ALIEN_PROJECTILE, DamageType.PLAYER_PROJECTILE),
+		curHitpoints = MAX_HITPOINTS,
+	})
 
-	local position = Components.Position()
-	position.x = args.x
-	position.y = args.y
-	position.w = FortressTile.DRAW_WIDTH
-	position.h = FortressTile.DRAW_HEIGHT
-	position.z = 20
-	ECS.setPosition(entity, position)
+	ECS.setPosition(entity, {
+		x = args.x,
+		y = args.y,
+		w = FortressTile.DRAW_WIDTH,
+		h = FortressTile.DRAW_HEIGHT,
+		z = 20,
+	})
 
-	local sprite = Components.Sprite()
-	sprite.srcID = "space_invaders.png"
-	sprite.srcX = args.spriteSrcX
-	sprite.srcY = args.spriteSrcY
-	sprite.srcW = FortressTile.SRC_WIDTH
-	sprite.srcH = FortressTile.SRC_HEIGHT
-	sprite.dstW = FortressTile.DRAW_WIDTH
-	sprite.dstH = FortressTile.DRAW_HEIGHT
-	ECS.setSprite(entity, sprite)
+	ECS.setSprite(entity, {
+		srcID = "space_invaders.png",
+		srcX = args.spriteSrcX,
+		srcY = args.spriteSrcY,
+		srcW = FortressTile.SRC_WIDTH,
+		srcH = FortressTile.SRC_HEIGHT,
+		dstW = FortressTile.DRAW_WIDTH,
+		dstH = FortressTile.DRAW_HEIGHT,
+	})
 end
 
 return FortressTile

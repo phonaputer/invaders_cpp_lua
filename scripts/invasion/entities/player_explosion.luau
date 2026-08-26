@@ -10,32 +10,35 @@ AnimationStrips.addFrame(explosionAnimationStrip, 2, 3)
 function PlayerExplosion.new(x: number, y: number, ticksToLive: number)
 	local entity = ECS.create()
 
-	local animation = Components.AnimationUnpausable()
-	animation.ticksPerFrame = 5
-	animation.stripID = explosionAnimationStrip
-	ECS.setAnimationUnpausable(entity, animation)
+	ECS.setAnimationUnpausable(entity, {
+		ticksPerFrame = 5,
+		tickCounter = 0,
+		stripID = explosionAnimationStrip,
+		curFrame = 0,
+	})
 
-	local position = Components.Position()
-	position.x = x
-	position.y = y
-	position.w = 16
-	position.h = 16
-	position.z = 100
-	ECS.setPosition(entity, position)
+	ECS.setPosition(entity, {
+		x = x,
+		y = y,
+		w = 16,
+		h = 16,
+		z = 100,
+	})
 
-	local sprite = Components.Sprite()
-	sprite.srcID = "space_invaders.png"
-	sprite.srcX = 48
-	sprite.srcY = 16
-	sprite.srcW = 16
-	sprite.srcH = 16
-	sprite.dstW = 16
-	sprite.dstH = 16
-	ECS.setSprite(entity, sprite)
+	ECS.setSprite(entity, {
+		srcID = "space_invaders.png",
+		srcX = 48,
+		srcY = 16,
+		srcW = 16,
+		srcH = 16,
+		dstW = 16,
+		dstH = 16,
+	})
 
-	local ttl = Components.TTL()
-	ttl.ticksToLive = ticksToLive
-	ECS.setTTL(entity, ttl)
+	ECS.setTTL(entity, {
+		ticksToLive = ticksToLive,
+		tickCounter = 0,
+	})
 end
 
 return PlayerExplosion
