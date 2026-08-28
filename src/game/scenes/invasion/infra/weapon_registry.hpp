@@ -42,6 +42,6 @@ class WeaponRegistry : public WeaponGetter {
     [[nodiscard]] std::optional<Weapon> get_weapon(WeaponID id) const override;
 };
 
-void add_callback_registry_to_script_env(framework::ScriptEnvironment &scripts, WeaponRegistry &weapons);
+void add_weapon_registry_to_script_env(framework::ScriptEnvironment &scripts, WeaponRegistry &weapons);
 
 } // namespace infra

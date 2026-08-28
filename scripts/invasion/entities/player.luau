@@ -1,21 +1,11 @@
 --!strict
 local Player = {}
 
-Player.Projectile = require("./player_projectile")
-
 Player.Explosion = require("./player_explosion")
-local PlayerMuzzleFlash = require("./player_muzzle_flash")
-
-function Player.attack(player_entity: number, x: number, y: number): ()
-	if Player.Projectile.getActiveCount() < 3 then
-		Player.Projectile.new(x, y)
-		PlayerMuzzleFlash.new(player_entity)
-		Game.playSound("player_shot.wav")
-	end
-end
+Player.Projectile = require("./player_projectile")
+Player.Weapons = require("./player_weapons")
 
 local onDeleteCallback = Callbacks.register("invasion", "GameLogic.onPlayerDefeat")
-local onAttackCallback = Callbacks.register("invasion", "Entities.Player.attack")
 
 local playerStrip = AnimationStrips.create()
 AnimationStrips.addFrame(playerStrip, 0, 2)
@@ -56,9 +46,8 @@ function Player.new(): ()
 	})
 
 	ECS.setPlayerAttack(entity, {
-		ticksPerAttack = 8,
 		tickCounter = 0,
-		callback = onAttackCallback,
+		weapon = Player.Weapons.Default,
 	})
 
 	ECS.setPlayerMovement(entity, {

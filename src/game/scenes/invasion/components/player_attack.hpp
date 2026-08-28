@@ -2,15 +2,14 @@
 // clang-format off
 #pragma once
 
-#include "game/scenes/invasion/infra/callback_registry.hpp"
+#include "game/scenes/invasion/infra/weapon_registry.hpp"
 #include <cstdint>
 
 namespace components {
 
 struct PlayerAttack {
-    uint32_t ticks_per_attack = 0;
     uint32_t tick_counter = 0;
-    infra::CallbackID callback = 0;
+    infra::WeaponID weapon = 0;
 
     bool operator==(const PlayerAttack &) const = default;
 };

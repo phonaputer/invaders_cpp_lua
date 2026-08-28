@@ -2,12 +2,14 @@
 
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
+#include "game/scenes/invasion/infra/weapon_registry.hpp"
 
 namespace invasion {
 
 class Scene : public framework::Scene {
   private:
     infra::CallbackRegistry callback_registry;
+    infra::WeaponRegistry weapon_registry;
 
   public:
     void initialize(framework::SceneInitializationContext ctx) override;

@@ -92,9 +92,8 @@ export type InvaderOrchestrationState = {
 }
 
 export type PlayerAttack = {
-    ticksPerAttack: number,
     tickCounter: number,
-    callback: number,
+    weapon: number,
 }
 
 export type PlayerMovement = {

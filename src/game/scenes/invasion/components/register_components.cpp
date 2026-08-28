@@ -1487,13 +1487,6 @@ int set_player_attack(lua_State *L) {
 
     luaL_checktype(L, 2, LUA_TTABLE);
 
-    lua_getfield(L, 2, "ticksPerAttack");
-    if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'ticksPerAttack' field to be a number");
-    }
-    const auto ticks_per_attack = static_cast<uint32_t>(lua_tonumber(L, -1));
-    lua_pop(L, 1);
-
     lua_getfield(L, 2, "tickCounter");
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
@@ -1501,19 +1494,18 @@ int set_player_attack(lua_State *L) {
     const auto tick_counter = static_cast<uint32_t>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
-    lua_getfield(L, 2, "callback");
+    lua_getfield(L, 2, "weapon");
     if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'callback' field to be a number");
+        luaL_argerror(L, 2, "Expected 'weapon' field to be a number");
     }
-    const auto callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
+    const auto weapon = static_cast<infra::WeaponID>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     ecs_ptr->emplace_or_replace<PlayerAttack>(
         entity,
         PlayerAttack{
-            .ticks_per_attack = ticks_per_attack,
             .tick_counter = tick_counter,
-            .callback = callback,
+            .weapon = weapon,
         }
     );
 
@@ -1531,14 +1523,11 @@ int get_player_attack(lua_State *L) {
 
     lua_newtable(L);
 
-    lua_pushnumber(L, static_cast<lua_Number>(component.ticks_per_attack));
-    lua_setfield(L, -2, "ticksPerAttack");
-
     lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
     lua_setfield(L, -2, "tickCounter");
 
-    lua_pushnumber(L, static_cast<lua_Number>(component.callback));
-    lua_setfield(L, -2, "callback");
+    lua_pushnumber(L, static_cast<lua_Number>(component.weapon));
+    lua_setfield(L, -2, "weapon");
 
     return 1;
 }

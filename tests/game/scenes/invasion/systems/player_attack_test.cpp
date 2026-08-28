@@ -6,6 +6,7 @@
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
+#include "game/scenes/invasion/infra/weapon_registry.hpp"
 #include "game/scenes/invasion/systems/player_attack.hpp"
 #include <entt.hpp>
 #include <gtest/gtest.h>
@@ -65,6 +66,17 @@ class MockCallbackGetter : public infra::CallbackGetter {
     }
 };
 
+constexpr uint16_t TICKS_PER_ATTACK = 10;
+
+class MockWeaponGetter : public infra::WeaponGetter {
+  public:
+    [[nodiscard]] std::optional<infra::Weapon> get_weapon(
+        [[maybe_unused]] infra::WeaponID id
+    ) const override {
+      return infra::Weapon{.ticks_per_shot = TICKS_PER_ATTACK, .shoot_callback = 1};
+    }
+};
+
 class SystemPlayerAttack : public ::testing::Test {
   protected:
     static void SetUpTestSuite() {
@@ -78,6 +90,7 @@ struct TestSetup {
     framework::EventBroker events;
     framework::PlayerInputManager player_input;
     std::shared_ptr<infra::CallbackGetter> callbacks;
+    std::shared_ptr<infra::WeaponGetter> weapons;
     systems::PlayerAttack system;
 
     framework::ExecuteCtx ctx() {
@@ -91,13 +104,15 @@ struct TestSetup {
 
 TestSetup setupTest() {
   const std::shared_ptr<infra::CallbackGetter> callbacks = std::make_shared<MockCallbackGetter>();
+  const std::shared_ptr<infra::WeaponGetter> weapons = std::make_shared<MockWeaponGetter>();
 
   return TestSetup{
       .ecs = entt::registry(),
       .events = framework::EventBroker(),
       .player_input = framework::PlayerInputManager(),
       .callbacks = callbacks,
-      .system = systems::PlayerAttack(*scripts, *callbacks),
+      .weapons = weapons,
+      .system = systems::PlayerAttack(*scripts, *callbacks, *weapons),
   };
 }
 
@@ -107,7 +122,7 @@ TEST_F(SystemPlayerAttack, ExecuteCounterHasReachedTicksAndPlayerIsFiringShouldI
   auto entity = ctx.ecs.create();
   ctx.ecs.emplace<components::Position>(entity, components::Position{.x = 1, .y = 2});
   ctx.ecs.emplace<components::PlayerAttack>(
-      entity, components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 10, .callback = 1}
+      entity, components::PlayerAttack{.tick_counter = TICKS_PER_ATTACK}
   );
   setup.player_input.engage(framework::PlayerInput::FIRE);
   scripts->call_function("pack", "reset");
@@ -119,8 +134,7 @@ TEST_F(SystemPlayerAttack, ExecuteCounterHasReachedTicksAndPlayerIsFiringShouldI
       1,
       scripts->call_function<lua_Number>("pack", "validateLastCallWas", entt::to_integral(entity), 1.0F, 2.0F)
   );
-  const auto expected_player_attack
-      = components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 0, .callback = 1};
+  const auto expected_player_attack = components::PlayerAttack{.tick_counter = 0};
   EXPECT_EQ(expected_player_attack, setup.ecs.get<components::PlayerAttack>(entity));
 }
 
@@ -130,15 +144,14 @@ TEST_F(SystemPlayerAttack, ExecuteCounterHasReachedTicksAndPlayerIsNotFiringShou
   auto entity = ctx.ecs.create();
   ctx.ecs.emplace<components::Position>(entity, components::Position{.x = 1, .y = 2});
   ctx.ecs.emplace<components::PlayerAttack>(
-      entity, components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 10, .callback = 1}
+      entity, components::PlayerAttack{.tick_counter = TICKS_PER_ATTACK}
   );
   scripts->call_function("pack", "reset");
 
   setup.system.execute(ctx);
 
   EXPECT_EQ(0, scripts->call_function<double>("pack", "getCallCount"));
-  const auto expected_player_attack
-      = components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 11, .callback = 1};
+  const auto expected_player_attack = components::PlayerAttack{.tick_counter = TICKS_PER_ATTACK + 1};
   EXPECT_EQ(expected_player_attack, setup.ecs.get<components::PlayerAttack>(entity));
 }
 
@@ -148,7 +161,7 @@ TEST_F(SystemPlayerAttack, ExecuteCounterHasNotReachedTicksAndPlayerIsFiringShou
   auto entity = ctx.ecs.create();
   ctx.ecs.emplace<components::Position>(entity, components::Position{.x = 1, .y = 2});
   ctx.ecs.emplace<components::PlayerAttack>(
-      entity, components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 9, .callback = 1}
+      entity, components::PlayerAttack{.tick_counter = TICKS_PER_ATTACK - 1}
   );
   setup.player_input.engage(framework::PlayerInput::FIRE);
   scripts->call_function("pack", "reset");
@@ -156,8 +169,7 @@ TEST_F(SystemPlayerAttack, ExecuteCounterHasNotReachedTicksAndPlayerIsFiringShou
   setup.system.execute(ctx);
 
   EXPECT_EQ(0, scripts->call_function<double>("pack", "getCallCount"));
-  const auto expected_player_attack
-      = components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 10, .callback = 1};
+  const auto expected_player_attack = components::PlayerAttack{.tick_counter = TICKS_PER_ATTACK};
   EXPECT_EQ(expected_player_attack, setup.ecs.get<components::PlayerAttack>(entity));
 }
 
@@ -167,7 +179,7 @@ TEST_F(SystemPlayerAttack, ExecuteGameIsPausedShouldDoNothing) {
   auto entity = ctx.ecs.create();
   ctx.ecs.emplace<components::Position>(entity, components::Position{.x = 1, .y = 2});
   ctx.ecs.emplace<components::PlayerAttack>(
-      entity, components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 10, .callback = 1}
+      entity, components::PlayerAttack{.tick_counter = TICKS_PER_ATTACK}
   );
   setup.player_input.engage(framework::PlayerInput::FIRE);
   scripts->call_function("pack", "reset");
@@ -176,8 +188,7 @@ TEST_F(SystemPlayerAttack, ExecuteGameIsPausedShouldDoNothing) {
   setup.system.execute(ctx);
 
   EXPECT_EQ(0, scripts->call_function<double>("pack", "getCallCount"));
-  const auto expected_player_attack
-      = components::PlayerAttack{.ticks_per_attack = 10, .tick_counter = 10, .callback = 1};
+  const auto expected_player_attack = components::PlayerAttack{.tick_counter = TICKS_PER_ATTACK};
   EXPECT_EQ(expected_player_attack, setup.ecs.get<components::PlayerAttack>(entity));
 }
 

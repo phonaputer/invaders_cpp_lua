@@ -31,6 +31,12 @@ fieldTypes:
     cppDefaultValue: 0
     luauType: number
 
+  - id: weapon_id
+    cppType: infra::WeaponID
+    cppInclude: '"game/scenes/invasion/infra/weapon_registry.hpp"'
+    cppDefaultValue: 0
+    luauType: number
+
   - id: bool
     cppType: bool
     cppDefaultValue: false
@@ -168,9 +174,8 @@ components:
 
   - name: Player Attack
     fields:
-      - { name: Ticks Per Attack, type: uint32 }
       - { name: Tick Counter, type: uint32 }
-      - { name: Callback, type: callback_id }
+      - { name: Weapon, type: weapon_id }
 
   - name: Player Movement
     fields:

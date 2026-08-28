@@ -11,6 +11,17 @@ declare Callbacks: {
     register: (package: string, func: string) -> (Callback),
 }
 
+export type Weapon = number
+
+export type RegisterWeaponArgs = {
+    ticksPerShot: number,
+    shootCallback: Callback,
+}
+
+declare Weapons: {
+    register: (args: RegisterWeaponArgs) -> (Weapon),
+}
+
 declare DamageType: {
     ALIEN: number,
     PLAYER: number,

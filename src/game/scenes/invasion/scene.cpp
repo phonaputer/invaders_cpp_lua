@@ -3,6 +3,7 @@
 #include "game/scenes/invasion/components/hud.hpp"
 #include "game/scenes/invasion/components/invader_orchestration_state.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
+#include "game/scenes/invasion/infra/weapon_registry.hpp"
 #include "game/scenes/invasion/script_api.hpp"
 #include "game/scenes/invasion/systems/animation.hpp"
 #include "game/scenes/invasion/systems/audio_playing.hpp"
@@ -32,7 +33,9 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.systems.add_update_system(std::make_unique<systems::Deletion>(ctx.scripts, callback_registry));
   ctx.systems.add_update_system(std::make_unique<systems::Velocity>());
   ctx.systems.add_update_system(std::make_unique<systems::PlayerMovement>());
-  ctx.systems.add_update_system(std::make_unique<systems::PlayerAttack>(ctx.scripts, callback_registry));
+  ctx.systems.add_update_system(
+      std::make_unique<systems::PlayerAttack>(ctx.scripts, callback_registry, weapon_registry)
+  );
   ctx.systems.add_update_system(std::make_unique<systems::PositionFollowing>());
   ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
   ctx.systems.add_update_system(
@@ -49,6 +52,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
 
   register_cpp_api_to_script_env(ctx);
   infra::add_callback_registry_to_script_env(ctx.scripts, callback_registry);
+  infra::add_weapon_registry_to_script_env(ctx.scripts, weapon_registry);
 
   ctx.scripts.call_function("invasion", "main");
 }

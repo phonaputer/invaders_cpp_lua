@@ -7,13 +7,17 @@
 #include "game/scenes/invasion/components/player_attack.hpp"
 #include "game/scenes/invasion/components/position.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
+#include "game/scenes/invasion/infra/weapon_registry.hpp"
 #include <entt.hpp>
 
 namespace systems {
 
-PlayerAttack::PlayerAttack(framework::ScriptEnvironment &scripts, infra::CallbackGetter &callbacks)
+PlayerAttack::PlayerAttack(
+    framework::ScriptEnvironment &scripts, infra::CallbackGetter &callbacks, infra::WeaponGetter &weapons
+)
     : scripts{scripts},
-      callbacks{callbacks} {
+      callbacks{callbacks},
+      weapons{weapons} {
 }
 
 void PlayerAttack::execute(framework::ExecuteCtx &ctx) {
@@ -24,11 +28,18 @@ void PlayerAttack::execute(framework::ExecuteCtx &ctx) {
   auto view = ctx.ecs.view<components::PlayerAttack, components::Position>();
 
   for (auto [entity, attack, position] : view.each()) {
-    if (attack.tick_counter >= attack.ticks_per_attack
+    const auto maybe_weapon = weapons.get().get_weapon(attack.weapon);
+    if (!maybe_weapon.has_value()) {
+      continue;
+    }
+
+    const auto weapon = maybe_weapon.value();
+
+    if (attack.tick_counter >= weapon.ticks_per_shot
         && ctx.player_input.is_engaged(framework::PlayerInput::FIRE)) {
       attack.tick_counter = 0;
 
-      auto maybe_callback = callbacks.get().get_callback(attack.callback);
+      auto maybe_callback = callbacks.get().get_callback(weapon.shoot_callback);
       if (maybe_callback.has_value()) {
         const auto &callback = maybe_callback.value();
         scripts.get().call_function(
