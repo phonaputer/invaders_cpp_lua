@@ -15,6 +15,8 @@ AnimationStrips.addFrame(playerStrip, 2, 2)
 function Player.new(): ()
 	local entity = ECS.create()
 
+	Player.Entity = entity
+
 	ECS.setAnimation(entity, {
 		ticksPerFrame = 4,
 		tickCounter = 0,
@@ -72,5 +74,15 @@ function Player.new(): ()
 		dstH = 16,
 	})
 end
+
+-- TODO consider what happens if player dies between when this is scheduled and invoked
+function Player.setDefaultWeapon()
+	ECS.setPlayerAttack(Player.Entity, {
+		tickCounter = 0,
+		weapon = Player.Weapons.Default,
+	})
+end
+
+Player.SetDefaultWeaponCallback = Callbacks.register("invasion", "Entities.Player.setDefaultWeapon")
 
 return Player

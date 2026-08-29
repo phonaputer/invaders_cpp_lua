@@ -2,6 +2,7 @@
 local InvaderEel = {}
 
 local InvaderExplosion = require("./invader_explosion")
+local Player = require("./player")
 
 local spawnEelCallback = Callbacks.register("invasion", "Entities.Invaders.Eel.spawn")
 
@@ -10,7 +11,7 @@ function InvaderEel.scheduleSpawn(): ()
 
 	ECS.setCallbackOnTimeout(entity, {
 		callback = spawnEelCallback,
-		timeoutTicks = math.random(600, 1200),
+		timeoutTicks = math.random(900, 1600),
 		tickCounter = 0,
 	})
 end
@@ -39,6 +40,17 @@ function InvaderEel.onDelete(entity: Entity): ()
 	InvaderExplosion.new(position.x, position.y)
 	Game.incrementScore(math.random(100, 300))
 	Game.playSound("alien_explosion.wav")
+
+	ECS.setPlayerAttack(Player.Entity, {
+		tickCounter = 0,
+		weapon = Player.Weapons.Fastshot,
+	})
+
+	ECS.setCallbackOnTimeout(ECS.create(), {
+		timeoutTicks = 350,
+		tickCounter = 0,
+		callback = Player.SetDefaultWeaponCallback,
+	})
 end
 
 type FirstFrame = {
@@ -82,7 +94,7 @@ function InvaderEel.new(): ()
 		amount = 1,
 	})
 
-	ECS.setDeletionCallback(entity, {
+	ECS.setDamageCallback(entity, {
 		callback = eelOnDeleteCallback,
 	})
 
