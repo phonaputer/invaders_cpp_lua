@@ -18,4 +18,19 @@ PlayerWeapons.Default = Weapons.register({
 	shootCallback = defaultWeaponCallback,
 })
 
+function PlayerWeapons.fastshotAttack(player_entity: number, x: number, y: number): ()
+	if PlayerProjectile.getActiveCount() < 10 then
+		PlayerProjectile.new(x, y)
+		PlayerMuzzleFlash.new(player_entity)
+		Game.playSound("player_shot.wav")
+	end
+end
+
+local fastshotWeaponCallback = Callbacks.register("invasion", "Entities.Player.Weapons.fastshotAttack")
+
+PlayerWeapons.Fastshot = Weapons.register({
+	ticksPerShot = 4,
+	shootCallback = fastshotWeaponCallback,
+})
+
 return PlayerWeapons
