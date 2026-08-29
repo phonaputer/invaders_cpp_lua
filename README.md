@@ -50,8 +50,9 @@ If I were to build further on this project I would add components to C++ which p
 For example, hooks to add new kinds of invaders, powerups, etc.
 I think this would maximize the "experimentability" benefits of the split architecture.
 
-Another thing I'm curious about is code generation.
-C++ templates are nice but it would be great to be able to generate both LuaBridge bindings & Luau type definitions from my C++ component files.
+~~Another thing I'm curious about is code generation.
+C++ templates are nice but it would be great to be able to generate both LuaBridge bindings & Luau type definitions from my C++ component files.~~
+Added it: see [cmpgen](https://github.com/phonaputer/cmpgen) repo.
 
 ### Build & Run
 
