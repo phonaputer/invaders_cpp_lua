@@ -1,6 +1,7 @@
 --!strict
 local Player = {}
 
+Player.Bomb = require("./player_bomb")
 Player.Explosion = require("./player_explosion")
 Player.Projectile = require("./player_projectile")
 Player.Weapons = require("./player_weapons")
@@ -75,7 +76,6 @@ function Player.new(): ()
 	})
 end
 
--- TODO consider what happens if player dies between when this is scheduled and invoked
 function Player.setDefaultWeapon()
 	ECS.setPlayerAttack(Player.Entity, {
 		tickCounter = 0,

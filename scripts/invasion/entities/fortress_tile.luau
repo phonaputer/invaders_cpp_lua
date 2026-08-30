@@ -29,7 +29,7 @@ export type NewFortressTileArgs = {
 function FortressTile.new(args: NewFortressTileArgs): ()
 	local entity = ECS.create()
 
-	ECS.setCollisionActive(entity, {
+	ECS.setCollisionPassive(entity, {
 		hitboxOffsetX = 0,
 		hitboxOffsetY = 0,
 		hitboxW = FortressTile.DRAW_WIDTH,

@@ -33,9 +33,9 @@ AnimationStrips.addFrame(eelRightStrip, 4, 4)
 AnimationStrips.addFrame(eelRightStrip, 4, 5)
 AnimationStrips.addFrame(eelRightStrip, 3, 4)
 
-local eelOnDeleteCallback = Callbacks.register("invasion", "Entities.Invaders.Eel.onDelete")
+local eelOnDamageCallback = Callbacks.register("invasion", "Entities.Invaders.Eel.onDamage")
 
-function InvaderEel.onDelete(entity: Entity): ()
+function InvaderEel.onDamage(entity: Entity): ()
 	local position = ECS.getPosition(entity)
 	InvaderExplosion.new(position.x, position.y)
 	Game.incrementScore(math.random(100, 300))
@@ -43,7 +43,7 @@ function InvaderEel.onDelete(entity: Entity): ()
 
 	ECS.setPlayerAttack(Player.Entity, {
 		tickCounter = 0,
-		weapon = Player.Weapons.Fastshot,
+		weapon = Player.Weapons.Bomb,
 	})
 
 	ECS.setCallbackOnTimeout(ECS.create(), {
@@ -95,7 +95,7 @@ function InvaderEel.new(): ()
 	})
 
 	ECS.setDamageCallback(entity, {
-		callback = eelOnDeleteCallback,
+		callback = eelOnDamageCallback,
 	})
 
 	ECS.setHitpoints(entity, {

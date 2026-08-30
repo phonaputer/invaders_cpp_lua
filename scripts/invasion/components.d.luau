@@ -137,8 +137,9 @@ export type Velocity = {
 export type Entity = number
 
 declare ECS: {
-    create: () -> (Entity),
+    create: () -> Entity,
     clearAll: () -> (),
+    isValid: (Entity) -> boolean,
 
     setAnimation: (Entity, Animation) -> (),
     hasAnimation: (Entity) -> boolean,
