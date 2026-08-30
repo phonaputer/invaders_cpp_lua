@@ -56,8 +56,7 @@ int add_frame(lua_State *L) {
 void add_animation_strip_registry_to_script_env(
     framework::ScriptEnvironment &scripts, AnimationStripRegistry &animation_strips
 ) {
-  lua_State &L_ref = scripts.get_lua_state();
-  lua_State *L = &L_ref;
+  lua_State *L = &scripts.get_lua_state();
 
   lua_newtable(L);
 
