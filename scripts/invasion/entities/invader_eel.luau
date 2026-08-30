@@ -40,17 +40,7 @@ function InvaderEel.onDamage(entity: Entity): ()
 	InvaderExplosion.new(position.x, position.y)
 	Game.incrementScore(math.random(100, 300))
 	Game.playSound("alien_explosion.wav")
-
-	ECS.setPlayerAttack(Player.Entity, {
-		tickCounter = 0,
-		weapon = Player.Weapons.Bomb,
-	})
-
-	ECS.setCallbackOnTimeout(ECS.create(), {
-		timeoutTicks = 350,
-		tickCounter = 0,
-		callback = Player.SetDefaultWeaponCallback,
-	})
+	Player.setRandomBonusWeapon()
 end
 
 type FirstFrame = {

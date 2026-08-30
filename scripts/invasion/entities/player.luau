@@ -76,7 +76,7 @@ function Player.new(): ()
 	})
 end
 
-function Player.setDefaultWeapon()
+function Player.setDefaultWeapon(): ()
 	ECS.setPlayerAttack(Player.Entity, {
 		tickCounter = 0,
 		weapon = Player.Weapons.Default,
@@ -84,5 +84,23 @@ function Player.setDefaultWeapon()
 end
 
 Player.SetDefaultWeaponCallback = Callbacks.register("invasion", "Entities.Player.setDefaultWeapon")
+
+function Player.setRandomBonusWeapon(): ()
+	local bonusWeapon = Player.Weapons.Fastshot
+	if math.random(0, 1) == 1 then
+		bonusWeapon = Player.Weapons.Bomb
+	end
+
+	ECS.setPlayerAttack(Player.Entity, {
+		tickCounter = 0,
+		weapon = bonusWeapon,
+	})
+
+	ECS.setCallbackOnTimeout(ECS.create(), {
+		timeoutTicks = 350,
+		tickCounter = 0,
+		callback = Player.SetDefaultWeaponCallback,
+	})
+end
 
 return Player
