@@ -2,8 +2,7 @@
 
 #include "framework/script_environment.hpp"
 #include <cstdint>
-
-#include <LuaBridge/LuaBridge.h>
+#include <lualib.h>
 
 namespace components {
 
@@ -26,17 +25,26 @@ constexpr DamageTypeSet operator|(DamageTypeSet l, DamageType r) {
 }
 
 inline void register_damage_type_enum_to_script_env(framework::ScriptEnvironment &scripts) {
-  lua_State &L = scripts.get_lua_state();
+  lua_State *L = &scripts.get_lua_state();
 
-  // LuaBridge doesn't like the enum class type being passed to it, so it's necessary to cast to uint8.
-  luabridge::getGlobalNamespace(&L)
-      .beginNamespace("DamageType")
-      .addProperty("ALIEN", []() { return static_cast<uint8_t>(DamageType::Alien); })
-      .addProperty("PLAYER", []() { return static_cast<uint8_t>(DamageType::Player); })
-      .addProperty("FORTRESS", []() { return static_cast<uint8_t>(DamageType::Fortress); })
-      .addProperty("ALIEN_PROJECTILE", []() { return static_cast<uint8_t>(DamageType::Alien_Projectile); })
-      .addProperty("PLAYER_PROJECTILE", []() { return static_cast<uint8_t>(DamageType::Player_Projectile); })
-      .endNamespace();
+  lua_newtable(L);
+
+  lua_pushnumber(L, static_cast<lua_Number>(DamageType::Alien));
+  lua_setfield(L, -2, "ALIEN");
+
+  lua_pushnumber(L, static_cast<lua_Number>(DamageType::Player));
+  lua_setfield(L, -2, "PLAYER");
+
+  lua_pushnumber(L, static_cast<lua_Number>(DamageType::Fortress));
+  lua_setfield(L, -2, "FORTRESS");
+
+  lua_pushnumber(L, static_cast<lua_Number>(DamageType::Alien_Projectile));
+  lua_setfield(L, -2, "ALIEN_PROJECTILE");
+
+  lua_pushnumber(L, static_cast<lua_Number>(DamageType::Player_Projectile));
+  lua_setfield(L, -2, "PLAYER_PROJECTILE");
+
+  lua_setglobal(L, "DamageType");
 }
 
 } // namespace components
