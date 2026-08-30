@@ -24,7 +24,6 @@ class AnimationStripRegistry {
     AnimationStripID create();
     void add_frame(AnimationStripID id, AnimationFrame frame);
     AnimationStrip get(AnimationStripID id) const;
-    void clear();
 };
 
 void add_animation_strip_registry_to_script_env(

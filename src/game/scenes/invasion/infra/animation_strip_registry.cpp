@@ -27,10 +27,6 @@ AnimationStrip AnimationStripRegistry::get(AnimationStripID id) const {
   return {};
 }
 
-void AnimationStripRegistry::clear() {
-  animations.clear();
-}
-
 int create_animation_strip(lua_State *L) {
   luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
   auto *animation_strips_ptr
