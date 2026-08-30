@@ -2,14 +2,14 @@
 // clang-format off
 #pragma once
 
-#include "framework/animation_strip_registry.hpp"
+#include "game/scenes/invasion/infra/animation_strip_registry.hpp"
 #include <cstdint>
 
 namespace components {
 
 struct InvaderAnimation {
     uint8_t cur_frame = 0;
-    framework::AnimationStripID strip_id = 0;
+    infra::AnimationStripID strip_id = 0;
 
     bool operator==(const InvaderAnimation &) const = default;
 };

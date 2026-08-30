@@ -1,9 +1,9 @@
 #pragma once
 
-#include "framework/animation_strip_registry.hpp"
 #include "framework/script_environment.hpp"
 #include "framework/system.hpp"
 #include "game/scenes/invasion/components/invader_orchestration_state.hpp"
+#include "game/scenes/invasion/infra/animation_strip_registry.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
 #include <cstdint>
 #include <functional>
@@ -14,7 +14,7 @@ class InvaderOrchestration : public framework::System {
   private:
     std::reference_wrapper<framework::ScriptEnvironment> scripts;
     std::reference_wrapper<infra::CallbackGetter> callbacks;
-    std::reference_wrapper<framework::AnimationStripRegistry> animation_strips;
+    std::reference_wrapper<infra::AnimationStripRegistry> animation_strips;
 
     static size_t count_invaders(framework::ExecuteCtx &ctx);
     void invoke_no_invaders_callback(components::InvaderOrchestrationState &state);
@@ -36,7 +36,7 @@ class InvaderOrchestration : public framework::System {
     InvaderOrchestration(
         framework::ScriptEnvironment &scripts,
         infra::CallbackGetter &callbacks,
-        framework::AnimationStripRegistry &animation_strips
+        infra::AnimationStripRegistry &animation_strips
     );
     void execute(framework::ExecuteCtx &ctx) override;
 };

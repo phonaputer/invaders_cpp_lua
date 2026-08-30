@@ -1,4 +1,3 @@
-#include "framework/animation_strip_registry.hpp"
 #include "framework/event_broker.hpp"
 #include "framework/player_input_manager.hpp"
 #include "framework/system.hpp"
@@ -6,6 +5,7 @@
 #include "game/scenes/invasion/components/animation_unpausable.hpp"
 #include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
+#include "game/scenes/invasion/infra/animation_strip_registry.hpp"
 #include "game/scenes/invasion/systems/animation.hpp"
 #include <entt.hpp>
 #include <gtest/gtest.h>
@@ -17,7 +17,7 @@ struct TestSetup {
     entt::registry ecs;
     framework::EventBroker events;
     framework::PlayerInputManager player_input;
-    framework::AnimationStripRegistry animation_strips;
+    infra::AnimationStripRegistry animation_strips;
 
     std::unique_ptr<systems::Animation> system;
 

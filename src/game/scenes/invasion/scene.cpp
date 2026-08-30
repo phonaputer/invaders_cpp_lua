@@ -38,9 +38,11 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
       std::make_unique<systems::PlayerAttack>(ctx.scripts, callback_registry, weapon_registry)
   );
   ctx.systems.add_update_system(std::make_unique<systems::PositionFollowing>());
-  ctx.systems.add_update_system(std::make_unique<systems::Animation>(ctx.animation_strips));
+  ctx.systems.add_update_system(std::make_unique<systems::Animation>(animation_strip_registry));
   ctx.systems.add_update_system(
-      std::make_unique<systems::InvaderOrchestration>(ctx.scripts, callback_registry, ctx.animation_strips)
+      std::make_unique<systems::InvaderOrchestration>(
+          ctx.scripts, callback_registry, animation_strip_registry
+      )
   );
   ctx.systems.add_update_system(std::make_unique<systems::CallbackOnTimeout>(ctx.scripts, callback_registry));
 
@@ -53,6 +55,7 @@ void Scene::initialize(framework::SceneInitializationContext ctx) {
   ctx.ecs.ctx().emplace<components::InvaderOrchestrationState>();
 
   register_cpp_api_to_script_env(ctx);
+  infra::add_animation_strip_registry_to_script_env(ctx.scripts, animation_strip_registry);
   infra::add_callback_registry_to_script_env(ctx.scripts, callback_registry);
   infra::add_weapon_registry_to_script_env(ctx.scripts, weapon_registry);
 

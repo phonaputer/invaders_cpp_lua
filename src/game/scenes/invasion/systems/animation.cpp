@@ -1,14 +1,14 @@
 #include "game/scenes/invasion/systems/animation.hpp"
-#include "framework/animation_strip_registry.hpp"
 #include "framework/system.hpp"
 #include "game/scenes/invasion/components/animation.hpp"
 #include "game/scenes/invasion/components/animation_unpausable.hpp"
 #include "game/scenes/invasion/components/pause.hpp"
 #include "game/scenes/invasion/components/sprite.hpp"
+#include "game/scenes/invasion/infra/animation_strip_registry.hpp"
 
 namespace systems {
 
-Animation::Animation(const framework::AnimationStripRegistry &animation_strips)
+Animation::Animation(const infra::AnimationStripRegistry &animation_strips)
     : animation_strips{animation_strips} {
 }
 

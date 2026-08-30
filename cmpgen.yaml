@@ -8,8 +8,8 @@ cmakeTarget: ${PROJECT_NAME}_lib
 
 fieldTypes:
   - id: animation_strip_id
-    cppType: framework::AnimationStripID
-    cppInclude: '"framework/animation_strip_registry.hpp"'
+    cppType: infra::AnimationStripID
+    cppInclude: '"game/scenes/invasion/infra/animation_strip_registry.hpp"'
     cppDefaultValue: 0
     luauType: number
 

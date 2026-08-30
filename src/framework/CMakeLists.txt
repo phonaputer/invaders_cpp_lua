@@ -1,7 +1,6 @@
 target_sources(
   ${PROJECT_NAME}_lib
   PRIVATE
-  animation_strip_registry.cpp
   game.cpp
   player_input_manager.cpp
   sdl_asset_manager.cpp

@@ -1,10 +1,11 @@
 #pragma once
 
+#include "framework/script_environment.hpp"
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
 
-namespace framework {
+namespace infra {
 
 struct AnimationFrame {
     int x;
@@ -26,4 +27,8 @@ class AnimationStripRegistry {
     void clear();
 };
 
-} // namespace framework
+void add_animation_strip_registry_to_script_env(
+    framework::ScriptEnvironment &scripts, AnimationStripRegistry &animation_strips
+);
+
+} // namespace infra

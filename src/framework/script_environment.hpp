@@ -1,7 +1,5 @@
 #pragma once
 
-#include "framework/animation_strip_registry.hpp"
-#include <entt.hpp>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -112,18 +110,6 @@ class ScriptEnvironment {
     // For when it's necessary do something in the Luau state not supported by the above helpers.
     lua_State &get_lua_state();
 };
-
-// Intentionally using references here since this is a parameter object.
-//
-// NOLINTBEGIN(cppcoreguidelines-avoid-const-or-ref-data-members)
-struct SceneComponents {
-    ScriptEnvironment &scripts;
-    entt::registry &ecs;
-    AnimationStripRegistry &animation_strips;
-};
-// NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
-
-void register_scene_components_to_script_env(SceneComponents args);
 
 } // namespace framework
 

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "framework/constants.hpp"
-#include <entt.hpp>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -344,40 +342,6 @@ inline std::optional<luabridge::LuaRef> ScriptEnvironment::get_global_function(c
   global_function_cache.insert({function, func});
 
   return func;
-}
-
-inline void register_scene_components_to_script_env(SceneComponents args) {
-  lua_State &L = args.scripts.get_lua_state();
-
-  luaL_openlibs(&L);
-
-  luabridge::getGlobalNamespace(&L)
-      .beginNamespace("Game")
-      .addProperty("WINDOW_WIDTH", &WINDOW_WIDTH)
-      .addProperty("WINDOW_HEIGHT", &WINDOW_HEIGHT)
-      .endNamespace()
-      .beginNamespace("ECS")
-      .addFunction("create", [&ecs = args.ecs]() -> uint32_t { return entt::to_integral(ecs.create()); })
-      .addFunction(
-          "clearAll",
-          [&ecs = args.ecs]() {
-            ecs.clear();
-            ecs.ctx().clear();
-          }
-      )
-      .endNamespace()
-      .beginNamespace("AnimationStrips")
-      .addFunction(
-          "create",
-          [&animation_strips = args.animation_strips]() -> uint8_t { return animation_strips.create(); }
-      )
-      .addFunction(
-          "addFrame",
-          [&animation_strips = args.animation_strips](uint8_t id, int x, int y) {
-            animation_strips.add_frame(id, AnimationFrame{.x = x, .y = y});
-          }
-      )
-      .endNamespace();
 }
 
 } // namespace framework

@@ -1,5 +1,4 @@
 #include "game/scenes/invasion/systems/invader_orchestration.hpp"
-#include "framework/animation_strip_registry.hpp"
 #include "framework/constants.hpp"
 #include "framework/script_environment.hpp"
 #include "framework/system.hpp"
@@ -11,6 +10,7 @@
 #include "game/scenes/invasion/components/sprite.hpp"
 #include "game/scenes/invasion/constants.hpp"
 #include "game/scenes/invasion/events/play_sound.hpp"
+#include "game/scenes/invasion/infra/animation_strip_registry.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
 #include <cstddef>
 #include <string>
@@ -21,7 +21,7 @@ namespace systems {
 InvaderOrchestration::InvaderOrchestration(
     framework::ScriptEnvironment &scripts,
     infra::CallbackGetter &callbacks,
-    framework::AnimationStripRegistry &animation_strips
+    infra::AnimationStripRegistry &animation_strips
 )
     : scripts{scripts},
       callbacks{callbacks},

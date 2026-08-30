@@ -1,4 +1,5 @@
 #include "game/scenes/invasion/script_api.hpp"
+#include "framework/constants.hpp"
 #include "framework/event_broker.hpp"
 #include "framework/scene.hpp"
 #include "game/scenes/invasion/components/damage_type_enum.hpp"
@@ -93,6 +94,12 @@ void register_cpp_api_to_script_env(framework::SceneInitializationContext &ctx) 
   ctx.scripts.register_function("Game", "stopSound", [&events = ctx.events](const std::string &audio_src) {
     stop_sound(events, audio_src);
   });
+
+  luabridge::getGlobalNamespace(&ctx.scripts.get_lua_state())
+      .beginNamespace("Game")
+      .addProperty("WINDOW_WIDTH", &framework::WINDOW_WIDTH)
+      .addProperty("WINDOW_HEIGHT", &framework::WINDOW_HEIGHT)
+      .endNamespace();
 }
 
 } // namespace invasion

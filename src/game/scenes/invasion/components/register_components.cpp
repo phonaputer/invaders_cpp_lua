@@ -99,7 +99,7 @@ int set_animation(lua_State *L) {
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'stripID' field to be a number");
     }
-    const auto strip_id = static_cast<framework::AnimationStripID>(lua_tonumber(L, -1));
+    const auto strip_id = static_cast<infra::AnimationStripID>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     lua_getfield(L, 2, "playing");
@@ -223,7 +223,7 @@ int set_animation_unpausable(lua_State *L) {
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'stripID' field to be a number");
     }
-    const auto strip_id = static_cast<framework::AnimationStripID>(lua_tonumber(L, -1));
+    const auto strip_id = static_cast<infra::AnimationStripID>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     ecs_ptr->emplace_or_replace<AnimationUnpausable>(
@@ -1173,7 +1173,7 @@ int set_invader_animation(lua_State *L) {
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'stripID' field to be a number");
     }
-    const auto strip_id = static_cast<framework::AnimationStripID>(lua_tonumber(L, -1));
+    const auto strip_id = static_cast<infra::AnimationStripID>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     ecs_ptr->emplace_or_replace<InvaderAnimation>(
