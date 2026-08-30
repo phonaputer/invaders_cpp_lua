@@ -52,6 +52,18 @@ int clear_all_entities(lua_State *L) {
 
     return 0;
 }
+
+int is_entity_valid(lua_State *L) {
+    luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
+    auto *ecs_ptr = static_cast<entt::registry *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
+
+    lua_Number entity_num = luaL_checknumber(L, 1);
+    auto entity = entt::entity(static_cast<uint32_t>(entity_num));
+
+    lua_pushboolean(L, ecs_ptr->valid(entity));
+
+    return 1;
+}
       
 int set_animation(lua_State *L) {
     luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
@@ -2176,6 +2188,10 @@ void register_components(entt::registry &ecs, lua_State *L) {
     lua_pushlightuserdata(L, ecs_ptr);
     lua_pushcclosure(L, &clear_all_entities, "ECS.clearAll", 1);
     lua_setfield(L, -2, "clearAll");
+
+    lua_pushlightuserdata(L, ecs_ptr);
+    lua_pushcclosure(L, &is_entity_valid, "ECS.isValid", 1);
+    lua_setfield(L, -2, "isValid");
 
     // Animation
 

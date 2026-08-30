@@ -7,6 +7,7 @@ target_sources(
   collision_callback.cpp
   collision_detection.cpp
   damage.cpp
+  debug_hitbox_rendering.cpp
   deletion.cpp
   hud_rendering.cpp
   invader_orchestration.cpp
