@@ -97,8 +97,7 @@ function Player.setRandomBonusWeapon(): ()
 	})
 
 	ECS.setCallbackOnTimeout(ECS.create(), {
-		timeoutTicks = 350,
-		tickCounter = 0,
+		invokeOnTick = Scene.tickCount() + 350,
 		callback = Player.SetDefaultWeaponCallback,
 	})
 end

@@ -36,8 +36,7 @@ function PlayerExplosion.new(x: number, y: number, ticksToLive: number)
 	})
 
 	ECS.setTTL(entity, {
-		ticksToLive = ticksToLive,
-		tickCounter = 0,
+		liveUntilTick = Scene.tickCount() + ticksToLive,
 	})
 end
 

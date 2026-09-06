@@ -99,9 +99,9 @@ void Game::update() {
 
     for (const auto &system : update_systems) {
       system->execute(ctx);
-      ctx.scene_tick_count = ++scene_tick_count;
     }
 
+    ctx.scene_tick_count = ++scene_tick_count;
     unprocessed_ms -= MS_PER_UPDATE;
   }
 

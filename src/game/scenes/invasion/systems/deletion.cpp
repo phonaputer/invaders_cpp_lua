@@ -16,11 +16,11 @@ Deletion::Deletion(framework::ScriptEnvironment &scripts, infra::CallbackGetter 
 void Deletion::execute(framework::ExecuteCtx &ctx) {
   auto ttl_view = ctx.ecs.view<components::TTL>();
   for (auto [entity, ttl] : ttl_view.each()) {
-    if (ttl.tick_counter >= ttl.ticks_to_live) {
-      ctx.ecs.emplace<components::ToBeDeleted>(entity);
-    } else {
-      ttl.tick_counter++;
+    if (ttl.live_until_tick > ctx.scene_tick_count) {
+      continue;
     }
+
+    ctx.ecs.emplace<components::ToBeDeleted>(entity);
   }
 
   auto callback_view = ctx.ecs.view<components::ToBeDeleted, components::DeletionCallback>();

@@ -11,8 +11,7 @@ function InvaderEel.scheduleSpawn(): ()
 
 	ECS.setCallbackOnTimeout(entity, {
 		callback = spawnEelCallback,
-		timeoutTicks = math.random(900, 1600),
-		tickCounter = 0,
+		invokeOnTick = Scene.tickCount() + math.random(900, 1600),
 	})
 end
 

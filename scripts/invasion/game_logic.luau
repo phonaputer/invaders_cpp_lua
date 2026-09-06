@@ -61,8 +61,7 @@ function GameLogic.onTouchdown(): ()
 	Game.displayGameOver()
 
 	ECS.setCallbackOnTimeoutUnpausable(ECS.create(), {
-		timeoutTicks = PLAYER_LOSS_PAUSE_TICKS,
-		tickCounter = 0,
+		invokeOnTick = Scene.tickCount() + PLAYER_LOSS_PAUSE_TICKS,
 		callback = resetSceneCallback,
 	})
 end
@@ -81,9 +80,11 @@ function GameLogic.onPlayerDefeat(entity: Entity): ()
 		callback = resetSceneCallback
 	end
 
+	print("curticks: " .. tostring(Scene.tickCount()))
+	print(Scene.tickCount() + PLAYER_LOSS_PAUSE_TICKS)
+
 	ECS.setCallbackOnTimeoutUnpausable(ECS.create(), {
-		timeoutTicks = PLAYER_LOSS_PAUSE_TICKS,
-		tickCounter = 0,
+		invokeOnTick = Scene.tickCount() + PLAYER_LOSS_PAUSE_TICKS,
 		callback = callback,
 	})
 end

@@ -17,15 +17,13 @@ export type AnimationUnpausable = {
 }
 
 export type CallbackOnTimeout = {
+    invokeOnTick: number,
     callback: number,
-    timeoutTicks: number,
-    tickCounter: number,
 }
 
 export type CallbackOnTimeoutUnpausable = {
+    invokeOnTick: number,
     callback: number,
-    timeoutTicks: number,
-    tickCounter: number,
 }
 
 export type CollisionActive = {
@@ -125,8 +123,7 @@ export type Sprite = {
 }
 
 export type TTL = {
-    ticksToLive: number,
-    tickCounter: number,
+    liveUntilTick: number,
 }
 
 export type Velocity = {

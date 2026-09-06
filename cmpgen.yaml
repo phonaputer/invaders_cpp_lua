@@ -70,6 +70,12 @@ fieldTypes:
     cppInclude: <cstdint>
     luauType: number
 
+  - id: uint64
+    cppType: uint64_t
+    cppDefaultValue: 0
+    cppInclude: <cstdint>
+    luauType: number
+
 components:
   - name: Animation
     fields:
@@ -89,15 +95,13 @@ components:
 
   - name: Callback On Timeout
     fields:
+      - { name: Invoke On Tick, type: uint64 }
       - { name: Callback, type: callback_id }
-      - { name: Timeout Ticks, type: uint16 }
-      - { name: Tick Counter, type: uint16 }
 
   - name: Callback On Timeout Unpausable
     fields:
+      - { name: Invoke On Tick, type: uint64 }
       - { name: Callback, type: callback_id }
-      - { name: Timeout Ticks, type: uint16 }
-      - { name: Tick Counter, type: uint16 }
 
   - name: Collision Active
     fields:
@@ -209,8 +213,7 @@ components:
 
   - name: TTL
     fields:
-      - { name: Ticks To Live, type: uint16 }
-      - { name: Tick Counter, type: uint16 }
+      - { name: Live Until Tick, type: uint64 }
 
   - name: Velocity
     fields:

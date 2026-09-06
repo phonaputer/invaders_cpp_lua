@@ -8,9 +8,8 @@
 namespace components {
 
 struct CallbackOnTimeoutUnpausable {
+    uint64_t invoke_on_tick = 0;
     infra::CallbackID callback = 0;
-    uint16_t timeout_ticks = 0;
-    uint16_t tick_counter = 0;
 
     bool operator==(const CallbackOnTimeoutUnpausable &) const = default;
 };

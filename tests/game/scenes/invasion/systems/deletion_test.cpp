@@ -114,20 +114,20 @@ TEST_F(SystemDeletion, ExecuteTTLHasNotReachedLifetimeShouldIncrement) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity = ctx.ecs.create();
-  ctx.ecs.emplace<components::TTL>(entity, components::TTL{.ticks_to_live = 100, .tick_counter = 99});
+  ctx.scene_tick_count = 99;
+  ctx.ecs.emplace<components::TTL>(entity, components::TTL{.live_until_tick = 100});
 
   setup.system.execute(ctx);
 
   EXPECT_TRUE(ctx.ecs.valid(entity));
-  const auto expected_ttl = components::TTL{.ticks_to_live = 100, .tick_counter = 100};
-  EXPECT_EQ(expected_ttl, setup.ecs.get<components::TTL>(entity));
 }
 
 TEST_F(SystemDeletion, ExecuteTTLReachesLifetimeShouldDeleteEntity) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity = ctx.ecs.create();
-  ctx.ecs.emplace<components::TTL>(entity, components::TTL{.ticks_to_live = 100, .tick_counter = 100});
+  ctx.scene_tick_count = 100;
+  ctx.ecs.emplace<components::TTL>(entity, components::TTL{.live_until_tick = 100});
 
   setup.system.execute(ctx);
 

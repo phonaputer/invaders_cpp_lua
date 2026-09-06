@@ -300,6 +300,13 @@ int set_callback_on_timeout(lua_State *L) {
 
     luaL_checktype(L, 2, LUA_TTABLE);
 
+    lua_getfield(L, 2, "invokeOnTick");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'invokeOnTick' field to be a number");
+    }
+    const auto invoke_on_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
     lua_getfield(L, 2, "callback");
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'callback' field to be a number");
@@ -307,26 +314,11 @@ int set_callback_on_timeout(lua_State *L) {
     const auto callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
-    lua_getfield(L, 2, "timeoutTicks");
-    if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'timeoutTicks' field to be a number");
-    }
-    const auto timeout_ticks = static_cast<uint16_t>(lua_tonumber(L, -1));
-    lua_pop(L, 1);
-
-    lua_getfield(L, 2, "tickCounter");
-    if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
-    }
-    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
-    lua_pop(L, 1);
-
     ecs_ptr->emplace_or_replace<CallbackOnTimeout>(
         entity,
         CallbackOnTimeout{
+            .invoke_on_tick = invoke_on_tick,
             .callback = callback,
-            .timeout_ticks = timeout_ticks,
-            .tick_counter = tick_counter,
         }
     );
 
@@ -344,14 +336,11 @@ int get_callback_on_timeout(lua_State *L) {
 
     lua_newtable(L);
 
+    lua_pushnumber(L, static_cast<lua_Number>(component.invoke_on_tick));
+    lua_setfield(L, -2, "invokeOnTick");
+
     lua_pushnumber(L, static_cast<lua_Number>(component.callback));
     lua_setfield(L, -2, "callback");
-
-    lua_pushnumber(L, static_cast<lua_Number>(component.timeout_ticks));
-    lua_setfield(L, -2, "timeoutTicks");
-
-    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
-    lua_setfield(L, -2, "tickCounter");
 
     return 1;
 }
@@ -391,6 +380,13 @@ int set_callback_on_timeout_unpausable(lua_State *L) {
 
     luaL_checktype(L, 2, LUA_TTABLE);
 
+    lua_getfield(L, 2, "invokeOnTick");
+    if (!lua_isnumber(L, -1)) {
+        luaL_argerror(L, 2, "Expected 'invokeOnTick' field to be a number");
+    }
+    const auto invoke_on_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
+    lua_pop(L, 1);
+
     lua_getfield(L, 2, "callback");
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'callback' field to be a number");
@@ -398,26 +394,11 @@ int set_callback_on_timeout_unpausable(lua_State *L) {
     const auto callback = static_cast<infra::CallbackID>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
-    lua_getfield(L, 2, "timeoutTicks");
-    if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'timeoutTicks' field to be a number");
-    }
-    const auto timeout_ticks = static_cast<uint16_t>(lua_tonumber(L, -1));
-    lua_pop(L, 1);
-
-    lua_getfield(L, 2, "tickCounter");
-    if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
-    }
-    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
-    lua_pop(L, 1);
-
     ecs_ptr->emplace_or_replace<CallbackOnTimeoutUnpausable>(
         entity,
         CallbackOnTimeoutUnpausable{
+            .invoke_on_tick = invoke_on_tick,
             .callback = callback,
-            .timeout_ticks = timeout_ticks,
-            .tick_counter = tick_counter,
         }
     );
 
@@ -435,14 +416,11 @@ int get_callback_on_timeout_unpausable(lua_State *L) {
 
     lua_newtable(L);
 
+    lua_pushnumber(L, static_cast<lua_Number>(component.invoke_on_tick));
+    lua_setfield(L, -2, "invokeOnTick");
+
     lua_pushnumber(L, static_cast<lua_Number>(component.callback));
     lua_setfield(L, -2, "callback");
-
-    lua_pushnumber(L, static_cast<lua_Number>(component.timeout_ticks));
-    lua_setfield(L, -2, "timeoutTicks");
-
-    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
-    lua_setfield(L, -2, "tickCounter");
 
     return 1;
 }
@@ -2025,25 +2003,17 @@ int set_ttl(lua_State *L) {
 
     luaL_checktype(L, 2, LUA_TTABLE);
 
-    lua_getfield(L, 2, "ticksToLive");
+    lua_getfield(L, 2, "liveUntilTick");
     if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'ticksToLive' field to be a number");
+        luaL_argerror(L, 2, "Expected 'liveUntilTick' field to be a number");
     }
-    const auto ticks_to_live = static_cast<uint16_t>(lua_tonumber(L, -1));
-    lua_pop(L, 1);
-
-    lua_getfield(L, 2, "tickCounter");
-    if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
-    }
-    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
+    const auto live_until_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     ecs_ptr->emplace_or_replace<TTL>(
         entity,
         TTL{
-            .ticks_to_live = ticks_to_live,
-            .tick_counter = tick_counter,
+            .live_until_tick = live_until_tick,
         }
     );
 
@@ -2061,11 +2031,8 @@ int get_ttl(lua_State *L) {
 
     lua_newtable(L);
 
-    lua_pushnumber(L, static_cast<lua_Number>(component.ticks_to_live));
-    lua_setfield(L, -2, "ticksToLive");
-
-    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
-    lua_setfield(L, -2, "tickCounter");
+    lua_pushnumber(L, static_cast<lua_Number>(component.live_until_tick));
+    lua_setfield(L, -2, "liveUntilTick");
 
     return 1;
 }

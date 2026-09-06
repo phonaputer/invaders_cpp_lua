@@ -38,8 +38,7 @@ function InvaderExplosion.new(x: number, y: number)
 	})
 
 	ECS.setTTL(entity, {
-		ticksToLive = 20,
-		tickCounter = 0,
+		liveUntilTick = Scene.tickCount() + 20,
 	})
 end
 

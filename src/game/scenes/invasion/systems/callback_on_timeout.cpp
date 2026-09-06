@@ -20,15 +20,15 @@ void CallbackOnTimeout::execute(framework::ExecuteCtx &ctx) {
 
   auto unpausable_view = ctx.ecs.view<components::CallbackOnTimeoutUnpausable>();
   for (auto [entity, cb_on_timeout] : unpausable_view.each()) {
-    if (cb_on_timeout.tick_counter >= cb_on_timeout.timeout_ticks) {
-      to_delete.push_back(entity);
-      const auto maybe_callback = callbacks.get().get_callback(cb_on_timeout.callback);
-      if (maybe_callback.has_value()) {
-        const auto &callback = maybe_callback.value();
-        scripts.get().call_function(callback.package, callback.function);
-      }
-    } else {
-      cb_on_timeout.tick_counter++;
+    if (cb_on_timeout.invoke_on_tick > ctx.scene_tick_count) {
+      continue;
+    }
+
+    to_delete.push_back(entity);
+    const auto maybe_callback = callbacks.get().get_callback(cb_on_timeout.callback);
+    if (maybe_callback.has_value()) {
+      const auto &callback = maybe_callback.value();
+      scripts.get().call_function(callback.package, callback.function);
     }
   }
 
@@ -46,15 +46,15 @@ void CallbackOnTimeout::execute(framework::ExecuteCtx &ctx) {
 
   auto view = ctx.ecs.view<components::CallbackOnTimeout>();
   for (auto [entity, cb_on_timeout] : view.each()) {
-    if (cb_on_timeout.tick_counter >= cb_on_timeout.timeout_ticks) {
-      to_delete.push_back(entity);
-      const auto maybe_callback = callbacks.get().get_callback(cb_on_timeout.callback);
-      if (maybe_callback.has_value()) {
-        const auto &callback = maybe_callback.value();
-        scripts.get().call_function(callback.package, callback.function);
-      }
-    } else {
-      cb_on_timeout.tick_counter++;
+    if (cb_on_timeout.invoke_on_tick > ctx.scene_tick_count) {
+      continue;
+    }
+
+    to_delete.push_back(entity);
+    const auto maybe_callback = callbacks.get().get_callback(cb_on_timeout.callback);
+    if (maybe_callback.has_value()) {
+      const auto &callback = maybe_callback.value();
+      scripts.get().call_function(callback.package, callback.function);
     }
   }
 
