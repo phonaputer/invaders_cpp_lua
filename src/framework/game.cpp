@@ -177,13 +177,11 @@ void Game::apply_new_scene_if_any() {
       }
   );
 
-  current_tick = 0;
-
   scene = std::move(new_scene.value());
   new_scene = std::nullopt;
 }
 
-uint64_t Game::get_scene_tick_count() const {
+Tick Game::get_current_tick() const {
   return current_tick;
 }
 

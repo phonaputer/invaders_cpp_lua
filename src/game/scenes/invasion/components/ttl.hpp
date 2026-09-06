@@ -2,12 +2,12 @@
 // clang-format off
 #pragma once
 
-#include <cstdint>
+#include "framework/tick.hpp"
 
 namespace components {
 
 struct TTL {
-    uint64_t live_until_tick = 0;
+    framework::Tick live_until_tick = 0;
 
     bool operator==(const TTL &) const = default;
 };

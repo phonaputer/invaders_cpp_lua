@@ -10,6 +10,7 @@
 #include "framework/sdl_renderer.hpp"
 #include "framework/system.hpp"
 #include "framework/system_registry.hpp"
+#include "framework/tick.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
 #include <cstdint>
@@ -39,7 +40,7 @@ class Game : public SystemRegistry, public SceneSetter {
     std::optional<std::unique_ptr<Scene>> new_scene;
     std::optional<std::unique_ptr<Scene>> scene;
 
-    uint64_t current_tick;
+    Tick current_tick;
     uint64_t previous_now_ms;
     uint64_t unprocessed_ms;
 
@@ -52,7 +53,7 @@ class Game : public SystemRegistry, public SceneSetter {
     void draw();
 
     PlayerInputManager &get_player_input_manager();
-    uint64_t get_scene_tick_count() const;
+    Tick get_current_tick() const;
 
     void set_scene(std::unique_ptr<Scene> scene) override;
 

@@ -31,6 +31,12 @@ fieldTypes:
     cppDefaultValue: 0
     luauType: number
 
+  - id: tick
+    cppType: framework::Tick
+    cppDefaultValue: 0
+    cppInclude: '"framework/tick.hpp"'
+    luauType: number
+
   - id: weapon_id
     cppType: infra::WeaponID
     cppInclude: '"game/scenes/invasion/infra/weapon_registry.hpp"'
@@ -70,16 +76,10 @@ fieldTypes:
     cppInclude: <cstdint>
     luauType: number
 
-  - id: uint64
-    cppType: uint64_t
-    cppDefaultValue: 0
-    cppInclude: <cstdint>
-    luauType: number
-
 components:
   - name: Animation
     fields:
-      - { name: Next Frame Tick, type: uint64 }
+      - { name: Next Frame Tick, type: tick }
       - { name: Ticks Per Frame, type: uint16 }
       - { name: Cur Frame, type: uint8 }
       - { name: Strip ID, type: animation_strip_id }
@@ -88,19 +88,19 @@ components:
 
   - name: Animation Unpausable
     fields:
-      - { name: Next Frame Tick, type: uint64 }
+      - { name: Next Frame Tick, type: tick }
       - { name: Ticks Per Frame, type: uint16 }
       - { name: Cur Frame, type: uint8 }
       - { name: Strip ID, type: animation_strip_id }
 
   - name: Callback On Timeout
     fields:
-      - { name: Invoke On Tick, type: uint64 }
+      - { name: Invoke On Tick, type: tick }
       - { name: Callback, type: callback_id }
 
   - name: Callback On Timeout Unpausable
     fields:
-      - { name: Invoke On Tick, type: uint64 }
+      - { name: Invoke On Tick, type: tick }
       - { name: Callback, type: callback_id }
 
   - name: Collision Active
@@ -213,7 +213,7 @@ components:
 
   - name: TTL
     fields:
-      - { name: Live Until Tick, type: uint64 }
+      - { name: Live Until Tick, type: tick }
 
   - name: Velocity
     fields:

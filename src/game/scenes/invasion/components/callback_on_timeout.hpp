@@ -2,13 +2,13 @@
 // clang-format off
 #pragma once
 
+#include "framework/tick.hpp"
 #include "game/scenes/invasion/infra/callback_registry.hpp"
-#include <cstdint>
 
 namespace components {
 
 struct CallbackOnTimeout {
-    uint64_t invoke_on_tick = 0;
+    framework::Tick invoke_on_tick = 0;
     infra::CallbackID callback = 0;
 
     bool operator==(const CallbackOnTimeout &) const = default;

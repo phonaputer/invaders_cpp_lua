@@ -2,13 +2,14 @@
 // clang-format off
 #pragma once
 
+#include "framework/tick.hpp"
 #include "game/scenes/invasion/infra/animation_strip_registry.hpp"
 #include <cstdint>
 
 namespace components {
 
 struct Animation {
-    uint64_t next_frame_tick = 0;
+    framework::Tick next_frame_tick = 0;
     uint16_t ticks_per_frame = 0;
     uint8_t cur_frame = 0;
     infra::AnimationStripID strip_id = 0;

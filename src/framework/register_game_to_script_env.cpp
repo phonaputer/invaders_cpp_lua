@@ -9,7 +9,7 @@ int get_scene_tick_count(lua_State *L) {
   luaL_checktype(L, lua_upvalueindex(1), LUA_TLIGHTUSERDATA);
   auto *game_ptr = static_cast<Game *>(lua_tolightuserdata(L, lua_upvalueindex(1)));
 
-  auto result = game_ptr->get_scene_tick_count();
+  auto result = game_ptr->get_current_tick();
 
   lua_pushnumber(L, static_cast<lua_Number>(result));
 

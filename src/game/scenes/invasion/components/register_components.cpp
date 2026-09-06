@@ -78,7 +78,7 @@ int set_animation(lua_State *L) {
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'nextFrameTick' field to be a number");
     }
-    const auto next_frame_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
+    const auto next_frame_tick = static_cast<framework::Tick>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     lua_getfield(L, 2, "ticksPerFrame");
@@ -202,7 +202,7 @@ int set_animation_unpausable(lua_State *L) {
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'nextFrameTick' field to be a number");
     }
-    const auto next_frame_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
+    const auto next_frame_tick = static_cast<framework::Tick>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     lua_getfield(L, 2, "ticksPerFrame");
@@ -304,7 +304,7 @@ int set_callback_on_timeout(lua_State *L) {
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'invokeOnTick' field to be a number");
     }
-    const auto invoke_on_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
+    const auto invoke_on_tick = static_cast<framework::Tick>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     lua_getfield(L, 2, "callback");
@@ -384,7 +384,7 @@ int set_callback_on_timeout_unpausable(lua_State *L) {
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'invokeOnTick' field to be a number");
     }
-    const auto invoke_on_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
+    const auto invoke_on_tick = static_cast<framework::Tick>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     lua_getfield(L, 2, "callback");
@@ -2007,7 +2007,7 @@ int set_ttl(lua_State *L) {
     if (!lua_isnumber(L, -1)) {
         luaL_argerror(L, 2, "Expected 'liveUntilTick' field to be a number");
     }
-    const auto live_until_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
+    const auto live_until_tick = static_cast<framework::Tick>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     ecs_ptr->emplace_or_replace<TTL>(

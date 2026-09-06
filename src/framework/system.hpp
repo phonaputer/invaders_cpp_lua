@@ -2,7 +2,7 @@
 
 #include "framework/event_broker.hpp"
 #include "framework/player_input_manager.hpp"
-#include <cstdint>
+#include "framework/tick.hpp"
 #include <entt.hpp>
 
 namespace framework {
@@ -15,7 +15,7 @@ struct ExecuteCtx {
     entt::registry &ecs;
     framework::EventBroker &events;
     const PlayerInputManager &player_input;
-    uint64_t current_tick;
+    Tick current_tick;
 };
 // NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
 
