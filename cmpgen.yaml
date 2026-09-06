@@ -79,7 +79,7 @@ fieldTypes:
 components:
   - name: Animation
     fields:
-      - { name: Tick Counter, type: uint16 }
+      - { name: Next Frame Tick, type: uint64 }
       - { name: Ticks Per Frame, type: uint16 }
       - { name: Cur Frame, type: uint8 }
       - { name: Strip ID, type: animation_strip_id }
@@ -88,7 +88,7 @@ components:
 
   - name: Animation Unpausable
     fields:
-      - { name: Tick Counter, type: uint16 }
+      - { name: Next Frame Tick, type: uint64 }
       - { name: Ticks Per Frame, type: uint16 }
       - { name: Cur Frame, type: uint8 }
       - { name: Strip ID, type: animation_strip_id }

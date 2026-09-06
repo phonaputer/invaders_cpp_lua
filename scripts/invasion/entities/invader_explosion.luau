@@ -12,7 +12,7 @@ function InvaderExplosion.new(x: number, y: number)
 
 	ECS.setAnimation(entity, {
 		ticksPerFrame = 5,
-		tickCounter = 0,
+		nextFrameTick = Scene.currentTick() + 5,
 		stripID = explosionAnimationStrip,
 		curFrame = 0,
 		playing = true,

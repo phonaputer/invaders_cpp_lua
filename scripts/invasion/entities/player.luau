@@ -20,7 +20,7 @@ function Player.new(): ()
 
 	ECS.setAnimation(entity, {
 		ticksPerFrame = 4,
-		tickCounter = 0,
+		nextFrameTick = Scene.currentTick() + 4,
 		stripID = playerStrip,
 		curFrame = 0,
 		playing = false,

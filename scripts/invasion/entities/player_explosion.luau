@@ -12,7 +12,7 @@ function PlayerExplosion.new(x: number, y: number, ticksToLive: number)
 
 	ECS.setAnimationUnpausable(entity, {
 		ticksPerFrame = 5,
-		tickCounter = 0,
+		nextFrameTick = Scene.currentTick() + 5,
 		stripID = explosionAnimationStrip,
 		curFrame = 0,
 	})

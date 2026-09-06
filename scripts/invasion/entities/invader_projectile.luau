@@ -20,7 +20,7 @@ function InvaderProjectile.new(x: number, y: number): ()
 
 	ECS.setAnimation(entity, {
 		ticksPerFrame = 40,
-		tickCounter = 0,
+		nextFrameTick = Scene.currentTick() + 40,
 		stripID = projectileAnimationStrip,
 		curFrame = 0,
 		playing = true,

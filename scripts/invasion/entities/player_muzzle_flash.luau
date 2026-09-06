@@ -10,7 +10,7 @@ function PlayerMuzzleFlash.new(player_entity: number): ()
 
 	ECS.setAnimation(entity, {
 		ticksPerFrame = 10,
-		tickCounter = 0,
+		nextFrameTick = Scene.currentTick() + 10,
 		stripID = muzzleFlashStrip,
 		curFrame = 0,
 		playing = true,

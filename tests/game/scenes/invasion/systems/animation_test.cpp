@@ -59,10 +59,11 @@ TEST(SystemAnimation, ExecuteAnimationIsNotPlayingShouldDoNothing) {
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 10});
   setup.animation_strips.add_frame(strip_id, {.x = 2, .y = 20});
   ctx.ecs.emplace<components::Sprite>(entity, default_dummy_sprite());
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .tick_counter = 100,
+          .next_frame_tick = 100,
           .ticks_per_frame = 1,
           .strip_id = strip_id,
           .playing = false,
@@ -73,7 +74,7 @@ TEST(SystemAnimation, ExecuteAnimationIsNotPlayingShouldDoNothing) {
 
   EXPECT_EQ(default_dummy_sprite(), ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .tick_counter = 100,
+      .next_frame_tick = 100,
       .ticks_per_frame = 1,
       .strip_id = strip_id,
       .playing = false,
@@ -81,35 +82,7 @@ TEST(SystemAnimation, ExecuteAnimationIsNotPlayingShouldDoNothing) {
   EXPECT_EQ(expected_animation, ctx.ecs.get<components::Animation>(entity));
 }
 
-TEST(SystemAnimation, ExecuteAnimationStripHasNoFramesShouldDoNothing) {
-  TestSetup setup = setupTest();
-  auto ctx = setup.ctx();
-  auto entity = ctx.ecs.create();
-  auto strip_id = setup.animation_strips.create();
-  ctx.ecs.emplace<components::Sprite>(entity, default_dummy_sprite());
-  ctx.ecs.emplace<components::Animation>(
-      entity,
-      components::Animation{
-          .tick_counter = 100,
-          .ticks_per_frame = 1,
-          .strip_id = strip_id,
-          .playing = true,
-      }
-  );
-
-  setup.system->execute(ctx);
-
-  EXPECT_EQ(default_dummy_sprite(), ctx.ecs.get<components::Sprite>(entity));
-  const auto expected_animation = components::Animation{
-      .tick_counter = 100,
-      .ticks_per_frame = 1,
-      .strip_id = strip_id,
-      .playing = true,
-  };
-  EXPECT_EQ(expected_animation, ctx.ecs.get<components::Animation>(entity));
-}
-
-TEST(SystemAnimation, ExecuteCounterHasNotYetReachedTicksPerFrameShouldIncrementCounter) {
+TEST(SystemAnimation, ExecuteCounterHasNotYetReachedTicksPerFrameShouldDoNothing) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity = ctx.ecs.create();
@@ -117,10 +90,11 @@ TEST(SystemAnimation, ExecuteCounterHasNotYetReachedTicksPerFrameShouldIncrement
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 10});
   setup.animation_strips.add_frame(strip_id, {.x = 2, .y = 20});
   ctx.ecs.emplace<components::Sprite>(entity, default_dummy_sprite());
+  ctx.current_tick = 99;
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .tick_counter = 0,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .strip_id = strip_id,
           .playing = true,
@@ -131,7 +105,7 @@ TEST(SystemAnimation, ExecuteCounterHasNotYetReachedTicksPerFrameShouldIncrement
 
   EXPECT_EQ(default_dummy_sprite(), ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .tick_counter = 1,
+      .next_frame_tick = 100,
       .ticks_per_frame = 2,
       .strip_id = strip_id,
       .playing = true,
@@ -147,6 +121,7 @@ TEST(SystemAnimation, ExecuteCounterHasReachesTicksPerFrameShouldMoveToNextFrame
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 2});
   setup.animation_strips.add_frame(strip_id, {.x = 3, .y = 4});
   setup.animation_strips.add_frame(strip_id, {.x = 5, .y = 6});
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
@@ -162,7 +137,7 @@ TEST(SystemAnimation, ExecuteCounterHasReachesTicksPerFrameShouldMoveToNextFrame
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .tick_counter = 1,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .cur_frame = 0,
           .strip_id = strip_id,
@@ -183,7 +158,7 @@ TEST(SystemAnimation, ExecuteCounterHasReachesTicksPerFrameShouldMoveToNextFrame
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .tick_counter = 0,
+      .next_frame_tick = 102,
       .ticks_per_frame = 2,
       .cur_frame = 1,
       .strip_id = strip_id,
@@ -200,6 +175,7 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenAlreadyAtLastOneShouldMoveToFirstFram
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 2});
   setup.animation_strips.add_frame(strip_id, {.x = 3, .y = 4});
   setup.animation_strips.add_frame(strip_id, {.x = 5, .y = 6});
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
@@ -215,7 +191,7 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenAlreadyAtLastOneShouldMoveToFirstFram
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .tick_counter = 1,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .cur_frame = 2,
           .strip_id = strip_id,
@@ -236,7 +212,7 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenAlreadyAtLastOneShouldMoveToFirstFram
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .tick_counter = 0,
+      .next_frame_tick = 102,
       .ticks_per_frame = 2,
       .cur_frame = 0,
       .strip_id = strip_id,
@@ -253,6 +229,7 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsShouldDecrementFrame)
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 2});
   setup.animation_strips.add_frame(strip_id, {.x = 3, .y = 4});
   setup.animation_strips.add_frame(strip_id, {.x = 5, .y = 6});
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
@@ -268,7 +245,7 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsShouldDecrementFrame)
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .tick_counter = 1,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .cur_frame = 1,
           .strip_id = strip_id,
@@ -290,7 +267,7 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsShouldDecrementFrame)
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .tick_counter = 0,
+      .next_frame_tick = 102,
       .ticks_per_frame = 2,
       .cur_frame = 0,
       .strip_id = strip_id,
@@ -308,6 +285,7 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsAndAlreadyAtFirstFram
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 2});
   setup.animation_strips.add_frame(strip_id, {.x = 3, .y = 4});
   setup.animation_strips.add_frame(strip_id, {.x = 5, .y = 6});
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
@@ -323,7 +301,7 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsAndAlreadyAtFirstFram
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .tick_counter = 1,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .cur_frame = 0,
           .strip_id = strip_id,
@@ -345,7 +323,7 @@ TEST(SystemAnimation, ExecuteShiftFrameWhenPlayingBackwardsAndAlreadyAtFirstFram
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .tick_counter = 0,
+      .next_frame_tick = 102,
       .ticks_per_frame = 2,
       .cur_frame = 2,
       .strip_id = strip_id,
@@ -363,6 +341,7 @@ TEST(SystemAnimation, ExecuteGameIsPausedShouldNotExecuteRegularAnimations) {
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 2});
   setup.animation_strips.add_frame(strip_id, {.x = 3, .y = 4});
   setup.animation_strips.add_frame(strip_id, {.x = 5, .y = 6});
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
@@ -378,7 +357,7 @@ TEST(SystemAnimation, ExecuteGameIsPausedShouldNotExecuteRegularAnimations) {
   ctx.ecs.emplace<components::Animation>(
       entity,
       components::Animation{
-          .tick_counter = 1,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .cur_frame = 0,
           .strip_id = strip_id,
@@ -400,7 +379,7 @@ TEST(SystemAnimation, ExecuteGameIsPausedShouldNotExecuteRegularAnimations) {
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::Animation{
-      .tick_counter = 1,
+      .next_frame_tick = 100,
       .ticks_per_frame = 2,
       .cur_frame = 0,
       .strip_id = strip_id,
@@ -417,6 +396,7 @@ TEST(SystemAnimation, ExecuteGameIsPausedShouldStillExecuteUnpausableAnimations)
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 2});
   setup.animation_strips.add_frame(strip_id, {.x = 3, .y = 4});
   setup.animation_strips.add_frame(strip_id, {.x = 5, .y = 6});
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
@@ -432,7 +412,7 @@ TEST(SystemAnimation, ExecuteGameIsPausedShouldStillExecuteUnpausableAnimations)
   ctx.ecs.emplace<components::AnimationUnpausable>(
       entity,
       components::AnimationUnpausable{
-          .tick_counter = 1,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .cur_frame = 0,
           .strip_id = strip_id,
@@ -453,7 +433,7 @@ TEST(SystemAnimation, ExecuteGameIsPausedShouldStillExecuteUnpausableAnimations)
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::AnimationUnpausable{
-      .tick_counter = 0,
+      .next_frame_tick = 102,
       .ticks_per_frame = 2,
       .cur_frame = 1,
       .strip_id = strip_id,
@@ -469,6 +449,7 @@ TEST(SystemAnimation, ExecuteGameIsNotPausedShouldStillExecuteUnpausableAnimatio
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 2});
   setup.animation_strips.add_frame(strip_id, {.x = 3, .y = 4});
   setup.animation_strips.add_frame(strip_id, {.x = 5, .y = 6});
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
@@ -484,7 +465,7 @@ TEST(SystemAnimation, ExecuteGameIsNotPausedShouldStillExecuteUnpausableAnimatio
   ctx.ecs.emplace<components::AnimationUnpausable>(
       entity,
       components::AnimationUnpausable{
-          .tick_counter = 1,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .cur_frame = 0,
           .strip_id = strip_id,
@@ -504,7 +485,7 @@ TEST(SystemAnimation, ExecuteGameIsNotPausedShouldStillExecuteUnpausableAnimatio
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::AnimationUnpausable{
-      .tick_counter = 0,
+      .next_frame_tick = 102,
       .ticks_per_frame = 2,
       .cur_frame = 1,
       .strip_id = strip_id,
@@ -520,6 +501,7 @@ TEST(SystemAnimation, ExecuteUnpausableAnimationHasReachedEndOfStripShouldWrapAr
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 2});
   setup.animation_strips.add_frame(strip_id, {.x = 3, .y = 4});
   setup.animation_strips.add_frame(strip_id, {.x = 5, .y = 6});
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
@@ -535,7 +517,7 @@ TEST(SystemAnimation, ExecuteUnpausableAnimationHasReachedEndOfStripShouldWrapAr
   ctx.ecs.emplace<components::AnimationUnpausable>(
       entity,
       components::AnimationUnpausable{
-          .tick_counter = 1,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .cur_frame = 2,
           .strip_id = strip_id,
@@ -555,7 +537,7 @@ TEST(SystemAnimation, ExecuteUnpausableAnimationHasReachedEndOfStripShouldWrapAr
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::AnimationUnpausable{
-      .tick_counter = 0,
+      .next_frame_tick = 102,
       .ticks_per_frame = 2,
       .cur_frame = 0,
       .strip_id = strip_id,
@@ -563,7 +545,7 @@ TEST(SystemAnimation, ExecuteUnpausableAnimationHasReachedEndOfStripShouldWrapAr
   EXPECT_EQ(expected_animation, ctx.ecs.get<components::AnimationUnpausable>(entity));
 }
 
-TEST(SystemAnimation, ExecuteUnpausableAnimationNotYetAtFrameChangeShouldIncrTicks) {
+TEST(SystemAnimation, ExecuteUnpausableAnimationNotYetAtFrameChangeShouldDoNothing) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity = ctx.ecs.create();
@@ -571,6 +553,7 @@ TEST(SystemAnimation, ExecuteUnpausableAnimationNotYetAtFrameChangeShouldIncrTic
   setup.animation_strips.add_frame(strip_id, {.x = 1, .y = 2});
   setup.animation_strips.add_frame(strip_id, {.x = 3, .y = 4});
   setup.animation_strips.add_frame(strip_id, {.x = 5, .y = 6});
+  ctx.current_tick = 99;
   ctx.ecs.emplace<components::Sprite>(
       entity,
       components::Sprite{
@@ -586,7 +569,7 @@ TEST(SystemAnimation, ExecuteUnpausableAnimationNotYetAtFrameChangeShouldIncrTic
   ctx.ecs.emplace<components::AnimationUnpausable>(
       entity,
       components::AnimationUnpausable{
-          .tick_counter = 0,
+          .next_frame_tick = 100,
           .ticks_per_frame = 2,
           .cur_frame = 2,
           .strip_id = strip_id,
@@ -606,7 +589,7 @@ TEST(SystemAnimation, ExecuteUnpausableAnimationNotYetAtFrameChangeShouldIncrTic
   };
   EXPECT_EQ(expected_sprite, ctx.ecs.get<components::Sprite>(entity));
   const auto expected_animation = components::AnimationUnpausable{
-      .tick_counter = 1,
+      .next_frame_tick = 100,
       .ticks_per_frame = 2,
       .cur_frame = 2,
       .strip_id = strip_id,

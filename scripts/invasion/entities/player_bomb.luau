@@ -67,7 +67,7 @@ function PlayerBomb.new(x: number, y: number)
 
 	ECS.setAnimation(entity, {
 		ticksPerFrame = 6,
-		tickCounter = 0,
+		nextFrameTick = Scene.currentTick() + 6,
 		stripID = explosionAnimationStrip,
 		curFrame = 0,
 		playing = true,

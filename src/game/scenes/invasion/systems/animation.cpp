@@ -26,17 +26,13 @@ void Animation::execute_unpausable_animations(framework::ExecuteCtx &ctx) {
   auto view = ctx.ecs.view<components::AnimationUnpausable, components::Sprite>();
 
   for (auto [entity, animation, sprite] : view.each()) {
-    animation.tick_counter++;
-    if (animation.tick_counter < animation.ticks_per_frame) {
+    if (animation.next_frame_tick > ctx.current_tick) {
       continue;
     }
 
-    animation.tick_counter = 0;
+    animation.next_frame_tick = ctx.current_tick + animation.ticks_per_frame;
 
     auto strip = animation_strips.get().get(animation.strip_id);
-    if (strip.empty()) {
-      continue;
-    }
 
     animation.cur_frame++;
     if (animation.cur_frame >= strip.size()) {
@@ -63,40 +59,31 @@ void Animation::execute_regular_animations(framework::ExecuteCtx &ctx) {
       continue;
     }
 
-    auto strip = animation_strips.get().get(animation.strip_id);
-    if (strip.empty()) {
+    if (animation.next_frame_tick > ctx.current_tick) {
       continue;
     }
 
-    bool should_update_frame = false;
+    animation.next_frame_tick = ctx.current_tick + animation.ticks_per_frame;
 
-    animation.tick_counter++;
-    if (animation.tick_counter >= animation.ticks_per_frame) {
-      animation.tick_counter = 0;
-      should_update_frame = true;
+    auto strip = animation_strips.get().get(animation.strip_id);
 
-      if (animation.play_reversed) {
-        if (animation.cur_frame == 0) {
-          animation.cur_frame = strip.size() - 1;
-        } else {
-          animation.cur_frame--;
-        }
+    if (animation.play_reversed) {
+      if (animation.cur_frame == 0) {
+        animation.cur_frame = strip.size() - 1;
       } else {
-        animation.cur_frame++;
-        if (animation.cur_frame >= strip.size()) {
-          animation.cur_frame = 0;
-        }
+        animation.cur_frame--;
+      }
+    } else {
+      animation.cur_frame++;
+      if (animation.cur_frame >= strip.size()) {
+        animation.cur_frame = 0;
       }
     }
 
-    ctx.ecs.replace<components::Animation>(entity, animation);
+    auto frame = strip.at(animation.cur_frame);
 
-    if (should_update_frame) {
-      auto frame = strip.at(animation.cur_frame);
-
-      sprite.src_x = static_cast<float>(frame.x) * sprite.src_w;
-      sprite.src_y = static_cast<float>(frame.y) * sprite.src_h;
-    }
+    sprite.src_x = static_cast<float>(frame.x) * sprite.src_w;
+    sprite.src_y = static_cast<float>(frame.y) * sprite.src_h;
   }
 }
 

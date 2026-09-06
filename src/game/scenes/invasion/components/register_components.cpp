@@ -74,11 +74,11 @@ int set_animation(lua_State *L) {
 
     luaL_checktype(L, 2, LUA_TTABLE);
 
-    lua_getfield(L, 2, "tickCounter");
+    lua_getfield(L, 2, "nextFrameTick");
     if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
+        luaL_argerror(L, 2, "Expected 'nextFrameTick' field to be a number");
     }
-    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
+    const auto next_frame_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     lua_getfield(L, 2, "ticksPerFrame");
@@ -119,7 +119,7 @@ int set_animation(lua_State *L) {
     ecs_ptr->emplace_or_replace<Animation>(
         entity,
         Animation{
-            .tick_counter = tick_counter,
+            .next_frame_tick = next_frame_tick,
             .ticks_per_frame = ticks_per_frame,
             .cur_frame = cur_frame,
             .strip_id = strip_id,
@@ -142,8 +142,8 @@ int get_animation(lua_State *L) {
 
     lua_newtable(L);
 
-    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
-    lua_setfield(L, -2, "tickCounter");
+    lua_pushnumber(L, static_cast<lua_Number>(component.next_frame_tick));
+    lua_setfield(L, -2, "nextFrameTick");
 
     lua_pushnumber(L, static_cast<lua_Number>(component.ticks_per_frame));
     lua_setfield(L, -2, "ticksPerFrame");
@@ -198,11 +198,11 @@ int set_animation_unpausable(lua_State *L) {
 
     luaL_checktype(L, 2, LUA_TTABLE);
 
-    lua_getfield(L, 2, "tickCounter");
+    lua_getfield(L, 2, "nextFrameTick");
     if (!lua_isnumber(L, -1)) {
-        luaL_argerror(L, 2, "Expected 'tickCounter' field to be a number");
+        luaL_argerror(L, 2, "Expected 'nextFrameTick' field to be a number");
     }
-    const auto tick_counter = static_cast<uint16_t>(lua_tonumber(L, -1));
+    const auto next_frame_tick = static_cast<uint64_t>(lua_tonumber(L, -1));
     lua_pop(L, 1);
 
     lua_getfield(L, 2, "ticksPerFrame");
@@ -229,7 +229,7 @@ int set_animation_unpausable(lua_State *L) {
     ecs_ptr->emplace_or_replace<AnimationUnpausable>(
         entity,
         AnimationUnpausable{
-            .tick_counter = tick_counter,
+            .next_frame_tick = next_frame_tick,
             .ticks_per_frame = ticks_per_frame,
             .cur_frame = cur_frame,
             .strip_id = strip_id,
@@ -250,8 +250,8 @@ int get_animation_unpausable(lua_State *L) {
 
     lua_newtable(L);
 
-    lua_pushnumber(L, static_cast<lua_Number>(component.tick_counter));
-    lua_setfield(L, -2, "tickCounter");
+    lua_pushnumber(L, static_cast<lua_Number>(component.next_frame_tick));
+    lua_setfield(L, -2, "nextFrameTick");
 
     lua_pushnumber(L, static_cast<lua_Number>(component.ticks_per_frame));
     lua_setfield(L, -2, "ticksPerFrame");

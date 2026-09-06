@@ -64,7 +64,7 @@ function InvaderEel.new(): ()
 
 	ECS.setAnimation(entity, {
 		ticksPerFrame = 25,
-		tickCounter = 0,
+		nextFrameTick = Scene.currentTick() + 25,
 		stripID = strip,
 		curFrame = 0,
 		playing = true,

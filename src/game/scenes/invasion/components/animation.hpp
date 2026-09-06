@@ -8,7 +8,7 @@
 namespace components {
 
 struct Animation {
-    uint16_t tick_counter = 0;
+    uint64_t next_frame_tick = 0;
     uint16_t ticks_per_frame = 0;
     uint8_t cur_frame = 0;
     infra::AnimationStripID strip_id = 0;
