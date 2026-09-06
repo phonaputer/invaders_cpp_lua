@@ -15,7 +15,7 @@ struct ExecuteCtx {
     entt::registry &ecs;
     framework::EventBroker &events;
     const PlayerInputManager &player_input;
-    uint64_t scene_tick_count;
+    uint64_t current_tick;
 };
 // NOLINTEND(cppcoreguidelines-avoid-const-or-ref-data-members)
 

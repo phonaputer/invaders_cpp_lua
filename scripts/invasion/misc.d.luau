@@ -45,5 +45,5 @@ declare Game: {
 }
 
 declare Scene: {
-    tickCount: () -> number,
+    currentTick: () -> number,
 }

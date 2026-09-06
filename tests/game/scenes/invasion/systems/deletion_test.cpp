@@ -78,7 +78,7 @@ struct TestSetup {
           .ecs = ecs,
           .events = events,
           .player_input = player_input,
-          .scene_tick_count = 0,
+          .current_tick = 0,
       };
     }
 };
@@ -114,7 +114,7 @@ TEST_F(SystemDeletion, ExecuteTTLHasNotReachedLifetimeShouldIncrement) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity = ctx.ecs.create();
-  ctx.scene_tick_count = 99;
+  ctx.current_tick = 99;
   ctx.ecs.emplace<components::TTL>(entity, components::TTL{.live_until_tick = 100});
 
   setup.system.execute(ctx);
@@ -126,7 +126,7 @@ TEST_F(SystemDeletion, ExecuteTTLReachesLifetimeShouldDeleteEntity) {
   TestSetup setup = setupTest();
   auto ctx = setup.ctx();
   auto entity = ctx.ecs.create();
-  ctx.scene_tick_count = 100;
+  ctx.current_tick = 100;
   ctx.ecs.emplace<components::TTL>(entity, components::TTL{.live_until_tick = 100});
 
   setup.system.execute(ctx);

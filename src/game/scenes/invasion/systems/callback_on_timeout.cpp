@@ -20,7 +20,7 @@ void CallbackOnTimeout::execute(framework::ExecuteCtx &ctx) {
 
   auto unpausable_view = ctx.ecs.view<components::CallbackOnTimeoutUnpausable>();
   for (auto [entity, cb_on_timeout] : unpausable_view.each()) {
-    if (cb_on_timeout.invoke_on_tick > ctx.scene_tick_count) {
+    if (cb_on_timeout.invoke_on_tick > ctx.current_tick) {
       continue;
     }
 
@@ -46,7 +46,7 @@ void CallbackOnTimeout::execute(framework::ExecuteCtx &ctx) {
 
   auto view = ctx.ecs.view<components::CallbackOnTimeout>();
   for (auto [entity, cb_on_timeout] : view.each()) {
-    if (cb_on_timeout.invoke_on_tick > ctx.scene_tick_count) {
+    if (cb_on_timeout.invoke_on_tick > ctx.current_tick) {
       continue;
     }
 

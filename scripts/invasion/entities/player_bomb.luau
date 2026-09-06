@@ -93,7 +93,7 @@ function PlayerBomb.new(x: number, y: number)
 	})
 
 	ECS.setTTL(entity, {
-		liveUntilTick = Scene.tickCount() + 24,
+		liveUntilTick = Scene.currentTick() + 24,
 	})
 
 	local damageEntity = ECS.create()
@@ -119,7 +119,7 @@ function PlayerBomb.new(x: number, y: number)
 	})
 
 	ECS.setTTL(damageEntity, {
-		liveUntilTick = Scene.tickCount() + 1,
+		liveUntilTick = Scene.currentTick() + 1,
 	})
 end
 

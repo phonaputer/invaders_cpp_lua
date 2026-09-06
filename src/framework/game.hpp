@@ -39,7 +39,7 @@ class Game : public SystemRegistry, public SceneSetter {
     std::optional<std::unique_ptr<Scene>> new_scene;
     std::optional<std::unique_ptr<Scene>> scene;
 
-    uint64_t scene_tick_count;
+    uint64_t current_tick;
     uint64_t previous_now_ms;
     uint64_t unprocessed_ms;
 

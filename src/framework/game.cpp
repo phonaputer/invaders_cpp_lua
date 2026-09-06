@@ -88,7 +88,7 @@ void Game::update() {
       .ecs = ecs,
       .events = event_broker,
       .player_input = *player_input_manager,
-      .scene_tick_count = scene_tick_count,
+      .current_tick = current_tick,
   };
 
   event_broker.clear_all_draw();
@@ -101,7 +101,7 @@ void Game::update() {
       system->execute(ctx);
     }
 
-    ctx.scene_tick_count = ++scene_tick_count;
+    ctx.current_tick = ++current_tick;
     unprocessed_ms -= MS_PER_UPDATE;
   }
 
@@ -126,7 +126,7 @@ void Game::draw() {
       .ecs = ecs,
       .events = event_broker,
       .player_input = *player_input_manager,
-      .scene_tick_count = scene_tick_count,
+      .current_tick = current_tick,
   };
 
   for (const auto &system : draw_systems) {
@@ -177,14 +177,14 @@ void Game::apply_new_scene_if_any() {
       }
   );
 
-  scene_tick_count = 0;
+  current_tick = 0;
 
   scene = std::move(new_scene.value());
   new_scene = std::nullopt;
 }
 
 uint64_t Game::get_scene_tick_count() const {
-  return scene_tick_count;
+  return current_tick;
 }
 
 } // namespace framework

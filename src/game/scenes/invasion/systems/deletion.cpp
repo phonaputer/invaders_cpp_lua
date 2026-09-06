@@ -16,7 +16,7 @@ Deletion::Deletion(framework::ScriptEnvironment &scripts, infra::CallbackGetter 
 void Deletion::execute(framework::ExecuteCtx &ctx) {
   auto ttl_view = ctx.ecs.view<components::TTL>();
   for (auto [entity, ttl] : ttl_view.each()) {
-    if (ttl.live_until_tick > ctx.scene_tick_count) {
+    if (ttl.live_until_tick > ctx.current_tick) {
       continue;
     }
 

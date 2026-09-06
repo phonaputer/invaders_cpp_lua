@@ -24,8 +24,8 @@ void register_game_to_script_env(Game &game, ScriptEnvironment &scripts) {
   lua_newtable(L);
 
   lua_pushlightuserdata(L, game_ptr);
-  lua_pushcclosure(L, &get_scene_tick_count, "Scene.tickCount", 1);
-  lua_setfield(L, -2, "tickCount");
+  lua_pushcclosure(L, &get_scene_tick_count, "Scene.currentTick", 1);
+  lua_setfield(L, -2, "currentTick");
 
   lua_setglobal(L, "Scene");
 }

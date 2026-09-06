@@ -42,7 +42,7 @@ function PlayerMuzzleFlash.new(player_entity: number): ()
 	})
 
 	ECS.setTTL(entity, {
-		liveUntilTick = Scene.tickCount() + 20,
+		liveUntilTick = Scene.currentTick() + 20,
 	})
 end
 
