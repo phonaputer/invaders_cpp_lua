@@ -12,6 +12,7 @@
 #include "framework/system_registry.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
+#include <cstdint>
 #include <entt.hpp>
 #include <memory>
 #include <optional>
@@ -38,16 +39,20 @@ class Game : public SystemRegistry, public SceneSetter {
     std::optional<std::unique_ptr<Scene>> new_scene;
     std::optional<std::unique_ptr<Scene>> scene;
 
-    Uint64 previous_now_ms;
-    Uint64 unprocessed_ms;
+    uint64_t scene_tick_count;
+    uint64_t previous_now_ms;
+    uint64_t unprocessed_ms;
 
     void apply_new_scene_if_any();
 
   public:
     Game();
+
     void update();
     void draw();
+
     PlayerInputManager &get_player_input_manager();
+    uint64_t get_scene_tick_count() const;
 
     void set_scene(std::unique_ptr<Scene> scene) override;
 

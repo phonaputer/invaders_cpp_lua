@@ -43,3 +43,7 @@ declare Game: {
     playSound: (string) -> (),
     stopSound: (string) -> (),
 }
+
+declare Scene: {
+    tickCount: () -> number,
+}

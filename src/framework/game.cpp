@@ -2,6 +2,7 @@
 #include "framework/constants.hpp"
 #include "framework/event_broker.hpp"
 #include "framework/player_input_manager.hpp"
+#include "framework/register_game_to_script_env.hpp"
 #include "framework/scene.hpp"
 #include "framework/script_environment.hpp"
 #include "framework/sdl_asset_manager.hpp"
@@ -87,6 +88,7 @@ void Game::update() {
       .ecs = ecs,
       .events = event_broker,
       .player_input = *player_input_manager,
+      .scene_tick_count = scene_tick_count,
   };
 
   event_broker.clear_all_draw();
@@ -97,6 +99,7 @@ void Game::update() {
 
     for (const auto &system : update_systems) {
       system->execute(ctx);
+      ctx.scene_tick_count = ++scene_tick_count;
     }
 
     unprocessed_ms -= MS_PER_UPDATE;
@@ -109,7 +112,7 @@ void Game::update() {
   if (MS_PER_UPDATE > frameTime) {
     SDL_Delay(MS_PER_UPDATE - frameTime);
   }
-}
+} // namespace framework
 
 void Game::draw() {
   if (!scene.has_value()) {
@@ -123,6 +126,7 @@ void Game::draw() {
       .ecs = ecs,
       .events = event_broker,
       .player_input = *player_input_manager,
+      .scene_tick_count = scene_tick_count,
   };
 
   for (const auto &system : draw_systems) {
@@ -158,6 +162,7 @@ void Game::apply_new_scene_if_any() {
   update_systems.clear();
   draw_systems.clear();
   scripts = std::make_unique<ScriptEnvironment>();
+  register_game_to_script_env(*this, *scripts);
 
   new_scene.value()->initialize(
       SceneInitializationContext{
@@ -172,8 +177,14 @@ void Game::apply_new_scene_if_any() {
       }
   );
 
+  scene_tick_count = 0;
+
   scene = std::move(new_scene.value());
   new_scene = std::nullopt;
+}
+
+uint64_t Game::get_scene_tick_count() const {
+  return scene_tick_count;
 }
 
 } // namespace framework

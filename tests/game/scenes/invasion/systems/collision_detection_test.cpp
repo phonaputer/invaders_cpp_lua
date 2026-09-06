@@ -30,6 +30,7 @@ struct TestSetup {
           .ecs = ecs,
           .events = events,
           .player_input = player_input,
+          .scene_tick_count = 0,
       };
     }
 };
@@ -43,8 +44,9 @@ TestSetup setupTest() {
   };
 }
 
-entt::entity
-createEntityWithHitbox(framework::ExecuteCtx &ctx, float x, float y, float w, float h, bool passive = false) {
+entt::entity createEntityWithHitbox(
+    framework::ExecuteCtx &ctx, float x, float y, float w, float h, bool passive = false
+) {
   auto e = ctx.ecs.create();
 
   ctx.ecs.emplace<components::Position>(

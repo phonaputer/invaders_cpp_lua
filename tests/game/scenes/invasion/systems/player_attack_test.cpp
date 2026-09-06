@@ -98,6 +98,7 @@ struct TestSetup {
           .ecs = ecs,
           .events = events,
           .player_input = player_input,
+          .scene_tick_count = 0,
       };
     }
 };

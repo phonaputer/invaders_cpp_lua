@@ -3,6 +3,7 @@ target_sources(
   PRIVATE
   game.cpp
   player_input_manager.cpp
+  register_game_to_script_env.cpp
   sdl_asset_manager.cpp
   sdl_renderer.cpp
 )
